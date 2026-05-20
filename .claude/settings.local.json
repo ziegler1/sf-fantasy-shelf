@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(Get-Content backend/db/003_add_users.sql)",
-      "Bash(docker exec *)"
+      "Bash(docker exec *)",
+      "Read(//c/Users/ziegl/.claude/projects/c--Users-ziegl-sf-fantasy-shelf/**)",
+      "Read(//c/Users/ziegl/.claude/projects/c--Users-ziegl-sf-fantasy-shelf/memory/**)",
+      "Read(//c/Users/ziegl/.claude/projects/**)"
     ]
   }
 }

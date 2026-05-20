@@ -31,7 +31,7 @@ export interface SimilarAuthorsResponse {
 
 @Injectable({ providedIn: 'root' })
 export class ClaudeService {
-  private readonly base = 'http://localhost:3000/api/claude';
+  private readonly base = '/api/claude';
 
   constructor(private http: HttpClient) {}
 
