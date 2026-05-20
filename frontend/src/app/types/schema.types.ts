@@ -1,7 +1,14 @@
-// Auto-generated from backend/db/002_full_schema.sql
-// Keep in sync with the database schema.
+// Keep in sync with backend/src/types.ts and the db migrations.
 
 export type ReadingStatus = 'want-to-read' | 'reading' | 'read' | 'dnf';
+
+// password_hash intentionally omitted — never returned by the API
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  created_at: string;
+}
 export type AuthorRole = 'author' | 'editor' | 'illustrator' | 'translator';
 
 export interface Author {
@@ -69,6 +76,7 @@ export interface BookTag {
 
 export interface UserBook {
   id: number;
+  user_id: number;
   book_id: number;
   status: ReadingStatus;
   rating: 1 | 2 | 3 | 4 | 5 | null;
@@ -106,6 +114,7 @@ export interface UpcomingRelease {
 
 export interface AuthorFollow {
   id: number;
+  user_id: number;
   author_id: number;
   created_at: string;
 }

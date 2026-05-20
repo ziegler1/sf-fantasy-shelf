@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-Content backend/db/003_add_users.sql)",
+      "Bash(docker exec *)"
+    ]
+  }
+}

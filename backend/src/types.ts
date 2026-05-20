@@ -2,6 +2,14 @@
 // Keep both files in sync when changing the schema.
 
 export type ReadingStatus = 'want-to-read' | 'reading' | 'read' | 'dnf';
+
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  password_hash: string;
+  created_at: string;
+}
 export type AuthorRole = 'author' | 'editor' | 'illustrator' | 'translator';
 
 export interface Author {
@@ -44,6 +52,7 @@ export interface Book {
 
 export interface UserBook {
   id: number;
+  user_id: number;
   book_id: number;
   status: ReadingStatus;
   rating: 1 | 2 | 3 | 4 | 5 | null;
@@ -60,6 +69,13 @@ export interface BookWithDetails extends Book {
   series: (Series & { position: number | null })[];
   tags: Tag[];
   user_book: UserBook | null;
+}
+
+export interface AuthorFollow {
+  id: number;
+  user_id: number;
+  author_id: number;
+  created_at: string;
 }
 
 export interface AuthorWithBooks extends Author {
