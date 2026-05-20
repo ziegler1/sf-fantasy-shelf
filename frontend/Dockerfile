@@ -9,8 +9,8 @@ RUN npm run build
 # ---- Serve stage ----
 FROM nginx:1.25-alpine
 COPY frontend/nginx/nginx.conf /etc/nginx/conf.d/default.conf.template
+COPY frontend/nginx/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 COPY --from=build /app/dist/sf-fantasy-shelf/browser /usr/share/nginx/html
 EXPOSE 80
-CMD ["/bin/sh", "-c", \
-  "envsubst '${BACKEND_URL}' < /etc/nginx/conf.d/default.conf.template \
-   > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
