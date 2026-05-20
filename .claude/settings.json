@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C c:/Users/ziegl/sf-fantasy-shelf status)",
+      "Bash(git config *)"
+    ]
+  }
+}
