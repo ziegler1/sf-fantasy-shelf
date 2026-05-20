@@ -1,0 +1,41 @@
+# Node / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# Angular build output
+frontend/dist/
+frontend/.angular/cache/
+frontend/.angular/
+
+# Backend build output
+backend/dist/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Postgres / DB
+*.sql.bak
+*.pgdump
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Docker
+.dockerignore

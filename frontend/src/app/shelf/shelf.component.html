@@ -1,0 +1,14 @@
+<main style="max-width: 900px; margin: 2rem auto; padding: 0 1rem;">
+  <h1 style="font-size: 2rem; margin-bottom: 1.5rem;">SF Fantasy Shelf</h1>
+
+  <p *ngIf="!books.length" style="color: #94a3b8;">No books yet. Add some!</p>
+
+  <ul style="list-style: none; display: grid; gap: 1rem;">
+    <li *ngFor="let book of books"
+        style="background: #1e293b; border-radius: 8px; padding: 1rem 1.25rem;">
+      <strong>{{ book.title }}</strong>
+      <span style="color: #94a3b8; margin-left: 0.5rem;">by {{ book.author }}</span>
+      <span style="float: right; font-size: 0.8rem; color: #64748b;">{{ book.status }}</span>
+    </li>
+  </ul>
+</main>
