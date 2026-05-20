@@ -67,6 +67,7 @@ The database schema is already multi-user. This phase wires the backend routes a
 - `bcrypt` rounds = 12 (safe default, ~300ms per hash)
 - JWT expiry = 7 days; no refresh token for now (personal app)
 - Keep single-user fallback: if `MULTI_USER=false` env var is set, skip auth (useful during dev)
+- Password reset deferred — add to deferred list; worth building if family members use the app
 
 ---
 
@@ -74,11 +75,23 @@ The database schema is already multi-user. This phase wires the backend routes a
 
 **Goal:** Users can add, edit, and remove books from their library via the UI. Cover uploads work.
 
+### Deploy to production (do this first)
+
+- [ ] Push to GitHub, create Railway project, deploy both services
+- [ ] Run migrations 002 + 003 on Railway Postgres
+- [ ] Set all env vars (ANTHROPIC_API_KEY, BACKEND_URL, DATABASE_URL)
+- [ ] Configure Cloudflare DNS CNAME → Railway frontend domain
+- [ ] Verify the app is live and reachable before wiring auth
+
 ### Add books
 - [ ] "Add Book" button / FAB on My Library page
 - [ ] Add book dialog/page — manual entry form (title, authors, ISBN, series, tags, cover URL)
 - [ ] Cover image upload — drag-and-drop to R2, updates `books.cover_url`
-- [ ] OpenLibrary API integration — search by title/author/ISBN and auto-fill fields (`https://openlibrary.org/api/books`)
+- [ ] Book search API — try both and use whichever fills fields better:
+  - Google Books API (`https://www.googleapis.com/books/v1/volumes?q=`) — tends to have richer SFF metadata and series info
+  - OpenLibrary API (`https://openlibrary.org/api/books`) — open, no key needed, good ISBN coverage
+- [ ] Series auto-detection — Google Books and OpenLibrary both include series info in many entries; parse and pre-fill the series selector
+- [ ] Cache Claude summaries in `books.description` or a new `books.ai_summary` column — prevents regenerating on every card open once real books are in the library
 
 ### Edit / delete books
 - [ ] Book detail page (`/library/:id`) — full view, edit form, delete
@@ -111,7 +124,7 @@ The database schema is already multi-user. This phase wires the backend routes a
 - [ ] `POST /api/news/sources` — add an RSS/Atom source URL
 - [ ] `GET /api/news/articles` — list articles (paginated, newest first, optional source filter)
 - [ ] Background RSS fetch job — runs every 6 hours, stores articles in `news_articles`
-  - Options: Railway cron service, `node-cron` inside the backend, or a separate Railway worker
+  - Use `node-cron` inside the existing backend service — simplest path on Railway hobby plan. A separate Railway worker service counts as an additional service and costs extra. The backend is always running anyway.
 - [ ] Frontend: News page — article cards with title, source, summary, published date, link out
 - [ ] Seed with 3-4 default SFF news sources (e.g. The Verge SFF, Tor.com RSS, Fantasy Book Review)
 
@@ -135,8 +148,8 @@ The database schema is already multi-user. This phase wires the backend routes a
 
 ### Claude improvements
 - [ ] Stream Claude responses to the frontend via SSE (eliminate the wait for full response)
-- [ ] Cache Claude summaries in the `books` table so they're not regenerated every time
 - [ ] "Rate this recommendation" feedback to improve future suggestions
+- ~~Cache Claude summaries in the `books` table~~ — moved to Phase 2; you'll burn API credits fast once real books are being added
 
 ### Security & ops
 - [ ] Rate limiting on `/api/claude/*` routes (per user, e.g. 20 req/hour)
@@ -150,6 +163,7 @@ The database schema is already multi-user. This phase wires the backend routes a
 
 These are ideas that didn't make the cut for the main phases but are worth keeping:
 
+- **Password reset** — email-based reset flow; worth adding if family members use the app
 - **Barcode scanner** — mobile camera → ISBN → auto-add book
 - **Goodreads CSV import** — import existing reading history
 - **Author follow notifications** — email/push when a followed author has a new release
