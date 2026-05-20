@@ -1,0 +1,232 @@
+<div class="page-header">
+  <h1 class="page-title">Discover</h1>
+</div>
+
+<!-- ── What to Read Next ─────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-title-row">
+      <mat-icon class="section-icon">auto_awesome</mat-icon>
+      <h2 class="section-title">What to Read Next</h2>
+    </div>
+    <button mat-stroked-button class="refresh-btn" (click)="loadRecommendations()" [disabled]="recsLoading">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+  <p class="section-subtitle">Personalised picks based on your shelf</p>
+
+  @if (recsLoading) {
+    <div class="loading-row">
+      <mat-spinner diameter="32" />
+      <span>Asking Claude…</span>
+    </div>
+  } @else if (recsError) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <p>Couldn't load recommendations. Check your API key and try again.</p>
+    </div>
+  } @else if (recsMessage) {
+    <div class="empty-state">
+      <mat-icon>menu_book</mat-icon>
+      <p>{{ recsMessage }}</p>
+    </div>
+  } @else if (!recommendations.length) {
+    <div class="empty-state">
+      <mat-icon>menu_book</mat-icon>
+      <p>No recommendations yet.</p>
+    </div>
+  } @else {
+    <div class="rec-grid">
+      @for (rec of recommendations; track rec.title) {
+        <mat-card class="rec-card">
+          <mat-card-content>
+            <p class="rec-title">{{ rec.title }}</p>
+            <p class="rec-author">{{ rec.author }}</p>
+            <p class="rec-reason">{{ rec.reason }}</p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
+
+<!-- ── Similar Authors ───────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-title-row">
+      <mat-icon class="section-icon">people</mat-icon>
+      <h2 class="section-title">Authors You Might Enjoy</h2>
+    </div>
+  </div>
+  <p class="section-subtitle">Find authors with a similar style to someone you love</p>
+
+  <div class="author-selector">
+    <mat-form-field appearance="outline" class="author-field">
+      <mat-label>Select an author from your library</mat-label>
+      <mat-select [(ngModel)]="selectedAuthorId">
+        @for (author of authors; track author.id) {
+          <mat-option [value]="author.id">{{ author.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <button
+      mat-flat-button
+      class="find-btn"
+      [disabled]="!selectedAuthorId || suggestionsLoading"
+      (click)="loadSimilarAuthors()"
+    >
+      <mat-icon>search</mat-icon>
+      Find Similar
+    </button>
+  </div>
+
+  @if (suggestionsLoading) {
+    <div class="loading-row">
+      <mat-spinner diameter="32" />
+      <span>Asking Claude…</span>
+    </div>
+  } @else if (suggestionsError) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <p>Couldn't load suggestions. Check your API key and try again.</p>
+    </div>
+  } @else if (suggestions.length) {
+    <p class="results-label">Authors similar to <strong>{{ suggestionsAuthorName }}</strong></p>
+    <div class="rec-grid">
+      @for (s of suggestions; track s.name) {
+        <mat-card class="rec-card">
+          <mat-card-content>
+            <p class="rec-title">{{ s.name }}</p>
+            <p class="rec-author">{{ s.known_for }}</p>
+            <p class="rec-reason">{{ s.reason }}</p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
+
+<style>
+.section {
+  margin-bottom: 2.5rem;
+  max-width: 860px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-icon {
+  color: #a78bfa;
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.section-subtitle {
+  font-size: 0.8rem;
+  color: #475569;
+  margin: 0 0 1rem;
+}
+
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #64748b;
+  font-size: 0.875rem;
+  padding: 1rem 0;
+}
+
+.error-state {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f87171;
+  font-size: 0.875rem;
+  padding: 0.75rem 0;
+}
+
+.error-state mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.rec-card {
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+.rec-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0 0 0.2rem;
+}
+
+.rec-author {
+  font-size: 0.75rem;
+  color: #a78bfa;
+  margin: 0 0 0.6rem;
+}
+
+.rec-reason {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.refresh-btn {
+  color: #64748b !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  font-size: 0.75rem;
+}
+
+.author-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.author-field {
+  min-width: 280px;
+}
+
+.find-btn {
+  background: rgba(167,139,250,0.15) !important;
+  color: #a78bfa !important;
+  height: 56px;
+}
+
+.results-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 0.75rem;
+}
+
+.results-label strong {
+  color: #94a3b8;
+}
+</style>
