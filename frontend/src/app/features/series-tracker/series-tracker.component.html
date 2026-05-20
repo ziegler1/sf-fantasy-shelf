@@ -1,0 +1,124 @@
+<div class="page-header">
+  <h1 class="page-title">Series Tracker</h1>
+</div>
+
+@if (loading) {
+  <div class="empty-state">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (!seriesList.length) {
+  <div class="empty-state">
+    <mat-icon>auto_stories</mat-icon>
+    <p>No series tracked yet.</p>
+  </div>
+} @else {
+  <div class="series-list">
+    @for (s of seriesList; track s.id) {
+      <mat-card class="series-card">
+        <mat-card-header>
+          <mat-card-title>{{ s.name }}</mat-card-title>
+          <mat-card-subtitle>
+            {{ s.readCount }} / {{ s.books.length }} read
+          </mat-card-subtitle>
+          <span class="progress-pct">{{ s.progress }}%</span>
+        </mat-card-header>
+
+        <mat-card-content>
+          <mat-progress-bar
+            mode="determinate"
+            [value]="s.progress"
+            class="series-bar"
+          />
+
+          @if (s.description) {
+            <p class="series-desc">{{ s.description }}</p>
+          }
+
+          <ol class="book-list">
+            @for (book of s.books; track book.id) {
+              <li class="book-entry">
+                <span class="book-pos">{{ book.position ?? '?' }}</span>
+                <span class="book-title">{{ book.title }}</span>
+              </li>
+            }
+          </ol>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}
+
+<style>
+.series-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 720px;
+}
+
+.series-card {
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+.series-card mat-card-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.series-card .mat-mdc-card-header-text {
+  flex: 1;
+}
+
+.progress-pct {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #a78bfa;
+  padding-left: 1rem;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.series-bar {
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  height: 6px !important;
+  --mdc-linear-progress-active-indicator-color: #a78bfa;
+}
+
+.series-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.book-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.book-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.book-pos {
+  min-width: 1.5rem;
+  font-size: 0.75rem;
+  color: #475569;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.book-title {
+  color: #cbd5e1;
+}
+</style>

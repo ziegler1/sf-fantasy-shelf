@@ -1,0 +1,44 @@
+<mat-sidenav-container class="shell">
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <mat-sidenav
+    #drawer
+    class="sidenav"
+    [mode]="isHandset ? 'over' : 'side'"
+    [opened]="!isHandset"
+  >
+    <div class="sidenav-header">
+      <mat-icon class="brand-icon">auto_stories</mat-icon>
+      <span class="brand-name">SF Fantasy Shelf</span>
+    </div>
+
+    <mat-nav-list class="nav-list">
+      @for (item of navItems; track item.route) {
+        <a
+          mat-list-item
+          [routerLink]="item.route"
+          routerLinkActive="nav-active"
+          (click)="isHandset && drawer.close()"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <!-- ── Main content ─────────────────────────────────────── -->
+  <mat-sidenav-content class="main">
+    @if (isHandset) {
+      <mat-toolbar class="mobile-bar">
+        <button mat-icon-button (click)="drawer.toggle()" aria-label="Toggle menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="brand-name">SF Fantasy Shelf</span>
+      </mat-toolbar>
+    }
+
+    <div class="page-content">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
