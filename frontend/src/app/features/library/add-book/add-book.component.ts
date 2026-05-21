@@ -30,6 +30,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
   query = '';
   results: BookSearchResult[] = [];
   searching = false;
+  searchError = false;
   selected: BookSearchResult | null = null;
   status: ReadingStatus | '' = 'want-to-read';
   saving = false;
@@ -56,9 +57,19 @@ export class AddBookComponent implements OnInit, OnDestroy {
       debounceTime(350),
       distinctUntilChanged(),
       switchMap(q => {
-        if (q.trim().length < 2) { this.results = []; return of([]); }
+        if (q.trim().length < 2) {
+          this.results = [];
+          this.searchError = false;
+          return of([] as BookSearchResult[]);
+        }
         this.searching = true;
-        return this.searchService.searchBooks(q).pipe(catchError(() => of([])));
+        this.searchError = false;
+        return this.searchService.searchBooks(q).pipe(
+          catchError(() => {
+            this.searchError = true;
+            return of([] as BookSearchResult[]);
+          }),
+        );
       }),
       takeUntil(this.destroy$),
     ).subscribe(results => {

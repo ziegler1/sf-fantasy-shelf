@@ -17,62 +17,71 @@ export interface BookSearchResult {
 }
 
 // ── GET /api/search?q=... ─────────────────────────────────────────────────────
+// Uses OpenLibrary Search API — free, no key required, no rate-limit issues.
 
 router.get('/', asyncHandler(async (req, res) => {
   const q = String(req.query['q'] ?? '').trim();
   if (!q) return res.json([]);
 
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=12&langRestrict=en`;
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=15&fields=key,title,author_name,cover_i,first_publish_year,number_of_pages_median,isbn,language`;
+
   const response = await fetch(url);
-  if (!response.ok) return res.status(502).json({ error: 'Google Books unavailable' });
+  if (!response.ok) {
+    console.error(`OpenLibrary error ${response.status} for q="${q}"`);
+    return res.status(502).json({ error: 'Book search unavailable' });
+  }
 
-  const data = await response.json() as { items?: GoogleVolume[] };
-  const items = data.items ?? [];
+  const data = await response.json() as { docs?: OLDoc[] };
+  const docs = data.docs ?? [];
 
-  const results: BookSearchResult[] = items.map(item => {
-    const v = item.volumeInfo;
-    const isbns = v.industryIdentifiers ?? [];
-    const isbn10 = isbns.find(i => i.type === 'ISBN_10')?.identifier ?? null;
-    const isbn13 = isbns.find(i => i.type === 'ISBN_13')?.identifier ?? null;
-
-    // Use HTTPS and larger thumbnail
-    const rawCover = v.imageLinks?.thumbnail ?? v.imageLinks?.smallThumbnail ?? null;
-    const cover_url = rawCover ? rawCover.replace('http://', 'https://').replace('&zoom=1', '&zoom=2') : null;
-
-    // published_at: Google returns "2001", "2001-01", or "2001-01-15"
-    const published_at = v.publishedDate ?? null;
+  const results: BookSearchResult[] = docs.map(doc => {
+    const isbns: string[] = doc.isbn ?? [];
+    const isbn10  = isbns.find(s => s.length === 10) ?? null;
+    const isbn13  = isbns.find(s => s.length === 13) ?? null;
+    const cover_url = doc.cover_i
+      ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+      : null;
 
     return {
-      google_id:    item.id,
-      title:        v.title ?? 'Unknown Title',
-      authors:      v.authors ?? [],
+      google_id:    doc.key,                              // reuse field as opaque ID
+      title:        doc.title ?? 'Unknown Title',
+      authors:      doc.author_name ?? [],
       cover_url,
-      published_at,
-      page_count:   v.pageCount ?? null,
+      published_at: doc.first_publish_year ? String(doc.first_publish_year) : null,
+      page_count:   doc.number_of_pages_median ?? null,
       isbn:         isbn10,
       isbn13,
-      description:  v.description ?? null,
-      language:     v.language ?? 'en',
+      description:  null,                                 // not in search endpoint
+      language:     normaliseLanguage(doc.language),
     };
   });
 
   res.json(results);
 }));
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function normaliseLanguage(langs: string[] | undefined): string {
+  const code = langs?.[0]?.toLowerCase() ?? 'eng';
+  // Map 3-letter → 2-letter for common codes
+  const map: Record<string, string> = {
+    eng: 'en', fre: 'fr', ger: 'de', spa: 'es', ita: 'it',
+    por: 'pt', dut: 'nl', jpn: 'ja', chi: 'zh', pol: 'pl',
+  };
+  return map[code] ?? (code.length > 2 ? 'en' : code);
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface GoogleVolume {
-  id: string;
-  volumeInfo: {
-    title?: string;
-    authors?: string[];
-    publishedDate?: string;
-    description?: string;
-    pageCount?: number;
-    language?: string;
-    imageLinks?: { thumbnail?: string; smallThumbnail?: string };
-    industryIdentifiers?: { type: string; identifier: string }[];
-  };
+interface OLDoc {
+  key: string;
+  title?: string;
+  author_name?: string[];
+  cover_i?: number;
+  first_publish_year?: number;
+  number_of_pages_median?: number;
+  isbn?: string[];
+  language?: string[];
 }
 
 export default router;
