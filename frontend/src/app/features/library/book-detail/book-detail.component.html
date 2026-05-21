@@ -56,14 +56,25 @@
         </div>
       }
 
-      <div class="reading-status-row">
-        <span class="status-badge" [ngClass]="statusClass()">{{ statusLabel() }}</span>
-        @if (stars().length) {
-          <div class="stars">
-            @for (s of stars(); track $index) {
-              <mat-icon class="star">star</mat-icon>
+      <!-- Inline shelf editing -->
+      <div class="shelf-edit-row">
+        <mat-form-field appearance="outline" class="status-select">
+          <mat-select [(ngModel)]="editStatus" (ngModelChange)="onStatusChange($event)">
+            @for (opt of statusOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
             }
-          </div>
+          </mat-select>
+        </mat-form-field>
+        <div class="star-picker">
+          @for (n of starRange; track n) {
+            <mat-icon class="star-btn" [class.star-lit]="n <= editRating"
+                      (click)="setRating(n)" [matTooltip]="n + ' star' + (n > 1 ? 's' : '')">
+              {{ n <= editRating ? 'star' : 'star_border' }}
+            </mat-icon>
+          }
+        </div>
+        @if (shelfSaving) {
+          <mat-spinner diameter="14" class="shelf-spinner" />
         }
       </div>
     </div>
@@ -303,6 +314,42 @@
   border-radius: 4px;
   font-size: 0.65rem;
   color: #64748b;
+}
+
+.shelf-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.status-select {
+  width: 140px;
+  font-size: 0.78rem;
+}
+
+.status-select .mat-mdc-form-field-infix { padding: 0.3rem 0 !important; }
+
+.star-picker {
+  display: flex;
+  gap: 1px;
+}
+
+.star-btn {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #334155;
+  cursor: pointer;
+  transition: color 0.1s;
+}
+
+.star-btn.star-lit { color: #f59e0b; }
+.star-btn:hover    { color: #fbbf24; }
+
+.shelf-spinner {
+  flex-shrink: 0;
 }
 
 .reading-status-row {

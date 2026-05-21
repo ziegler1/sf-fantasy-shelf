@@ -55,6 +55,108 @@ function booksQuery(where = '', values: unknown[] = []) {
   };
 }
 
+// ── POST /api/books/import  (Google Books → DB, author lookup-or-create) ──────
+// Must be declared before /:id routes to avoid route conflict.
+
+router.post('/import', asyncHandler(async (req, res) => {
+  const {
+    title, authors: authorNames = [], cover_url, published_at,
+    page_count, isbn, isbn13, description, language = 'en',
+    status,
+  } = req.body as {
+    title: string;
+    authors: string[];
+    cover_url?: string;
+    published_at?: string;
+    page_count?: number;
+    isbn?: string;
+    isbn13?: string;
+    description?: string;
+    language?: string;
+    status?: ReadingStatus;
+  };
+
+  if (!title) return res.status(400).json({ error: 'title is required' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // If a book with the same ISBN already exists, return it instead of duplicating
+    if (isbn13 || isbn) {
+      const existing = await client.query<{ id: number }>(
+        `SELECT id FROM books WHERE (isbn13 = $1 AND isbn13 IS NOT NULL)
+                                 OR (isbn = $2 AND isbn IS NOT NULL) LIMIT 1`,
+        [isbn13 ?? null, isbn ?? null],
+      );
+      if (existing.rows.length) {
+        await client.query('ROLLBACK');
+        const { rows } = await pool.query<BookWithDetails>(
+          booksQuery('WHERE b.id = $1', [existing.rows[0].id]),
+        );
+        return res.status(200).json(rows[0]);
+      }
+    }
+
+    // Insert the book
+    const { rows: [book] } = await client.query(
+      `INSERT INTO books (title, isbn, isbn13, description, cover_url, published_at, page_count, language)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [title, isbn ?? null, isbn13 ?? null, description ?? null,
+       cover_url ?? null, published_at ?? null, page_count ?? null, language],
+    );
+
+    // Lookup-or-create each author
+    for (const name of authorNames) {
+      const trimmed = name.trim();
+      if (!trimmed) continue;
+      let authorId: number;
+      const found = await client.query<{ id: number }>(
+        'SELECT id FROM authors WHERE LOWER(name) = LOWER($1) LIMIT 1', [trimmed],
+      );
+      if (found.rows.length) {
+        authorId = found.rows[0].id;
+      } else {
+        const { rows: [a] } = await client.query<{ id: number }>(
+          'INSERT INTO authors (name) VALUES ($1) RETURNING id', [trimmed],
+        );
+        authorId = a.id;
+      }
+      await client.query(
+        'INSERT INTO book_authors (book_id, author_id, role) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+        [book.id, authorId, 'author'],
+      );
+    }
+
+    // Optionally place on the user's shelf immediately
+    if (status) {
+      await client.query(
+        `INSERT INTO user_books (user_id, book_id, status) VALUES (1, $1, $2)
+         ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, updated_at = NOW()`,
+        [book.id, status],
+      );
+    }
+
+    await client.query('COMMIT');
+
+    // Return enriched book
+    const { rows } = await pool.query<BookWithDetails>(booksQuery('WHERE b.id = $1', [book.id]));
+    res.status(201).json(rows[0]);
+
+    // Background summary generation
+    setImmediate(() => {
+      generateAndStoreSummary(book.id).catch(err =>
+        console.error(`Summary generation failed for book ${book.id}:`, err),
+      );
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}));
+
 // ── GET /api/books  (?status=reading&search=dune) ─────────────────────────────
 
 router.get('/', asyncHandler(async (req, res) => {

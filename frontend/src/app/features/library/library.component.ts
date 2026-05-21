@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { BookService } from '../../core/services/book.service';
 import { BookDetailComponent } from './book-detail/book-detail.component';
+import { AddBookComponent } from './add-book/add-book.component';
 import type { BookWithDetails, ReadingStatus } from '../../types/schema.types';
 
 interface StatusFilter {
@@ -64,10 +65,26 @@ export class LibraryComponent implements OnInit {
   }
 
   openDetail(book: BookWithDetails): void {
-    this.dialog.open(BookDetailComponent, {
+    const ref = this.dialog.open(BookDetailComponent, {
       data: book,
       panelClass: 'book-detail-panel',
       maxWidth: '100vw',
+    });
+    ref.afterClosed().subscribe((updated: BookWithDetails | undefined) => {
+      if (updated) {
+        const idx = this.books.findIndex(b => b.id === updated.id);
+        if (idx !== -1) this.books[idx] = updated;
+      }
+    });
+  }
+
+  openAddBook(): void {
+    const ref = this.dialog.open(AddBookComponent, {
+      panelClass: 'book-detail-panel',
+      maxWidth: '100vw',
+    });
+    ref.afterClosed().subscribe((newBook: BookWithDetails | undefined) => {
+      if (newBook) this.load();
     });
   }
 

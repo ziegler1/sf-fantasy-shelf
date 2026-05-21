@@ -1,0 +1,350 @@
+<div class="add-book-dialog">
+
+  <!-- ── Step 1: Search ───────────────────────────────────────── -->
+  @if (step === 'search') {
+    <h2 class="dialog-title">Add Book</h2>
+
+    <div class="search-wrap">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search by title, author, or ISBN</mat-label>
+        <input matInput
+               [(ngModel)]="query"
+               (ngModelChange)="onQueryChange($event)"
+               autocomplete="off"
+               autofocus>
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    @if (searching) {
+      <div class="center-state">
+        <mat-spinner diameter="32" />
+      </div>
+    } @else if (results.length) {
+      <div class="results-list">
+        @for (book of results; track book.google_id) {
+          <div class="result-row" (click)="pick(book)" role="button" tabindex="0"
+               (keydown.enter)="pick(book)">
+            <div class="result-cover">
+              @if (book.cover_url) {
+                <img [src]="book.cover_url" [alt]="book.title" class="result-cover-img">
+              } @else {
+                <div class="result-cover-placeholder"><mat-icon>menu_book</mat-icon></div>
+              }
+            </div>
+            <div class="result-info">
+              <p class="result-title">{{ book.title }}</p>
+              <p class="result-author">{{ authorLine(book) }}</p>
+              <p class="result-meta">
+                @if (yearOf(book)) { <span>{{ yearOf(book) }}</span> }
+                @if (book.page_count) { <span>· {{ book.page_count }}p</span> }
+              </p>
+            </div>
+            <mat-icon class="result-arrow">chevron_right</mat-icon>
+          </div>
+        }
+      </div>
+    } @else if (query.trim().length >= 2) {
+      <div class="center-state muted">No results found.</div>
+    }
+  }
+
+  <!-- ── Step 2: Confirm ──────────────────────────────────────── -->
+  @if (step === 'confirm' && selected) {
+    <div class="confirm-header">
+      <button mat-icon-button (click)="back()" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h2 class="dialog-title">Add to Library</h2>
+    </div>
+
+    <div class="confirm-body">
+      <div class="confirm-cover">
+        @if (selected.cover_url) {
+          <img [src]="selected.cover_url" [alt]="selected.title" class="confirm-cover-img">
+        } @else {
+          <div class="confirm-cover-placeholder"><mat-icon>menu_book</mat-icon></div>
+        }
+      </div>
+      <div class="confirm-meta">
+        <h3 class="confirm-title">{{ selected.title }}</h3>
+        <p class="confirm-author">{{ authorLine(selected) }}</p>
+        <div class="confirm-pills">
+          @if (yearOf(selected)) {
+            <span class="meta-pill">{{ yearOf(selected) }}</span>
+          }
+          @if (selected.page_count) {
+            <span class="meta-pill">{{ selected.page_count }} pages</span>
+          }
+          @if (selected.isbn13 || selected.isbn) {
+            <span class="meta-pill">ISBN {{ selected.isbn13 || selected.isbn }}</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (selected.description) {
+      <p class="confirm-description">{{ selected.description | slice:0:320 }}{{ selected.description.length > 320 ? '…' : '' }}</p>
+    }
+
+    <mat-form-field appearance="outline" class="status-field">
+      <mat-label>Add to shelf as</mat-label>
+      <mat-select [(ngModel)]="status">
+        @for (opt of statusOptions; track opt.value) {
+          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (error) {
+      <p class="error-msg">{{ error }}</p>
+    }
+
+    <div class="confirm-actions">
+      <button mat-button (click)="back()">Cancel</button>
+      <button mat-flat-button color="primary" (click)="addToLibrary()" [disabled]="saving">
+        @if (saving) {
+          <mat-spinner diameter="18" style="display:inline-block" />
+        } @else {
+          <mat-icon>add</mat-icon>
+        }
+        Add to Library
+      </button>
+    </div>
+  }
+
+</div>
+
+<style>
+.add-book-dialog {
+  width: min(520px, 90vw);
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dialog-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 1rem;
+}
+
+.search-wrap {
+  margin-bottom: 0.5rem;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.center-state {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.center-state.muted {
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+/* ── Results list ─── */
+.results-list {
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 0 -0.25rem;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.result-row:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.result-cover {
+  flex-shrink: 0;
+  width: 44px;
+  height: 66px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.result-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.result-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-cover-placeholder mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #334155;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0 0 0.15rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.result-author {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0 0 0.1rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.result-meta {
+  font-size: 0.7rem;
+  color: #475569;
+  margin: 0;
+  display: flex;
+  gap: 0.3rem;
+}
+
+.result-arrow {
+  color: #334155;
+  flex-shrink: 0;
+}
+
+/* ── Confirm step ─── */
+.confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.confirm-header .dialog-title { margin: 0; }
+
+.back-btn {
+  color: #64748b !important;
+  margin-left: -0.5rem;
+}
+
+.confirm-body {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.confirm-cover {
+  flex-shrink: 0;
+  width: 90px;
+  height: 135px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.confirm-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.confirm-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-cover-placeholder mat-icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  color: #334155;
+}
+
+.confirm-meta { flex: 1; }
+
+.confirm-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 0.3rem;
+  line-height: 1.3;
+}
+
+.confirm-author {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin: 0 0 0.5rem;
+}
+
+.confirm-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.meta-pill {
+  font-size: 0.7rem;
+  color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.confirm-description {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.55;
+  margin: 0 0 1rem;
+}
+
+.status-field {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.error-msg {
+  color: #f87171;
+  font-size: 0.78rem;
+  margin: 0 0 0.75rem;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  align-items: center;
+}
+</style>

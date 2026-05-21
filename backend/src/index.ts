@@ -7,6 +7,7 @@ import authorsRouter from './routes/authors';
 import seriesRouter  from './routes/series';
 import uploadsRouter from './routes/uploads';
 import claudeRouter  from './routes/claude';
+import searchRouter  from './routes/search';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/authors', authorsRouter);
 app.use('/api/series',  seriesRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/claude',  claudeRouter);
+app.use('/api/search',  searchRouter);
 
 app.use(errorHandler);
 
