@@ -2,6 +2,20 @@
   <h1 class="page-title">My Library</h1>
 
   <div class="header-right">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput
+             placeholder="Search books…"
+             [ngModel]="searchQuery"
+             (ngModelChange)="onSearchChange($event)"
+             autocomplete="off">
+      @if (searchQuery) {
+        <button mat-icon-button matSuffix (click)="clearSearch()" matTooltip="Clear search">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+
     <div class="filter-row">
       @for (f of filters; track f.value) {
         <button
@@ -80,6 +94,14 @@
   gap: 0.75rem;
   flex-wrap: wrap;
 }
+
+.search-field {
+  width: 220px;
+}
+
+/* Compact the search field vertically */
+.search-field .mat-mdc-form-field-subscript-wrapper { display: none; }
+.search-field .mat-mdc-text-field-wrapper { padding-top: 0; }
 
 .add-btn {
   white-space: nowrap;

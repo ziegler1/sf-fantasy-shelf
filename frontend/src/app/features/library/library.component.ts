@@ -1,12 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatDialog } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { BookService } from '../../core/services/book.service';
 import { BookDetailComponent } from './book-detail/book-detail.component';
 import { AddBookComponent } from './add-book/add-book.component';
@@ -21,16 +26,18 @@ interface StatusFilter {
   selector: 'app-library',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, FormsModule,
     MatCardModule, MatChipsModule, MatIconModule,
     MatButtonModule, MatProgressSpinnerModule, MatTooltipModule,
+    MatFormFieldModule, MatInputModule,
   ],
   templateUrl: './library.component.html',
 })
-export class LibraryComponent implements OnInit {
+export class LibraryComponent implements OnInit, OnDestroy {
   books: BookWithDetails[] = [];
   loading = true;
   activeStatus: ReadingStatus | '' = '';
+  searchQuery = '';
 
   readonly filters: StatusFilter[] = [
     { label: 'All',           value: ''            },
@@ -40,12 +47,36 @@ export class LibraryComponent implements OnInit {
     { label: 'DNF',           value: 'dnf'         },
   ];
 
+  private search$ = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
   constructor(
     private bookService: BookService,
     private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
+    this.load();
+
+    this.search$.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$),
+    ).subscribe(() => this.load());
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearchChange(q: string): void {
+    this.searchQuery = q;
+    this.search$.next(q);
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
     this.load();
   }
 
@@ -57,8 +88,11 @@ export class LibraryComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    const filters = this.activeStatus ? { status: this.activeStatus as ReadingStatus } : undefined;
-    this.bookService.getBooks(filters).subscribe({
+    const filters: { status?: ReadingStatus; search?: string } = {};
+    if (this.activeStatus) filters.status = this.activeStatus as ReadingStatus;
+    if (this.searchQuery.trim()) filters.search = this.searchQuery.trim();
+
+    this.bookService.getBooks(Object.keys(filters).length ? filters : undefined).subscribe({
       next: books => { this.books = books; this.loading = false; },
       error: ()    => { this.loading = false; },
     });
