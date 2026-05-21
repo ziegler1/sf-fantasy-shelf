@@ -6,6 +6,15 @@ import type { BookWithDetails, ReadingStatus } from '../types';
 
 const router = Router();
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+// PostgreSQL DATE requires YYYY-MM-DD. OpenLibrary only provides a year ("1965").
+function toDateValue(s: string | null | undefined): string | null {
+  if (!s) return null;
+  if (/^\d{4}$/.test(s.trim())) return `${s.trim()}-01-01`;
+  return s;
+}
+
 // ── Enriched query helper ─────────────────────────────────────────────────────
 
 function booksQuery(where = '', values: unknown[] = []) {
@@ -103,7 +112,7 @@ router.post('/import', asyncHandler(async (req, res) => {
       `INSERT INTO books (title, isbn, isbn13, description, cover_url, published_at, page_count, language)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
       [title, isbn ?? null, isbn13 ?? null, description ?? null,
-       cover_url ?? null, published_at ?? null, page_count ?? null, language],
+       cover_url ?? null, toDateValue(published_at), page_count ?? null, language],
     );
 
     // Lookup-or-create each author
@@ -204,7 +213,7 @@ router.post('/', asyncHandler(async (req, res) => {
                           published_at, page_count, language)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
       [title, isbn ?? null, isbn13 ?? null, description ?? null,
-       cover_url ?? null, published_at ?? null, page_count ?? null,
+       cover_url ?? null, toDateValue(published_at), page_count ?? null,
        language ?? 'en'],
     );
     const book = rows[0];
@@ -263,7 +272,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
          published_at=$6, page_count=$7, language=$8, updated_at=NOW()
      WHERE id=$9 RETURNING *`,
     [title, isbn ?? null, isbn13 ?? null, description ?? null,
-     cover_url ?? null, published_at ?? null, page_count ?? null,
+     cover_url ?? null, toDateValue(published_at), page_count ?? null,
      language ?? 'en', req.params['id']],
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
