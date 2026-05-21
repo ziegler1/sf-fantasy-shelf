@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SF Fantasy Shelf — Developer Wiki</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --bg-card: #1a1d27;
+      --bg-sidebar: #13151f;
+      --border: #2a2d3e;
+      --accent: #a78bfa;
+      --accent-light: rgba(167,139,250,0.12);
+      --accent-hover: #c084fc;
+      --text: #e2e4ef;
+      --text-muted: #8b8fa8;
+      --text-dim: #5a5e7a;
+      --success: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --blue: #6366f1;
+      --blue-light: rgba(99,102,241,0.12);
+      --sidebar-w: 260px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --mono: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 28px 0 40px;
+      flex-shrink: 0;
+    }
+    .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+    .sidebar-logo h1 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+    .sidebar-logo p  { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+
+    .nav-group { margin-bottom: 6px; }
+    .nav-label {
+      font-size: .68rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--text-dim); padding: 6px 20px 4px;
+    }
+    .nav-link {
+      display: block; padding: 7px 20px; font-size: .875rem;
+      color: var(--text-muted); text-decoration: none;
+      border-left: 3px solid transparent; transition: all .15s;
+    }
+    .nav-link:hover { color: var(--text); background: var(--accent-light); border-left-color: var(--accent); }
+    .nav-link.active { color: var(--accent-hover); border-left-color: var(--accent); background: var(--accent-light); }
+
+    /* ── MAIN ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; padding: 48px 56px 80px; max-width: 960px; }
+
+    section { margin-bottom: 72px; scroll-margin-top: 32px; }
+
+    .section-label {
+      font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 1.9rem; font-weight: 700; color: var(--text);
+      margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    h3 { font-size: 1.2rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+    h4 { font-size: .95rem; font-weight: 600; color: var(--accent-hover); margin: 20px 0 6px; }
+    p { margin-bottom: 12px; color: var(--text-muted); font-size: .93rem; }
+    a { color: var(--accent-hover); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, rgba(167,139,250,.15) 0%, rgba(167,139,250,.03) 100%);
+      border: 1px solid rgba(167,139,250,.22);
+      border-radius: 16px; padding: 36px 40px; margin-bottom: 48px;
+    }
+    .hero h2 { border: none; padding: 0; font-size: 2.2rem; margin-bottom: 8px; }
+    .hero p { font-size: 1rem; max-width: 600px; }
+    .hero-meta { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 999px; font-size: .78rem; font-weight: 600;
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted);
+    }
+    .badge.purple { border-color: var(--accent); color: var(--accent-hover); }
+    .badge.green  { border-color: var(--success); color: var(--success); }
+    .badge.blue   { border-color: var(--blue); color: #818cf8; }
+
+    /* ── CARDS ── */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin: 20px 0; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .card h4 { margin: 0 0 8px; font-size: .95rem; }
+    .card p  { margin: 0; font-size: .82rem; }
+    .card-accent  { border-top: 3px solid var(--accent); }
+    .card-blue    { border-top: 3px solid var(--blue); }
+    .card-success { border-top: 3px solid var(--success); }
+    .card-warn    { border-top: 3px solid var(--warn); }
+
+    /* ── CAPABILITY LIST ── */
+    .cap-list { list-style: none; margin: 12px 0 20px; }
+    .cap-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 7px 0; border-bottom: 1px solid var(--border);
+      font-size: .875rem; color: var(--text-muted);
+    }
+    .cap-list li:last-child { border-bottom: none; }
+    .cap-list li::before { content: '✓'; color: var(--success); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── TECH STACK ── */
+    .stack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+    .stack-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 18px; display: flex; align-items: flex-start; gap: 14px;
+    }
+    .stack-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .stack-name { font-weight: 600; font-size: .9rem; color: var(--text); }
+    .stack-desc { font-size: .78rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── DATA TABLE ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: .83rem; margin: 16px 0; }
+    .data-table th {
+      text-align: left; padding: 10px 14px; background: var(--bg-card);
+      color: var(--text-dim); font-size: .72rem; letter-spacing: .06em;
+      text-transform: uppercase; border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      color: var(--text-muted); vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,255,255,.02); }
+
+    code {
+      font-family: var(--mono); font-size: .82em;
+      background: rgba(255,255,255,.06); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; color: var(--accent-hover);
+    }
+    pre {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px; overflow-x: auto; margin: 12px 0 20px;
+    }
+    pre code { background: none; border: none; padding: 0; font-size: .83rem; color: var(--text-muted); }
+
+    /* ── STEP BLOCKS ── */
+    .step-block {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-left: 4px solid var(--accent); border-radius: 12px;
+      padding: 20px 24px; margin-bottom: 16px;
+    }
+    .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent-light); border: 1.5px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 700; color: var(--accent-hover); flex-shrink: 0;
+    }
+    .step-title { font-size: 1rem; font-weight: 600; color: var(--text); }
+
+    /* ── ENV VAR BLOCK ── */
+    .env-grid { display: grid; gap: 6px; margin: 12px 0; }
+    .env-row {
+      display: flex; align-items: baseline; gap: 12px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 14px;
+    }
+    .env-key { font-family: var(--mono); font-size: .8rem; color: var(--accent-hover); flex-shrink: 0; min-width: 220px; }
+    .env-desc { font-size: .78rem; color: var(--text-muted); }
+    .env-sensitive { font-size: .68rem; color: var(--danger); font-weight: 700; margin-left: auto; flex-shrink: 0; }
+
+    /* ── PHASE TIMELINE ── */
+    .timeline { border-left: 2px solid var(--border); padding-left: 24px; margin: 16px 0; }
+    .timeline-item { position: relative; margin-bottom: 24px; }
+    .timeline-item::before {
+      content: ''; width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent); border: 2px solid var(--bg);
+      position: absolute; left: -29px; top: 5px;
+    }
+    .timeline-item.done::before { background: var(--success); }
+    .timeline-item.next::before { background: var(--warn); }
+    .timeline-date { font-size: .75rem; color: var(--text-dim); margin-bottom: 3px; }
+    .timeline-title { font-weight: 600; font-size: .9rem; color: var(--text); }
+    .timeline-desc  { font-size: .82rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* ── GOTCHA BLOCK ── */
+    .gotcha {
+      background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.2);
+      border-left: 4px solid var(--danger); border-radius: 12px;
+      padding: 16px 20px; margin-bottom: 12px; font-size: .875rem; color: var(--text-muted);
+    }
+    .gotcha strong { color: var(--danger); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 800px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 24px 20px 60px; }
+      .stack-grid { grid-template-columns: 1fr; }
+      .env-key { min-width: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>📚 SF Fantasy Shelf</h1>
+    <p>Developer Wiki · Phase 0</p>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <a class="nav-link" href="#about">About the App</a>
+      <a class="nav-link" href="#tech">Tech Stack</a>
+      <a class="nav-link" href="#architecture">Architecture</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Features</div>
+      <a class="nav-link" href="#library">My Library</a>
+      <a class="nav-link" href="#series">Series Tracker</a>
+      <a class="nav-link" href="#discover">Discover + AI</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Data</div>
+      <a class="nav-link" href="#schema">Database Schema</a>
+      <a class="nav-link" href="#api">API Endpoints</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Development</div>
+      <a class="nav-link" href="#local-setup">Local Setup</a>
+      <a class="nav-link" href="#workflow">Daily Workflow</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Operations</div>
+      <a class="nav-link" href="#deployment">Railway Deploy</a>
+      <a class="nav-link" href="#env-vars">Environment Variables</a>
+      <a class="nav-link" href="#roadmap">Roadmap</a>
+    </div>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="section-label">Developer Wiki</p>
+    <h2>📚 SF Fantasy Shelf</h2>
+    <p>A personal sci-fi and fantasy book tracking app — log your reading history, track series progress, and get AI-powered recommendations via Claude. Built as an Angular + Node monorepo deployed on Railway.</p>
+    <div class="hero-meta">
+      <span class="badge green">● Live on Railway</span>
+      <span class="badge purple">Phase 0 Complete</span>
+      <span class="badge blue">Angular 17 · Node/Express</span>
+      <span class="badge">PostgreSQL · Claude AI</span>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <p class="section-label">Overview</p>
+    <h2>About the App</h2>
+    <p>SF Fantasy Shelf is a personal book tracking app built for SFF readers. Log books you've read, track series progress, rate and review entries, and get personalised recommendations powered by Claude. The backend is a TypeScript Express API; the frontend is Angular 17 with Angular Material.</p>
+
+    <div class="card-grid">
+      <div class="card card-accent">
+        <h4>Frontend</h4>
+        <p>Angular 17 standalone components, lazy-loaded routes, Angular Material (purple-green theme). Sidebar layout, responsive mobile hamburger.</p>
+      </div>
+      <div class="card card-accent">
+        <h4>Backend</h4>
+        <p>Node.js 20 / Express 4 in TypeScript. Compiled to <code>dist/</code>. pg connection pool, auto-migrations on startup, Cloudflare R2 for covers.</p>
+      </div>
+      <div class="card card-accent">
+        <h4>AI</h4>
+        <p>Anthropic Claude (<code>claude-sonnet-4-5</code>) via <code>@anthropic-ai/sdk</code>. Book summaries, "what to read next", and similar-author suggestions.</p>
+      </div>
+      <div class="card card-accent">
+        <h4>Infrastructure</h4>
+        <p>Railway (Postgres plugin + two services), nginx serving Angular with <code>$BACKEND_URL</code> envsubst proxy, Cloudflare DNS.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section id="tech">
+    <p class="section-label">Overview</p>
+    <h2>Tech Stack</h2>
+    <div class="stack-grid">
+      <div class="stack-item">
+        <div class="stack-icon">🅰️</div>
+        <div>
+          <div class="stack-name">Angular 17</div>
+          <div class="stack-desc">Standalone components, lazy-loaded routes, Angular Material M3, <code>provideAnimationsAsync</code>, proxy config for local dev</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🟢</div>
+        <div>
+          <div class="stack-name">Node.js 20 / Express 4</div>
+          <div class="stack-desc">TypeScript, compiled with <code>tsc</code>, <code>tsx watch</code> for hot-reload dev, asyncHandler pattern</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🗄️</div>
+        <div>
+          <div class="stack-name">PostgreSQL 16</div>
+          <div class="stack-desc">Railway-managed. <code>pg</code> pool (max 10 conns). Auto-migrations via <code>src/migrate.ts</code> on every startup</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🌐</div>
+        <div>
+          <div class="stack-name">nginx 1.25</div>
+          <div class="stack-desc">Serves Angular build, proxies <code>/api/*</code> to <code>$BACKEND_URL</code> via envsubst entrypoint script. Gzip + asset caching.</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🤖</div>
+        <div>
+          <div class="stack-name">Anthropic Claude</div>
+          <div class="stack-desc"><code>claude-sonnet-4-5</code> via <code>@anthropic-ai/sdk</code>. Streaming with <code>finalMessage()</code>. System-prompt caching (<code>cache_control: ephemeral</code>).</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">☁️</div>
+        <div>
+          <div class="stack-name">Cloudflare R2</div>
+          <div class="stack-desc">Cover image storage via <code>@aws-sdk/client-s3</code>. Wired and ready — credentials optional until cover uploads are used.</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🚂</div>
+        <div>
+          <div class="stack-name">Railway</div>
+          <div class="stack-desc">Two services (<code>backend</code> + <code>sf-fantasy-shelf</code>) + PostgreSQL plugin. Auto-deploys from GitHub <code>main</code>. Hobby plan.</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-icon">🐳</div>
+        <div>
+          <div class="stack-name">Docker</div>
+          <div class="stack-desc">Multi-stage Dockerfiles. Both use full repo root as build context — paths are explicit (<code>COPY backend/...</code>). Local dev uses <code>docker run</code> for Postgres only.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture">
+    <p class="section-label">Overview</p>
+    <h2>Architecture</h2>
+
+    <h3>Request Flow</h3>
+    <p>The browser loads the Angular SPA from nginx. All API calls use relative paths (<code>/api/...</code>) — in development these are proxied by the Angular dev server (<code>proxy.conf.json</code>) to <code>localhost:3000</code>. In production nginx uses <code>envsubst</code> to inject <code>$BACKEND_URL</code> at container startup, then proxies matching requests to the Railway backend.</p>
+
+    <h3>Railway Services</h3>
+    <table class="data-table">
+      <thead><tr><th>Service</th><th>What it runs</th><th>Port</th></tr></thead>
+      <tbody>
+        <tr><td><code>backend</code></td><td>Node/Express TypeScript API + auto-migrations</td><td>Railway <code>$PORT</code> (8080)</td></tr>
+        <tr><td><code>sf-fantasy-shelf</code></td><td>nginx serving Angular build, proxying <code>/api/*</code></td><td>80</td></tr>
+        <tr><td>Postgres</td><td>Railway managed PostgreSQL 16</td><td>5432 internal</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Monorepo Layout</h3>
+    <pre><code>sf-fantasy-shelf/
+├── frontend/                   Angular app
+│   ├── src/app/
+│   │   ├── core/layout/        Sidebar shell (responsive)
+│   │   ├── core/services/      BookService, AuthorService, SeriesService, ClaudeService
+│   │   ├── features/           library, series-tracker, discover, upcoming, news
+│   │   └── types/schema.types.ts  Shared DB types (mirrors backend/src/types.ts)
+│   ├── nginx/nginx.conf        Uses $BACKEND_URL envsubst variable
+│   ├── nginx/docker-entrypoint.sh
+│   └── Dockerfile              Build: node:20 → Serve: nginx:1.25
+│
+├── backend/
+│   ├── src/
+│   │   ├── index.ts            App entry point
+│   │   ├── db.ts               pg Pool singleton
+│   │   ├── migrate.ts          Auto-migration runner
+│   │   ├── types.ts            DB row types (source of truth)
+│   │   ├── lib/                asyncHandler, r2
+│   │   ├── middleware/         errorHandler
+│   │   └── routes/             books, authors, series, uploads, claude
+│   ├── db/                     001_init, 002_full_schema, 003_add_users SQL files
+│   └── Dockerfile
+│
+├── docs/                       This wiki
+└── package.json                Root monorepo scripts</code></pre>
+
+    <h3>Key Design Decisions</h3>
+    <ul class="cap-list">
+      <li>All list endpoints use a single SQL query with <code>jsonb_agg + DISTINCT + FILTER</code> — no N+1 queries</li>
+      <li><code>user_books.status</code> uses <code>VARCHAR + CHECK</code> constraint, not a Postgres enum — avoids <code>ALTER TYPE ADD VALUE</code> locking on Railway rolling deploys</li>
+      <li>Two mirrored type files (<code>backend/src/types.ts</code> and <code>frontend/src/app/types/schema.types.ts</code>) — frontend omits <code>password_hash</code></li>
+      <li>Claude system prompts use <code>cache_control: ephemeral</code> — repeated calls within 5 min cost ~10% of input tokens</li>
+      <li>Auto-migrations track applied files in a <code>_migrations</code> table — each SQL file runs exactly once</li>
+    </ul>
+  </section>
+
+  <!-- LIBRARY -->
+  <section id="library">
+    <p class="section-label">Features</p>
+    <h2>My Library</h2>
+    <p>The core page. Displays all books on the user's shelf as a compact card grid. Filter by reading status; each card shows cover image (or placeholder), title, author, star rating, tags, and status badge.</p>
+
+    <ul class="cap-list">
+      <li>Status filters: All · Reading · Want to Read · Read · DNF</li>
+      <li>Cover images from Cloudflare R2 (upload) or Google Books / OpenLibrary URLs (Phase 2)</li>
+      <li>Star rating (1–5) displayed on card</li>
+      <li>Tag chips (up to 3 shown per card)</li>
+      <li>AI Summary button per card — calls <code>POST /api/claude/summary</code>, expands inline below the card</li>
+      <li>Reading status upsert via <code>PUT /api/books/:id/shelf</code></li>
+    </ul>
+  </section>
+
+  <!-- SERIES -->
+  <section id="series">
+    <p class="section-label">Features</p>
+    <h2>Series Tracker</h2>
+    <p>Shows all series with books ordered by position. Uses <code>forkJoin</code> to call <code>/api/series</code> and <code>/api/books</code> in parallel, then cross-references reading status to calculate progress.</p>
+
+    <ul class="cap-list">
+      <li>Progress bar per series (read count / total books)</li>
+      <li>Series position supports decimals — book 1.5, 2, etc.</li>
+      <li>Books ordered by <code>position NULLS LAST</code> then title</li>
+      <li>Series description shown if present</li>
+    </ul>
+  </section>
+
+  <!-- DISCOVER -->
+  <section id="discover">
+    <p class="section-label">Features</p>
+    <h2>Discover + AI</h2>
+    <p>Two Claude-powered sections on the Discover page. Both call the backend which fetches user reading history from Postgres, builds a personalised prompt, and calls Claude with system-prompt caching.</p>
+
+    <h3>What to Read Next</h3>
+    <p>Calls <code>POST /api/claude/next</code>. Fetches the user's full shelf (up to 25 books), formats read/reading/want-to-read history, and asks Claude for 3 personalised recommendations with reasons.</p>
+
+    <h3>Authors You Might Enjoy</h3>
+    <p>User selects an author from a dropdown. Calls <code>POST /api/claude/similar-authors</code>. Fetches <code>AuthorWithBooks</code> + reading history, returns 3 similar authors with style explanation.</p>
+
+    <h3>Claude Integration Details</h3>
+    <table class="data-table">
+      <thead><tr><th>Endpoint</th><th>Input</th><th>Output</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/claude/summary</code></td><td><code>book_id</code></td><td>2–3 paragraph SFF-reader summary</td></tr>
+        <tr><td><code>/api/claude/next</code></td><td><code>user_id</code> (default 1)</td><td><code>{ recommendations: [{title, author, reason}] }</code></td></tr>
+        <tr><td><code>/api/claude/similar-authors</code></td><td><code>author_id</code>, <code>user_id</code></td><td><code>{ suggestions: [{name, known_for, reason}] }</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCHEMA -->
+  <section id="schema">
+    <p class="section-label">Data</p>
+    <h2>Database Schema</h2>
+    <p>12 tables across 3 migrations. All <code>status</code>-like columns use <code>VARCHAR + CHECK</code> (not Postgres enums) to avoid exclusive locks during Railway rolling deploys.</p>
+
+    <h3>Core Tables</h3>
+    <table class="data-table">
+      <thead><tr><th>Table</th><th>Purpose</th><th>Key columns</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>Auth foundation (migration 003)</td><td><code>email</code>, <code>name</code>, <code>password_hash</code></td></tr>
+        <tr><td><code>books</code></td><td>Book metadata</td><td><code>title</code>, <code>isbn</code>, <code>cover_url</code>, <code>published_at</code>, <code>page_count</code></td></tr>
+        <tr><td><code>authors</code></td><td>Author profiles</td><td><code>name</code>, <code>bio</code>, <code>website</code>, <code>image_url</code></td></tr>
+        <tr><td><code>series</code></td><td>Series metadata</td><td><code>name</code>, <code>description</code></td></tr>
+        <tr><td><code>tags</code></td><td>Genre/tag labels</td><td><code>name</code> (UNIQUE)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Junction Tables</h3>
+    <table class="data-table">
+      <thead><tr><th>Table</th><th>Columns</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>book_authors</code></td><td><code>(book_id, author_id, role)</code></td><td>role: author / editor / illustrator / translator</td></tr>
+        <tr><td><code>book_series</code></td><td><code>(book_id, series_id, position)</code></td><td>position is NUMERIC — supports 1.5 etc.</td></tr>
+        <tr><td><code>book_tags</code></td><td><code>(book_id, tag_id)</code></td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3>User Data</h3>
+    <table class="data-table">
+      <thead><tr><th>Table</th><th>Key columns</th><th>Constraint</th></tr></thead>
+      <tbody>
+        <tr><td><code>user_books</code></td><td><code>user_id</code>, <code>book_id</code>, <code>status</code>, <code>rating</code> (1–5), <code>review</code>, <code>notes</code>, <code>started_at</code>, <code>finished_at</code></td><td>UNIQUE <code>(user_id, book_id)</code></td></tr>
+        <tr><td><code>author_follows</code></td><td><code>user_id</code>, <code>author_id</code></td><td>UNIQUE <code>(user_id, author_id)</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Content Tables (wired, not yet populated)</h3>
+    <table class="data-table">
+      <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>news_sources</code></td><td>RSS/site URLs for news fetching (Phase 4)</td></tr>
+        <tr><td><code>news_articles</code></td><td>Fetched articles, unique by URL</td></tr>
+        <tr><td><code>upcoming_releases</code></td><td>Watchlist — <code>book_id</code> nullable (may not be in books table yet)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Migrations</h3>
+    <ul class="cap-list">
+      <li><code>001_init.sql</code> — stub books table (scaffolding only)</li>
+      <li><code>002_full_schema.sql</code> — full 12-table schema; migrates data from 001 automatically</li>
+      <li><code>003_add_users.sql</code> — users table + <code>user_id DEFAULT 1</code> on user_books/author_follows; replaces single-user unique constraints with multi-user versions</li>
+    </ul>
+  </section>
+
+  <!-- API -->
+  <section id="api">
+    <p class="section-label">Data</p>
+    <h2>API Endpoints</h2>
+
+    <h3>Books</h3>
+    <table class="data-table">
+      <thead><tr><th>Method</th><th>Path</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td><code>/api/books?status=&search=</code></td><td><code>BookWithDetails[]</code> — enriched with authors, series, tags, user_book</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/books/:id</code></td><td><code>BookWithDetails</code></td></tr>
+        <tr><td><code>POST</code></td><td><code>/api/books</code></td><td>Accepts <code>author_ids</code>, <code>tag_ids</code>, <code>series</code> inline</td></tr>
+        <tr><td><code>PUT</code></td><td><code>/api/books/:id</code></td><td>Update book metadata</td></tr>
+        <tr><td><code>DELETE</code></td><td><code>/api/books/:id</code></td><td>204 — cascades to junctions</td></tr>
+        <tr><td><code>PUT</code></td><td><code>/api/books/:id/shelf</code></td><td>Upsert user_book (status, rating, notes, dates)</td></tr>
+        <tr><td><code>DELETE</code></td><td><code>/api/books/:id/shelf</code></td><td>Remove from shelf</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Authors</h3>
+    <table class="data-table">
+      <thead><tr><th>Method</th><th>Path</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td><code>/api/authors</code></td><td><code>AuthorWithBooks[]</code> — includes books[] and followed bool</td></tr>
+        <tr><td><code>GET/POST/PUT/DELETE</code></td><td><code>/api/authors/:id</code></td><td>Author CRUD</td></tr>
+        <tr><td><code>POST</code></td><td><code>/api/authors/:id/follow</code></td><td>Follow author</td></tr>
+        <tr><td><code>DELETE</code></td><td><code>/api/authors/:id/follow</code></td><td>Unfollow author</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Series</h3>
+    <table class="data-table">
+      <thead><tr><th>Method</th><th>Path</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td><code>/api/series</code></td><td><code>SeriesWithBooks[]</code> — books ordered by position</td></tr>
+        <tr><td><code>GET/POST/PUT/DELETE</code></td><td><code>/api/series/:id</code></td><td>Series CRUD</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Claude AI</h3>
+    <table class="data-table">
+      <thead><tr><th>Method</th><th>Path</th><th>Body</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST</code></td><td><code>/api/claude/summary</code></td><td><code>{ book_id }</code></td></tr>
+        <tr><td><code>POST</code></td><td><code>/api/claude/next</code></td><td><code>{ user_id? }</code> — defaults to 1</td></tr>
+        <tr><td><code>POST</code></td><td><code>/api/claude/similar-authors</code></td><td><code>{ author_id, user_id? }</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Uploads</h3>
+    <table class="data-table">
+      <thead><tr><th>Method</th><th>Path</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST</code></td><td><code>/api/uploads/cover</code></td><td>Multipart <code>cover</code> field → R2. Returns <code>{ key, url }</code>. 5 MB limit, images only.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- LOCAL SETUP -->
+  <section id="local-setup">
+    <p class="section-label">Development</p>
+    <h2>Local Setup</h2>
+    <p>Postgres runs in Docker. Frontend and backend run natively with hot-reload.</p>
+
+    <h3>Prerequisites</h3>
+    <ul class="cap-list">
+      <li>Node.js 20+</li>
+      <li>npm 10+</li>
+      <li>Docker Desktop</li>
+      <li>Git</li>
+    </ul>
+
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Clone and install</div></div>
+      <pre><code>git clone https://github.com/ziegler1/sf-fantasy-shelf.git
+cd sf-fantasy-shelf
+npm run install:all</code></pre>
+    </div>
+
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Start Postgres in Docker</div></div>
+      <pre><code>docker run -d `
+  --name sf-fantasy-shelf-db `
+  -e POSTGRES_USER=shelf `
+  -e POSTGRES_PASSWORD=shelf `
+  -e POSTGRES_DB=sf_fantasy_shelf `
+  -p 5432:5432 `
+  postgres:16-alpine</code></pre>
+    </div>
+
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Configure backend environment</div></div>
+      <pre><code>Copy-Item backend/.env.example backend/.env
+# Edit backend/.env — add your ANTHROPIC_API_KEY</code></pre>
+    </div>
+
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Start the backend (migrations run automatically)</div></div>
+      <pre><code>npm run dev:backend
+# Expected: apply 001_init.sql ... Backend listening on port 3000</code></pre>
+    </div>
+
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Start the frontend (second terminal)</div></div>
+      <pre><code>npm run dev:frontend
+# Open http://localhost:4200</code></pre>
+    </div>
+
+    <h3>Useful URLs</h3>
+    <table class="data-table">
+      <thead><tr><th>URL</th><th>What</th></tr></thead>
+      <tbody>
+        <tr><td><a href="http://localhost:4200">http://localhost:4200</a></td><td>Angular app (dev server)</td></tr>
+        <tr><td><a href="http://localhost:3000/health">http://localhost:3000/health</a></td><td>Backend health check</td></tr>
+        <tr><td><a href="http://localhost:3000/api/books">http://localhost:3000/api/books</a></td><td>Books API</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- WORKFLOW -->
+  <section id="workflow">
+    <p class="section-label">Development</p>
+    <h2>Daily Workflow</h2>
+    <p>Two terminals every session. Docker only needed for Postgres.</p>
+
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Terminal 1 — start backend with hot-reload</div></div>
+      <pre><code>npm run dev:backend</code></pre>
+    </div>
+
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Terminal 2 — start Angular dev server</div></div>
+      <pre><code>npm run dev:frontend</code></pre>
+    </div>
+
+    <p>Both hot-reload automatically on file save. If Postgres container is stopped, restart it with <code>docker start sf-fantasy-shelf-db</code>.</p>
+
+    <h3>Root Scripts</h3>
+    <table class="data-table">
+      <thead><tr><th>Script</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>npm run install:all</code></td><td>npm install in both frontend/ and backend/</td></tr>
+        <tr><td><code>npm run dev:backend</code></td><td><code>tsx watch src/index.ts</code> — hot-reload</td></tr>
+        <tr><td><code>npm run dev:frontend</code></td><td><code>ng serve</code> on port 4200</td></tr>
+        <tr><td><code>npm run build</code></td><td>Compile backend TS + build Angular production bundle</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- DEPLOYMENT -->
+  <section id="deployment">
+    <p class="section-label">Operations</p>
+    <h2>Railway Deployment</h2>
+    <p>Two Railway services plus a managed PostgreSQL plugin. Auto-deploys on push to <code>main</code>. Migrations run automatically on every backend startup.</p>
+
+    <h3>Services</h3>
+    <table class="data-table">
+      <thead><tr><th>Service name</th><th>Role</th><th>Builder</th></tr></thead>
+      <tbody>
+        <tr><td><code>backend</code></td><td>Node/Express API + migrations</td><td>Dockerfile — root dir: <code>backend</code></td></tr>
+        <tr><td><code>sf-fantasy-shelf</code></td><td>nginx + Angular build</td><td>Dockerfile — root dir: <code>frontend</code></td></tr>
+        <tr><td>Postgres</td><td>Database</td><td>Railway managed PostgreSQL 16</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Deploying from Scratch</h3>
+
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Create Railway project → New Project → GitHub repo</div></div>
+    </div>
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Add PostgreSQL — + New → Database → PostgreSQL</div></div>
+    </div>
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Backend service — Root Directory: <code>backend</code>, Builder: Dockerfile, port auto-detected</div></div>
+      <p style="margin-top:8px;">Set env vars (see table below). Copy <code>DATABASE_URL</code> manually from Postgres service → Variables.</p>
+    </div>
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Frontend service — Root Directory: <code>frontend</code>, Builder: Dockerfile, port: 80</div></div>
+      <p style="margin-top:8px;">Set <code>BACKEND_URL</code> to the backend's Railway public domain.</p>
+    </div>
+    <div class="step-block">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Migrations run automatically on first backend start</div></div>
+      <p style="margin-top:8px;">Check backend logs for: <code>apply 001_init.sql</code> → <code>apply 002_full_schema.sql</code> → <code>apply 003_add_users.sql</code> → <code>Backend listening on port …</code></p>
+    </div>
+
+    <h3>Railway Gotchas</h3>
+
+    <div class="gotcha"><strong>Full repo is always the Docker build context.</strong> Even with Root Directory set to <code>backend</code>, Railway sends the entire repo as build context. Dockerfiles use explicit paths: <code>COPY backend/package*.json ./</code> and <code>COPY backend/ .</code></div>
+
+    <div class="gotcha"><strong>DATABASE_URL is NOT auto-injected.</strong> Railway's Postgres plugin does not automatically share <code>DATABASE_URL</code> with other services. Copy it manually from Postgres → Variables into the backend service Variables.</div>
+
+    <div class="gotcha"><strong>nginx needs SSL options to proxy Railway backends.</strong> Add <code>proxy_ssl_verify off</code>, <code>proxy_ssl_server_name on</code>, and <code>proxy_set_header Host $proxy_host</code> — without these you get 502. Private networking (which avoids this) is not available on Hobby plan.</div>
+
+    <div class="gotcha"><strong>Rolling deploys kill enum migrations.</strong> <code>ALTER TYPE ADD VALUE</code> deadlocks on Railway. Use <code>VARCHAR + CHECK</code> for all type-like columns — already done throughout this schema.</div>
+  </section>
+
+  <!-- ENV VARS -->
+  <section id="env-vars">
+    <p class="section-label">Operations</p>
+    <h2>Environment Variables</h2>
+
+    <h3>Backend Service</h3>
+    <div class="env-grid">
+      <div class="env-row"><span class="env-key">DATABASE_URL</span><span class="env-desc">Copy from Postgres service → Variables tab. <code>postgresql://user:pass@host:port/db</code></span><span class="env-sensitive">sensitive</span></div>
+      <div class="env-row"><span class="env-key">ANTHROPIC_API_KEY</span><span class="env-desc">From console.anthropic.com — used by all three Claude AI routes</span><span class="env-sensitive">sensitive</span></div>
+      <div class="env-row"><span class="env-key">NODE_ENV</span><span class="env-desc"><code>production</code></span></div>
+      <div class="env-row"><span class="env-key">R2_ACCOUNT_ID</span><span class="env-desc">Cloudflare Account ID — only needed when cover uploads are active</span><span class="env-sensitive">sensitive</span></div>
+      <div class="env-row"><span class="env-key">R2_ACCESS_KEY_ID</span><span class="env-desc">R2 API token Access Key ID</span><span class="env-sensitive">sensitive</span></div>
+      <div class="env-row"><span class="env-key">R2_SECRET_ACCESS_KEY</span><span class="env-desc">R2 API token secret — shown once at creation only</span><span class="env-sensitive">sensitive</span></div>
+      <div class="env-row"><span class="env-key">R2_BUCKET_NAME</span><span class="env-desc"><code>sf-fantasy-shelf</code></span></div>
+      <div class="env-row"><span class="env-key">R2_PUBLIC_URL</span><span class="env-desc">R2 public bucket URL e.g. <code>https://pub-xxx.r2.dev</code></span></div>
+    </div>
+
+    <h3>Frontend Service (sf-fantasy-shelf)</h3>
+    <div class="env-grid">
+      <div class="env-row"><span class="env-key">BACKEND_URL</span><span class="env-desc">Backend Railway public URL e.g. <code>https://backend-production-37fc.up.railway.app</code> — injected into nginx via envsubst at startup</span></div>
+    </div>
+
+    <h3>Local .env (backend/)</h3>
+    <div class="env-grid">
+      <div class="env-row"><span class="env-key">DATABASE_URL</span><span class="env-desc"><code>postgresql://shelf:shelf@localhost:5432/sf_fantasy_shelf</code></span></div>
+      <div class="env-row"><span class="env-key">PORT</span><span class="env-desc"><code>3000</code></span></div>
+      <div class="env-row"><span class="env-key">NODE_ENV</span><span class="env-desc"><code>development</code></span></div>
+      <div class="env-row"><span class="env-key">ANTHROPIC_API_KEY</span><span class="env-desc">Your key for local Claude AI testing</span><span class="env-sensitive">sensitive</span></div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap">
+    <p class="section-label">Operations</p>
+    <h2>Roadmap</h2>
+
+    <div class="timeline">
+      <div class="timeline-item done">
+        <div class="timeline-title">Phase 0 — Foundation</div>
+        <div class="timeline-desc">Angular 17 frontend, Node/Express TypeScript backend, full 12-table PostgreSQL schema, Angular Material UI, Claude AI integration, Railway production deployment. Live at sf-fantasy-shelf-production.up.railway.app</div>
+      </div>
+      <div class="timeline-item next">
+        <div class="timeline-title">Phase 1 — Auth</div>
+        <div class="timeline-desc">JWT login/register. Multi-user schema already in place (users table, user_id on user_books/author_follows). Deploy before wiring auth so app is accessible.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-title">Phase 2 — Book Management</div>
+        <div class="timeline-desc">Add Book dialog with Google Books search + cover auto-fill, series auto-detection, R2 cover upload, book detail/edit page, Claude summary caching in DB.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-title">Phase 3 — Upcoming Releases</div>
+        <div class="timeline-desc">Upcoming Releases page — add/track/delete watchlist entries, link to books table once released.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-title">Phase 4 — News Feed</div>
+        <div class="timeline-desc">RSS fetch via node-cron inside the backend (no separate Railway service — Hobby plan). Article cards with source, summary, published date.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-title">Phase 5 — Polish</div>
+        <div class="timeline-desc">Loading skeletons, toast notifications, paginated book list, SSE streaming for Claude responses, rate limiting on AI routes, zod input validation, error monitoring.</div>
+      </div>
+    </div>
+
+    <h3>Deferred / Nice-to-have</h3>
+    <ul class="cap-list">
+      <li>Password reset flow (useful if family uses the app)</li>
+      <li>Barcode scanner — mobile camera → ISBN → auto-add book</li>
+      <li>Goodreads CSV import</li>
+      <li>Reading statistics — books per year, pages per month, genre breakdown</li>
+      <li>Author follow notifications — email/push when new release</li>
+      <li>Mobile app — Capacitor wrapper for iOS/Android</li>
+    </ul>
+  </section>
+
+</main>
+
+<script>
+  const links = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('section[id]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>
