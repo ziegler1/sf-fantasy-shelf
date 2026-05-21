@@ -33,6 +33,8 @@ export class AddBookComponent implements OnInit, OnDestroy {
   searchError = false;
   selected: BookSearchResult | null = null;
   status: ReadingStatus | '' = 'want-to-read';
+  seriesName = '';
+  seriesPosition: number | null = null;
   saving = false;
   error: string | null = null;
 
@@ -89,6 +91,8 @@ export class AddBookComponent implements OnInit, OnDestroy {
 
   pick(book: BookSearchResult): void {
     this.selected = book;
+    this.seriesName = book.series_name ?? '';
+    this.seriesPosition = book.series_position ?? null;
     this.step = 'confirm';
     this.error = null;
   }
@@ -104,12 +108,13 @@ export class AddBookComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.error = null;
 
-    const body = {
-      ...this.selected,
+    const { google_id: _gid, ...rest } = this.selected;
+    const importBody = {
+      ...rest,
       status: (this.status as ReadingStatus) || undefined,
+      series_name:     this.seriesName.trim() || null,
+      series_position: this.seriesPosition || null,
     };
-    // google_id is not a DB field — strip it
-    const { google_id: _gid, ...importBody } = body;
 
     this.searchService.importBook(importBody).subscribe({
       next: (book: BookWithDetails) => {

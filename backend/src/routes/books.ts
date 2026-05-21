@@ -78,7 +78,7 @@ router.post('/import', asyncHandler(async (req, res) => {
   const {
     title, authors: authorNames = [], cover_url, published_at,
     page_count, isbn, isbn13, description, language = 'en',
-    status,
+    status, series_name, series_position,
   } = req.body as {
     title: string;
     authors: string[];
@@ -90,6 +90,8 @@ router.post('/import', asyncHandler(async (req, res) => {
     description?: string;
     language?: string;
     status?: ReadingStatus;
+    series_name?: string;
+    series_position?: number | null;
   };
 
   if (!title) return res.status(400).json({ error: 'title is required' });
@@ -141,6 +143,28 @@ router.post('/import', asyncHandler(async (req, res) => {
       await client.query(
         'INSERT INTO book_authors (book_id, author_id, role) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
         [book.id, authorId, 'author'],
+      );
+    }
+
+    // Find-or-create series and link to book
+    if (series_name?.trim()) {
+      const trimmed = series_name.trim();
+      let seriesId: number;
+      const found = await client.query<{ id: number }>(
+        'SELECT id FROM series WHERE LOWER(name) = LOWER($1) LIMIT 1', [trimmed],
+      );
+      if (found.rows.length) {
+        seriesId = found.rows[0].id;
+      } else {
+        const { rows: [s] } = await client.query<{ id: number }>(
+          'INSERT INTO series (name) VALUES ($1) RETURNING id', [trimmed],
+        );
+        seriesId = s.id;
+      }
+      await client.query(
+        `INSERT INTO book_series (book_id, series_id, position)
+         VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+        [book.id, seriesId, series_position ?? null],
       );
     }
 

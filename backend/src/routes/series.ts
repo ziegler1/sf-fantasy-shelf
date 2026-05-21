@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
+import { verifyToken } from '../middleware/auth';
 import type { SeriesWithBooks } from '../types';
 
 const router = Router();
+
+router.use(verifyToken);
 
 // ── Enriched query helper ─────────────────────────────────────────────────────
 

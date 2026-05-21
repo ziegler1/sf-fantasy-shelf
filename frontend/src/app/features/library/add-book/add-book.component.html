@@ -92,6 +92,20 @@
       <p class="confirm-description">{{ selected.description | slice:0:320 }}{{ selected.description.length > 320 ? '…' : '' }}</p>
     }
 
+    <!-- Series (pre-filled from Google Books, editable) -->
+    <div class="series-row">
+      <mat-form-field appearance="outline" class="series-name-field">
+        <mat-label>Series name</mat-label>
+        <input matInput [(ngModel)]="seriesName" placeholder="e.g. Stormlight Archive">
+        <mat-icon matSuffix>auto_stories</mat-icon>
+        <mat-hint>Leave blank if standalone</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="series-pos-field">
+        <mat-label>Book #</mat-label>
+        <input matInput type="number" min="0.5" step="0.5" [(ngModel)]="seriesPosition">
+      </mat-form-field>
+    </div>
+
     <mat-form-field appearance="outline" class="status-field">
       <mat-label>Add to shelf as</mat-label>
       <mat-select [(ngModel)]="status">
@@ -348,6 +362,15 @@
   line-height: 1.55;
   margin: 0 0 1rem;
 }
+
+.series-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.series-name-field { flex: 1; }
+.series-pos-field  { width: 90px; flex-shrink: 0; }
 
 .status-field {
   width: 100%;
