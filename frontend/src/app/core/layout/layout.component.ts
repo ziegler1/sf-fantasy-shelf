@@ -6,8 +6,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { AuthService } from '../services/auth.service';
 
 interface NavItem {
   label: string;
@@ -21,7 +23,7 @@ interface NavItem {
   imports: [
     RouterOutlet, RouterLink, RouterLinkActive,
     MatSidenavModule, MatToolbarModule, MatListModule,
-    MatIconModule, MatButtonModule,
+    MatIconModule, MatButtonModule, MatTooltipModule,
   ],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css',
@@ -40,7 +42,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
     { label: 'News Feed',         icon: 'rss_feed',        route: '/news'     },
   ];
 
-  constructor(private breakpoints: BreakpointObserver) {}
+  constructor(
+    private breakpoints: BreakpointObserver,
+    public auth: AuthService,
+  ) {}
 
   ngOnInit(): void {
     this.breakpoints

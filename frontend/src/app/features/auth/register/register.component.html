@@ -1,0 +1,119 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <mat-icon class="brand-icon">auto_stories</mat-icon>
+      <h1 class="brand-name">SF Fantasy Shelf</h1>
+    </div>
+
+    <h2 class="auth-heading">Create account</h2>
+
+    <mat-form-field appearance="outline" class="auth-field">
+      <mat-label>Name</mat-label>
+      <input matInput [(ngModel)]="name" (keydown.enter)="submit()" autocomplete="name">
+      <mat-icon matSuffix>person</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="auth-field">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" [(ngModel)]="email" (keydown.enter)="submit()" autocomplete="email">
+      <mat-icon matSuffix>mail</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="auth-field">
+      <mat-label>Password</mat-label>
+      <input matInput [type]="hidePassword ? 'password' : 'text'"
+             [(ngModel)]="password" (keydown.enter)="submit()" autocomplete="new-password">
+      <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+        <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+      <mat-hint>Minimum 8 characters</mat-hint>
+    </mat-form-field>
+
+    @if (error) {
+      <p class="auth-error">{{ error }}</p>
+    }
+
+    <button mat-flat-button color="primary" class="auth-btn" (click)="submit()" [disabled]="loading">
+      @if (loading) { <mat-spinner diameter="20" /> } @else { Create account }
+    </button>
+
+    <p class="auth-footer">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+  </div>
+</div>
+
+<style>
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f172a;
+  padding: 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.brand-icon {
+  color: #a78bfa;
+  font-size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.brand-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.auth-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 0.5rem;
+}
+
+.auth-field { width: 100%; }
+
+.auth-error {
+  color: #f87171;
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.auth-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 0.95rem;
+}
+
+.auth-footer {
+  font-size: 0.82rem;
+  color: #475569;
+  margin: 0.25rem 0 0;
+  text-align: center;
+}
+
+.auth-footer a {
+  color: #a78bfa;
+  text-decoration: none;
+}
+
+.auth-footer a:hover { text-decoration: underline; }
+</style>

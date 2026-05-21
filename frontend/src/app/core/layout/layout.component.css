@@ -33,6 +33,38 @@
 
 .nav-list {
   padding: 0.5rem 0;
+  flex: 1;
+}
+
+.sidenav {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidenav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.75rem 0.75rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  margin-top: auto;
+}
+
+.user-name {
+  font-size: 0.78rem;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  color: #475569 !important;
+  flex-shrink: 0;
+}
+
+.logout-btn:hover {
+  color: #f87171 !important;
 }
 
 /* Nav items */

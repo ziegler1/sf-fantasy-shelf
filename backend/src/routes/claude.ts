@@ -2,10 +2,13 @@ import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
+import { verifyToken } from '../middleware/auth';
 import { generateAndStoreSummary } from '../lib/generateSummary';
 
 const router = Router();
 const anthropic = new Anthropic({ apiKey: process.env['ANTHROPIC_API_KEY'] });
+
+router.use(verifyToken);
 
 // User specified claude-sonnet-4-20250514; alias is claude-sonnet-4-6
 const MODEL = 'claude-sonnet-4-5';
@@ -30,7 +33,7 @@ router.post('/summary', asyncHandler(async (req, res) => {
 // ── POST /api/claude/next ─────────────────────────────────────────────────────
 
 router.post('/next', asyncHandler(async (req, res) => {
-  const userId = req.body.user_id ?? 1;
+  const userId = req.userId;
 
   const { rows } = await pool.query(
     `SELECT
@@ -123,7 +126,7 @@ Return ONLY this JSON:
 router.post('/similar-authors', asyncHandler(async (req, res) => {
   const { author_id } = req.body;
   if (!author_id) return res.status(400).json({ error: 'author_id is required' });
-  const userId = req.body.user_id ?? 1;
+  const userId = req.userId;
 
   const { rows: authorRows } = await pool.query(
     `SELECT

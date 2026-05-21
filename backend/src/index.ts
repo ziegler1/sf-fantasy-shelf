@@ -8,6 +8,7 @@ import seriesRouter  from './routes/series';
 import uploadsRouter from './routes/uploads';
 import claudeRouter  from './routes/claude';
 import searchRouter  from './routes/search';
+import authRouter    from './routes/auth';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
+app.use('/api/auth',    authRouter);
 app.use('/api/books',   booksRouter);
 app.use('/api/authors', authorsRouter);
 app.use('/api/series',  seriesRouter);

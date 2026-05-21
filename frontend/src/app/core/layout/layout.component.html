@@ -24,6 +24,16 @@
         </a>
       }
     </mat-nav-list>
+
+    <!-- ── Sidebar footer ────────────────────────────────── -->
+    <div class="sidenav-footer">
+      @if (auth.currentUser()) {
+        <span class="user-name">{{ auth.currentUser()!.name }}</span>
+      }
+      <button mat-icon-button (click)="auth.logout()" matTooltip="Sign out" class="logout-btn">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
   </mat-sidenav>
 
   <!-- ── Main content ─────────────────────────────────────── -->

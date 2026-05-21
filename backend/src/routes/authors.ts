@@ -1,13 +1,18 @@
 import { Router } from 'express';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
+import { verifyToken } from '../middleware/auth';
 import type { AuthorWithBooks } from '../types';
 
 const router = Router();
 
+router.use(verifyToken);
+
 // ── Enriched query helper ─────────────────────────────────────────────────────
 
-function authorsQuery(where = '', values: unknown[] = []) {
+function authorsQuery(userId: number, where = '', extraValues: unknown[] = []) {
+  const values = [...extraValues, userId];
+  const userParam = `$${values.length}`;
   return {
     text: `
       SELECT
@@ -22,7 +27,8 @@ function authorsQuery(where = '', values: unknown[] = []) {
           )) FILTER (WHERE b.id IS NOT NULL), '[]'
         ) AS books,
         EXISTS(
-          SELECT 1 FROM author_follows af WHERE af.author_id = a.id
+          SELECT 1 FROM author_follows af
+          WHERE af.author_id = a.id AND af.user_id = ${userParam}
         ) AS followed
       FROM authors a
       LEFT JOIN book_authors ba ON ba.author_id = a.id
@@ -37,8 +43,8 @@ function authorsQuery(where = '', values: unknown[] = []) {
 
 // ── GET /api/authors ──────────────────────────────────────────────────────────
 
-router.get('/', asyncHandler(async (_req, res) => {
-  const { rows } = await pool.query<AuthorWithBooks>(authorsQuery());
+router.get('/', asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<AuthorWithBooks>(authorsQuery(req.userId));
   res.json(rows);
 }));
 
@@ -46,7 +52,7 @@ router.get('/', asyncHandler(async (_req, res) => {
 
 router.get('/:id', asyncHandler(async (req, res) => {
   const { rows } = await pool.query<AuthorWithBooks>(
-    authorsQuery('WHERE a.id = $1', [req.params['id']]),
+    authorsQuery(req.userId, 'WHERE a.id = $1', [req.params['id']]),
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   res.json(rows[0]);
@@ -59,8 +65,7 @@ router.post('/', asyncHandler(async (req, res) => {
   if (!name) return res.status(400).json({ error: 'name is required' });
 
   const { rows } = await pool.query(
-    `INSERT INTO authors (name, bio, website, image_url)
-     VALUES ($1,$2,$3,$4) RETURNING *`,
+    `INSERT INTO authors (name, bio, website, image_url) VALUES ($1,$2,$3,$4) RETURNING *`,
     [name, bio ?? null, website ?? null, image_url ?? null],
   );
   res.status(201).json(rows[0]);
@@ -72,8 +77,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
   const { name, bio, website, image_url } = req.body;
 
   const { rows } = await pool.query(
-    `UPDATE authors
-     SET name=$1, bio=$2, website=$3, image_url=$4, updated_at=NOW()
+    `UPDATE authors SET name=$1, bio=$2, website=$3, image_url=$4, updated_at=NOW()
      WHERE id=$5 RETURNING *`,
     [name, bio ?? null, website ?? null, image_url ?? null, req.params['id']],
   );
@@ -93,9 +97,9 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 
 router.post('/:id/follow', asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `INSERT INTO author_follows (user_id, author_id) VALUES (1, $1)
+    `INSERT INTO author_follows (user_id, author_id) VALUES ($1, $2)
      ON CONFLICT (user_id, author_id) DO NOTHING RETURNING *`,
-    [req.params['id']],
+    [req.userId, req.params['id']],
   );
   res.status(rows.length ? 201 : 200).json({ followed: true });
 }));
@@ -103,7 +107,10 @@ router.post('/:id/follow', asyncHandler(async (req, res) => {
 // ── DELETE /api/authors/:id/follow ────────────────────────────────────────────
 
 router.delete('/:id/follow', asyncHandler(async (req, res) => {
-  await pool.query('DELETE FROM author_follows WHERE author_id=$1', [req.params['id']]);
+  await pool.query(
+    'DELETE FROM author_follows WHERE user_id=$1 AND author_id=$2',
+    [req.userId, req.params['id']],
+  );
   res.status(204).send();
 }));
 

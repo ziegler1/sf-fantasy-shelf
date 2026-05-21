@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
+import { verifyToken } from '../middleware/auth';
 import { generateAndStoreSummary } from '../lib/generateSummary';
 import { downloadAndStoreCover } from '../lib/downloadAndStoreCover';
 import type { BookWithDetails, ReadingStatus } from '../types';
 
 const router = Router();
+
+// All book routes require authentication
+router.use(verifyToken);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -17,8 +21,11 @@ function toDateValue(s: string | null | undefined): string | null {
 }
 
 // ── Enriched query helper ─────────────────────────────────────────────────────
+// userId is appended as the last parameter so existing $1/$2 WHERE refs don't shift.
 
-function booksQuery(where = '', values: unknown[] = []) {
+function booksQuery(userId: number, where = '', extraValues: unknown[] = []) {
+  const values = [...extraValues, userId];
+  const userParam = `$${values.length}`;
   return {
     text: `
       SELECT
@@ -56,7 +63,7 @@ function booksQuery(where = '', values: unknown[] = []) {
       LEFT JOIN series s        ON s.id = bs.series_id
       LEFT JOIN book_tags bt    ON bt.book_id = b.id
       LEFT JOIN tags t          ON t.id = bt.tag_id
-      LEFT JOIN user_books ub   ON ub.book_id = b.id AND ub.user_id = 1
+      LEFT JOIN user_books ub   ON ub.book_id = b.id AND ub.user_id = ${userParam}
       ${where}
       GROUP BY b.id, ub.id
       ORDER BY b.title
@@ -66,7 +73,6 @@ function booksQuery(where = '', values: unknown[] = []) {
 }
 
 // ── POST /api/books/import  (Google Books → DB, author lookup-or-create) ──────
-// Must be declared before /:id routes to avoid route conflict.
 
 router.post('/import', asyncHandler(async (req, res) => {
   const {
@@ -102,7 +108,7 @@ router.post('/import', asyncHandler(async (req, res) => {
       if (existing.rows.length) {
         await client.query('ROLLBACK');
         const { rows } = await pool.query<BookWithDetails>(
-          booksQuery('WHERE b.id = $1', [existing.rows[0].id]),
+          booksQuery(req.userId, 'WHERE b.id = $1', [existing.rows[0].id]),
         );
         return res.status(200).json(rows[0]);
       }
@@ -141,19 +147,19 @@ router.post('/import', asyncHandler(async (req, res) => {
     // Optionally place on the user's shelf immediately
     if (status) {
       await client.query(
-        `INSERT INTO user_books (user_id, book_id, status) VALUES (1, $1, $2)
+        `INSERT INTO user_books (user_id, book_id, status) VALUES ($1, $2, $3)
          ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, updated_at = NOW()`,
-        [book.id, status],
+        [req.userId, book.id, status],
       );
     }
 
     await client.query('COMMIT');
 
-    // Return enriched book
-    const { rows } = await pool.query<BookWithDetails>(booksQuery('WHERE b.id = $1', [book.id]));
+    const { rows } = await pool.query<BookWithDetails>(
+      booksQuery(req.userId, 'WHERE b.id = $1', [book.id]),
+    );
     res.status(201).json(rows[0]);
 
-    // Background: generate AI summary + upload cover to R2
     setImmediate(() => {
       generateAndStoreSummary(book.id).catch(err =>
         console.error(`Summary generation failed for book ${book.id}:`, err),
@@ -188,7 +194,7 @@ router.get('/', asyncHandler(async (req, res) => {
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-  const { rows } = await pool.query<BookWithDetails>(booksQuery(where, values));
+  const { rows } = await pool.query<BookWithDetails>(booksQuery(req.userId, where, values));
   res.json(rows);
 }));
 
@@ -196,7 +202,7 @@ router.get('/', asyncHandler(async (req, res) => {
 
 router.get('/:id', asyncHandler(async (req, res) => {
   const { rows } = await pool.query<BookWithDetails>(
-    booksQuery('WHERE b.id = $1', [req.params['id']]),
+    booksQuery(req.userId, 'WHERE b.id = $1', [req.params['id']]),
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   res.json(rows[0]);
@@ -252,7 +258,6 @@ router.post('/', asyncHandler(async (req, res) => {
     await client.query('COMMIT');
     res.status(201).json(book);
 
-    // Generate and persist AI summary in the background — don't block the response
     setImmediate(() => {
       generateAndStoreSummary(book.id).catch(err =>
         console.error(`Summary generation failed for book ${book.id}:`, err),
@@ -293,7 +298,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   res.status(204).send();
 }));
 
-// ── PUT /api/books/:id/shelf  (upsert user_book) ──────────────────────────────
+// ── PUT /api/books/:id/shelf ──────────────────────────────────────────────────
 
 router.put('/:id/shelf', asyncHandler(async (req, res) => {
   const { status, rating, review, notes, started_at, finished_at } = req.body;
@@ -305,7 +310,7 @@ router.put('/:id/shelf', asyncHandler(async (req, res) => {
 
   const { rows } = await pool.query(
     `INSERT INTO user_books (user_id, book_id, status, rating, review, notes, started_at, finished_at)
-     VALUES (1, $1, $2, $3, $4, $5, $6, $7)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      ON CONFLICT (user_id, book_id) DO UPDATE SET
        status      = EXCLUDED.status,
        rating      = EXCLUDED.rating,
@@ -315,7 +320,7 @@ router.put('/:id/shelf', asyncHandler(async (req, res) => {
        finished_at = EXCLUDED.finished_at,
        updated_at  = NOW()
      RETURNING *`,
-    [req.params['id'], status ?? 'want-to-read', rating ?? null,
+    [req.userId, req.params['id'], status ?? 'want-to-read', rating ?? null,
      review ?? null, notes ?? null, started_at ?? null, finished_at ?? null],
   );
   res.json(rows[0]);
@@ -324,7 +329,10 @@ router.put('/:id/shelf', asyncHandler(async (req, res) => {
 // ── DELETE /api/books/:id/shelf ───────────────────────────────────────────────
 
 router.delete('/:id/shelf', asyncHandler(async (req, res) => {
-  await pool.query('DELETE FROM user_books WHERE book_id=$1', [req.params['id']]);
+  await pool.query(
+    'DELETE FROM user_books WHERE user_id=$1 AND book_id=$2',
+    [req.userId, req.params['id']],
+  );
   res.status(204).send();
 }));
 
