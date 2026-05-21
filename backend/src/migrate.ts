@@ -15,7 +15,7 @@ async function run() {
       )
     `);
 
-    const migrations = ['002_full_schema.sql', '003_add_users.sql'];
+    const migrations = ['001_init.sql', '002_full_schema.sql', '003_add_users.sql'];
 
     for (const name of migrations) {
       const { rows } = await client.query(
