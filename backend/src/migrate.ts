@@ -39,6 +39,6 @@ async function run() {
 }
 
 run().catch(err => {
-  console.error('Migration failed:', err.message);
+  console.error('Migration failed:', err);
   process.exit(1);
 });
