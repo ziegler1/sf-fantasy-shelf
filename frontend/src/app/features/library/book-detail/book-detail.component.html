@@ -13,9 +13,24 @@
     </div>
 
     <div class="detail-meta">
-      <button mat-icon-button class="close-btn" (click)="close()">
-        <mat-icon>close</mat-icon>
-      </button>
+      <div class="header-actions">
+        <button mat-icon-button class="delete-btn" (click)="confirmDelete()" matTooltip="Remove from library">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+        <button mat-icon-button class="close-btn" (click)="close()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      @if (deleteConfirm) {
+        <div class="delete-confirm">
+          <span>Remove "{{ book.title }}" from your library?</span>
+          <button mat-button color="warn" (click)="deleteBook()" [disabled]="deleting">
+            @if (deleting) { Removing… } @else { Remove }
+          </button>
+          <button mat-button (click)="deleteConfirm = false">Cancel</button>
+        </div>
+      }
 
       <h2 class="detail-title">{{ book.title }}</h2>
 
@@ -191,11 +206,30 @@
   position: relative;
 }
 
-.close-btn {
+.header-actions {
   position: absolute;
   top: -0.5rem;
   right: -0.5rem;
-  color: #64748b !important;
+  display: flex;
+  gap: 0.1rem;
+}
+
+.delete-btn { color: #475569 !important; }
+.delete-btn:hover { color: #f87171 !important; }
+.close-btn  { color: #64748b !important; }
+
+.delete-confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #fca5a5;
 }
 
 .detail-cover {

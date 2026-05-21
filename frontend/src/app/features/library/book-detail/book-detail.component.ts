@@ -35,6 +35,8 @@ export class BookDetailComponent implements OnInit {
   editStatus: ReadingStatus | '' = '';
   editRating: 0 | 1 | 2 | 3 | 4 | 5 = 0;
   shelfSaving = false;
+  deleteConfirm = false;
+  deleting = false;
   private dirty = false;
 
   readonly statusOptions: { label: string; value: ReadingStatus | '' }[] = [
@@ -139,6 +141,18 @@ export class BookDetailComponent implements OnInit {
 
   statusClass(): string {
     return this.editStatus ? `status-${this.editStatus}` : 'status-none';
+  }
+
+  confirmDelete(): void {
+    this.deleteConfirm = true;
+  }
+
+  deleteBook(): void {
+    this.deleting = true;
+    this.bookService.deleteBook(this.book.id).subscribe({
+      next: () => this.dialogRef.close({ deleted: true, id: this.book.id }),
+      error: () => { this.deleting = false; this.deleteConfirm = false; },
+    });
   }
 
   close(): void {

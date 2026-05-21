@@ -70,10 +70,13 @@ export class LibraryComponent implements OnInit {
       panelClass: 'book-detail-panel',
       maxWidth: '100vw',
     });
-    ref.afterClosed().subscribe((updated: BookWithDetails | undefined) => {
-      if (updated) {
-        const idx = this.books.findIndex(b => b.id === updated.id);
-        if (idx !== -1) this.books[idx] = updated;
+    ref.afterClosed().subscribe((result: BookWithDetails | { deleted: true; id: number } | undefined) => {
+      if (!result) return;
+      if ('deleted' in result) {
+        this.books = this.books.filter(b => b.id !== result.id);
+      } else {
+        const idx = this.books.findIndex(b => b.id === result.id);
+        if (idx !== -1) this.books[idx] = result;
       }
     });
   }
