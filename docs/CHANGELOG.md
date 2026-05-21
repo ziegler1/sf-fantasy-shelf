@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.8.0] — 2026-05-20 — Railway production deployment
+
+### Added
+- `backend/src/migrate.ts` — auto-runs SQL migrations on every backend startup; tracks applied files in a `_migrations` table so each runs exactly once (same pattern as cheers-mate's alembic upgrade head)
+- `frontend/nginx/docker-entrypoint.sh` — proper shell script for envsubst so `$BACKEND_URL` substitutes correctly (inline CMD approach in Dockerfile caused shell expansion issues)
+
+### Changed
+- `backend/Dockerfile` — CMD now runs `node dist/migrate.js && node dist/index.js`; copies `db/` folder into image; switched `npm ci` → `npm install` (Railway sends full repo root as Docker build context, not the subdirectory)
+- `frontend/Dockerfile` — same `npm ci` → `npm install` fix; uses entrypoint script instead of inline CMD
+- Both Dockerfiles updated to use explicit subdirectory paths (`COPY backend/...`, `COPY frontend/...`) since Railway always uses repo root as build context regardless of Root Directory setting
+- `frontend/nginx/nginx.conf` — added `proxy_ssl_verify off`, `proxy_ssl_server_name on`, `proxy_set_header Host $proxy_host` to fix 502 when nginx proxies to Railway's HTTPS backend URL
+- `backend/src/routes/books.ts` — shelf upsert updated to `ON CONFLICT (user_id, book_id)` and inserts `user_id = 1` explicitly
+- `backend/src/routes/authors.ts` — follow upsert updated to `ON CONFLICT (user_id, author_id)` and inserts `user_id = 1` explicitly
+- `backend/src/migrate.ts` — migration list includes 001, 002, 003 in order
+
+### Railway gotchas discovered
+- Railway does NOT auto-inject `DATABASE_URL` from the Postgres plugin — must be copied manually from Postgres → Variables into the backend service Variables
+- Railway always sends the full repo root as Docker build context even when Root Directory is set to a subdirectory — Dockerfiles must use explicit paths like `COPY backend/package*.json ./`
+- nginx proxying to Railway HTTPS public URL requires `proxy_ssl_verify off` and `proxy_set_header Host $proxy_host` — without these you get 502
+- Private networking (which would solve the proxy issue cleanly) is not available on Railway Hobby plan
+
+### Production URLs
+- Frontend: `https://sf-fantasy-shelf-production.up.railway.app`
+- Backend: `https://backend-production-37fc.up.railway.app`
+
+---
+
 All notable changes to SF Fantasy Shelf are documented here.
 Format: `[version] — date — summary`
 

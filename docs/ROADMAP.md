@@ -75,13 +75,16 @@ The database schema is already multi-user. This phase wires the backend routes a
 
 **Goal:** Users can add, edit, and remove books from their library via the UI. Cover uploads work.
 
-### Deploy to production (do this first)
+### Deploy to production ✅ DONE 2026-05-20
 
-- [ ] Push to GitHub, create Railway project, deploy both services
-- [ ] Run migrations 002 + 003 on Railway Postgres
-- [ ] Set all env vars (ANTHROPIC_API_KEY, BACKEND_URL, DATABASE_URL)
+- [x] Push to GitHub, create Railway project, deploy both services
+- [x] Migrations run automatically on startup via `src/migrate.ts`
+- [x] Set all env vars (ANTHROPIC_API_KEY, BACKEND_URL, DATABASE_URL)
 - [ ] Configure Cloudflare DNS CNAME → Railway frontend domain
-- [ ] Verify the app is live and reachable before wiring auth
+- [x] Verify the app is live and reachable
+
+Frontend: `https://sf-fantasy-shelf-production.up.railway.app`
+Backend: `https://backend-production-37fc.up.railway.app`
 
 ### Add books
 - [ ] "Add Book" button / FAB on My Library page
