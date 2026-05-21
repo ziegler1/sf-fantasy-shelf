@@ -11,6 +11,14 @@ import { ClaudeService, BookRecommendation, AuthorSuggestion } from '../../core/
 import { AuthorService } from '../../core/services/author.service';
 import type { Author } from '../../types/schema.types';
 
+const RECS_STORAGE_KEY = 'sfs_recommendations';
+
+interface StoredRecs {
+  recommendations: BookRecommendation[];
+  message: string;
+  fetchedAt: string;
+}
+
 @Component({
   selector: 'app-discover',
   standalone: true,
@@ -21,12 +29,15 @@ import type { Author } from '../../types/schema.types';
   ],
   templateUrl: './discover.component.html',
 })
+
 export class DiscoverComponent implements OnInit {
   // Next-up recommendations
   recommendations: BookRecommendation[] = [];
   recsLoading = false;
   recsError = false;
   recsMessage = '';
+  recsFetchedAt: string | null = null;
+  recsReady = false;   // true once we have something to show (from cache or fresh fetch)
 
   // Similar-authors
   authors: Author[] = [];
@@ -42,7 +53,18 @@ export class DiscoverComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadRecommendations();
+    // Restore cached recommendations — don't hit the API on every page visit
+    try {
+      const stored = localStorage.getItem(RECS_STORAGE_KEY);
+      if (stored) {
+        const parsed: StoredRecs = JSON.parse(stored);
+        this.recommendations = parsed.recommendations ?? [];
+        this.recsMessage     = parsed.message ?? '';
+        this.recsFetchedAt   = parsed.fetchedAt ?? null;
+        this.recsReady = true;
+      }
+    } catch { /* ignore corrupt cache */ }
+
     this.authorService.getAuthors().subscribe({
       next: authors => { this.authors = authors; },
     });
@@ -51,13 +73,22 @@ export class DiscoverComponent implements OnInit {
   loadRecommendations(): void {
     this.recsLoading = true;
     this.recsError = false;
-    this.recommendations = [];
 
     this.claude.getNextRecommendations().subscribe({
       next: res => {
         this.recommendations = res.recommendations ?? [];
-        this.recsMessage = res.message ?? '';
+        this.recsMessage     = res.message ?? '';
+        this.recsFetchedAt   = new Date().toLocaleString();
+        this.recsReady = true;
         this.recsLoading = false;
+
+        // Persist so navigating away and back doesn't re-fetch
+        const payload: StoredRecs = {
+          recommendations: this.recommendations,
+          message:         this.recsMessage,
+          fetchedAt:       this.recsFetchedAt,
+        };
+        try { localStorage.setItem(RECS_STORAGE_KEY, JSON.stringify(payload)); } catch { /* ignore */ }
       },
       error: () => {
         this.recsError = true;

@@ -14,7 +14,12 @@
       Refresh
     </button>
   </div>
-  <p class="section-subtitle">Personalised picks based on your shelf</p>
+  <p class="section-subtitle">
+    Personalised picks based on your shelf
+    @if (recsFetchedAt) {
+      <span class="fetched-at"> · Last updated {{ recsFetchedAt }}</span>
+    }
+  </p>
 
   @if (recsLoading) {
     <div class="loading-row">
@@ -26,15 +31,15 @@
       <mat-icon>error_outline</mat-icon>
       <p>Couldn't load recommendations. Check your API key and try again.</p>
     </div>
+  } @else if (!recsReady) {
+    <div class="empty-state">
+      <mat-icon>auto_awesome</mat-icon>
+      <p>Hit <strong>Refresh</strong> to get personalised picks based on your shelf.</p>
+    </div>
   } @else if (recsMessage) {
     <div class="empty-state">
       <mat-icon>menu_book</mat-icon>
       <p>{{ recsMessage }}</p>
-    </div>
-  } @else if (!recommendations.length) {
-    <div class="empty-state">
-      <mat-icon>menu_book</mat-icon>
-      <p>No recommendations yet.</p>
     </div>
   } @else {
     <div class="rec-grid">
@@ -144,6 +149,10 @@
   font-size: 0.8rem;
   color: #475569;
   margin: 0 0 1rem;
+}
+
+.fetched-at {
+  color: #334155;
 }
 
 .loading-row {
