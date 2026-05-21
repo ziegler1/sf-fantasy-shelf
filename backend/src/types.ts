@@ -46,6 +46,7 @@ export interface Book {
   published_at: string | null;
   page_count: number | null;
   language: string;
+  ai_summary: string | null;
   created_at: string;
   updated_at: string;
 }

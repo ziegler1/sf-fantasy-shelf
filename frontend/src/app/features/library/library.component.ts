@@ -6,19 +6,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 import { BookService } from '../../core/services/book.service';
-import { ClaudeService } from '../../core/services/claude.service';
+import { BookDetailComponent } from './book-detail/book-detail.component';
 import type { BookWithDetails, ReadingStatus } from '../../types/schema.types';
 
 interface StatusFilter {
   label: string;
   value: ReadingStatus | '';
-}
-
-interface SummaryState {
-  loading: boolean;
-  text: string | null;
-  open: boolean;
 }
 
 @Component({
@@ -35,7 +30,6 @@ export class LibraryComponent implements OnInit {
   books: BookWithDetails[] = [];
   loading = true;
   activeStatus: ReadingStatus | '' = '';
-  summaries = new Map<number, SummaryState>();
 
   readonly filters: StatusFilter[] = [
     { label: 'All',           value: ''            },
@@ -47,7 +41,7 @@ export class LibraryComponent implements OnInit {
 
   constructor(
     private bookService: BookService,
-    private claude: ClaudeService,
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -69,34 +63,12 @@ export class LibraryComponent implements OnInit {
     });
   }
 
-  toggleSummary(book: BookWithDetails): void {
-    const state = this.summaries.get(book.id);
-
-    if (state) {
-      this.summaries.set(book.id, { ...state, open: !state.open });
-      if (!state.text && !state.loading && !state.open) {
-        this.fetchSummary(book.id);
-      }
-      return;
-    }
-
-    this.summaries.set(book.id, { loading: true, text: null, open: true });
-    this.fetchSummary(book.id);
-  }
-
-  private fetchSummary(bookId: number): void {
-    this.claude.getBookSummary(bookId).subscribe({
-      next: res => this.summaries.set(bookId, { loading: false, text: res.summary, open: true }),
-      error: () => this.summaries.set(bookId, {
-        loading: false,
-        text: 'Unable to generate summary right now.',
-        open: true,
-      }),
+  openDetail(book: BookWithDetails): void {
+    this.dialog.open(BookDetailComponent, {
+      data: book,
+      panelClass: 'book-detail-panel',
+      maxWidth: '100vw',
     });
-  }
-
-  summaryState(bookId: number): SummaryState {
-    return this.summaries.get(bookId) ?? { loading: false, text: null, open: false };
   }
 
   authorNames(book: BookWithDetails): string {

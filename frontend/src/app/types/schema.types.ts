@@ -53,6 +53,7 @@ export interface Book {
   published_at: string | null;  // ISO date string
   page_count: number | null;
   language: string;
+  ai_summary: string | null;
   created_at: string;
   updated_at: string;
 }

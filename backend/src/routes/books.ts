@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
+import { generateAndStoreSummary } from '../lib/generateSummary';
 import type { BookWithDetails, ReadingStatus } from '../types';
 
 const router = Router();
@@ -133,6 +134,13 @@ router.post('/', asyncHandler(async (req, res) => {
 
     await client.query('COMMIT');
     res.status(201).json(book);
+
+    // Generate and persist AI summary in the background — don't block the response
+    setImmediate(() => {
+      generateAndStoreSummary(book.id).catch(err =>
+        console.error(`Summary generation failed for book ${book.id}:`, err),
+      );
+    });
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

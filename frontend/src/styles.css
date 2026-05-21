@@ -61,6 +61,14 @@ html, body {
 .status-dnf         { background: rgba(239,68,68,.15);  color: #f87171; }
 .status-none        { background: rgba(100,116,139,.15);color: #64748b; }
 
+/* ── Book detail dialog ──────────────────────────────────── */
+.book-detail-panel .mat-mdc-dialog-container {
+  background: #1e293b !important;
+  border-radius: 10px !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
 /* ── Empty state ─────────────────────────────────────────── */
 .empty-state {
   display: flex;
