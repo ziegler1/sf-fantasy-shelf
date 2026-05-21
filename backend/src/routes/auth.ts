@@ -104,4 +104,33 @@ router.get('/me', verifyToken, asyncHandler(async (req, res) => {
   res.json(rows[0]);
 }));
 
+// ── POST /api/auth/change-password ───────────────────────────────────────────
+
+router.post('/change-password', verifyToken, asyncHandler(async (req, res) => {
+  const { current_password, new_password } = req.body as {
+    current_password?: string;
+    new_password?: string;
+  };
+
+  if (!current_password || !new_password) {
+    return res.status(400).json({ error: 'current_password and new_password are required' });
+  }
+  if (new_password.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters' });
+  }
+
+  const { rows } = await pool.query(
+    'SELECT password_hash FROM users WHERE id = $1', [req.userId],
+  );
+  if (!rows.length) return res.status(404).json({ error: 'User not found' });
+
+  const valid = await bcrypt.compare(current_password, rows[0].password_hash);
+  if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+
+  const hash = await bcrypt.hash(new_password, BCRYPT_ROUNDS);
+  await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2', [hash, req.userId]);
+
+  res.json({ message: 'Password updated successfully' });
+}));
+
 export default router;
