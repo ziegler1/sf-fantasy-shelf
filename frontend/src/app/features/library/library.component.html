@@ -33,7 +33,7 @@
                 (keydown.enter)="openDetail(book)">
         <div class="cover-wrap">
           @if (book.cover_url) {
-            <img [src]="book.cover_url" [alt]="book.title" class="cover-img">
+            <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy">
           } @else {
             <div class="cover-placeholder">
               <mat-icon>menu_book</mat-icon>

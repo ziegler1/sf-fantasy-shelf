@@ -39,7 +39,7 @@ router.get('/', asyncHandler(async (req, res) => {
     const isbn10  = isbns.find(s => s.length === 10) ?? null;
     const isbn13  = isbns.find(s => s.length === 13) ?? null;
     const cover_url = doc.cover_i
-      ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+      ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
       : null;
 
     return {
