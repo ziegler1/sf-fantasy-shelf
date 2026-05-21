@@ -40,6 +40,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
     { label: 'Discover',          icon: 'explore',         route: '/discover' },
     { label: 'Upcoming Releases', icon: 'event_available', route: '/upcoming' },
     { label: 'News Feed',         icon: 'rss_feed',        route: '/news'     },
+    { label: 'Account',           icon: 'manage_accounts', route: '/account'  },
   ];
 
   constructor(

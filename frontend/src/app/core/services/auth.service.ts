@@ -36,6 +36,22 @@ export class AuthService {
       .pipe(tap(res => this.store(res)));
   }
 
+  updateProfile(name: string, email: string): Observable<AuthUser> {
+    return this.http.put<AuthUser>('/api/auth/profile', { name, email }).pipe(
+      tap(user => {
+        const updated = { ...this._user()!, name: user.name, email: user.email };
+        localStorage.setItem(USER_KEY, JSON.stringify(updated));
+        this._user.set(updated);
+      }),
+    );
+  }
+
+  changePassword(current_password: string, new_password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>('/api/auth/change-password', {
+      current_password, new_password,
+    });
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

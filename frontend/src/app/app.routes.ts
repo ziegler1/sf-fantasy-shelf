@@ -44,6 +44,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/news/news.component').then(m => m.NewsComponent),
       },
+      {
+        path: 'account',
+        loadComponent: () =>
+          import('./features/account/account.component').then(m => m.AccountComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'library' },

@@ -61,6 +61,19 @@ html, body {
 .status-dnf         { background: rgba(239,68,68,.15);  color: #f87171; }
 .status-none        { background: rgba(100,116,139,.15);color: #64748b; }
 
+/* ── Snackbar toasts ─────────────────────────────────────── */
+.snack-success .mdc-snackbar__surface {
+  background: #1e293b !important;
+  border-left: 3px solid #22c55e;
+}
+
+.snack-error .mdc-snackbar__surface {
+  background: #1e293b !important;
+  border-left: 3px solid #f87171;
+}
+
+.mdc-snackbar__label { color: #e2e8f0 !important; }
+
 /* ── Book detail dialog ──────────────────────────────────── */
 .book-detail-panel .mat-mdc-dialog-container {
   background: #1e293b !important;

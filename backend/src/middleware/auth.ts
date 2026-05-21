@@ -39,5 +39,5 @@ export function jwtSecret(): string {
 }
 
 export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, jwtSecret(), { expiresIn: '7d' });
+  return jwt.sign(payload, jwtSecret(), { expiresIn: '30d' });
 }

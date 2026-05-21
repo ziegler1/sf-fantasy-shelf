@@ -1,0 +1,159 @@
+<div class="page-header">
+  <h1 class="page-title">Account Settings</h1>
+</div>
+
+<div class="settings-layout">
+
+  <!-- ── Profile ─────────────────────────────────────────────── -->
+  <section class="settings-card">
+    <h2 class="card-heading">
+      <mat-icon>person</mat-icon> Profile
+    </h2>
+    <p class="card-subtitle">Update your display name and email address.</p>
+
+    <mat-form-field appearance="outline" class="settings-field">
+      <mat-label>Name</mat-label>
+      <input matInput [(ngModel)]="name" (keydown.enter)="saveProfile()">
+      <mat-icon matSuffix>badge</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="settings-field">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" [(ngModel)]="email" (keydown.enter)="saveProfile()">
+      <mat-icon matSuffix>mail</mat-icon>
+    </mat-form-field>
+
+    <div class="card-actions">
+      <button mat-flat-button color="primary" (click)="saveProfile()" [disabled]="profileSaving">
+        @if (profileSaving) {
+          <mat-spinner diameter="18" />
+        } @else {
+          <mat-icon>save</mat-icon>
+        }
+        Save Profile
+      </button>
+    </div>
+  </section>
+
+  <mat-divider />
+
+  <!-- ── Change Password ─────────────────────────────────────── -->
+  <section class="settings-card">
+    <h2 class="card-heading">
+      <mat-icon>lock</mat-icon> Change Password
+    </h2>
+    <p class="card-subtitle">You must enter your current password to set a new one.</p>
+
+    <mat-form-field appearance="outline" class="settings-field">
+      <mat-label>Current password</mat-label>
+      <input matInput [type]="hideCurrentPw ? 'password' : 'text'"
+             [(ngModel)]="currentPassword" autocomplete="current-password">
+      <button mat-icon-button matSuffix (click)="hideCurrentPw = !hideCurrentPw" type="button">
+        <mat-icon>{{ hideCurrentPw ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="settings-field">
+      <mat-label>New password</mat-label>
+      <input matInput [type]="hideNewPw ? 'password' : 'text'"
+             [(ngModel)]="newPassword" autocomplete="new-password">
+      <button mat-icon-button matSuffix (click)="hideNewPw = !hideNewPw" type="button">
+        <mat-icon>{{ hideNewPw ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+      <mat-hint>Minimum 8 characters</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="settings-field">
+      <mat-label>Confirm new password</mat-label>
+      <input matInput [type]="hideConfirmPw ? 'password' : 'text'"
+             [(ngModel)]="confirmPassword" (keydown.enter)="savePassword()"
+             autocomplete="new-password">
+      <button mat-icon-button matSuffix (click)="hideConfirmPw = !hideConfirmPw" type="button">
+        <mat-icon>{{ hideConfirmPw ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <div class="card-actions">
+      <button mat-flat-button color="primary" (click)="savePassword()" [disabled]="passwordSaving">
+        @if (passwordSaving) {
+          <mat-spinner diameter="18" />
+        } @else {
+          <mat-icon>lock_reset</mat-icon>
+        }
+        Update Password
+      </button>
+    </div>
+  </section>
+
+  <mat-divider />
+
+  <!-- ── Session ─────────────────────────────────────────────── -->
+  <section class="settings-card">
+    <h2 class="card-heading">
+      <mat-icon>logout</mat-icon> Session
+    </h2>
+    <p class="card-subtitle">
+      Signed in as <strong>{{ auth.currentUser()?.email }}</strong>.
+      Your session lasts 30 days from login.
+    </p>
+    <div class="card-actions">
+      <button mat-stroked-button class="sign-out-btn" (click)="auth.logout()">
+        <mat-icon>logout</mat-icon>
+        Sign out
+      </button>
+    </div>
+  </section>
+
+</div>
+
+<style>
+.settings-layout {
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.settings-card {
+  padding: 1.5rem 0;
+}
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0 0 0.25rem;
+}
+
+.card-heading mat-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #a78bfa;
+}
+
+.card-subtitle {
+  font-size: 0.82rem;
+  color: #475569;
+  margin: 0 0 1.25rem;
+}
+
+.card-subtitle strong { color: #64748b; }
+
+.settings-field {
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+.card-actions {
+  margin-top: 0.75rem;
+}
+
+.sign-out-btn {
+  color: #f87171 !important;
+  border-color: rgba(248,113,113,0.3) !important;
+}
+</style>

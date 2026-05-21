@@ -104,6 +104,38 @@ router.get('/me', verifyToken, asyncHandler(async (req, res) => {
   res.json(rows[0]);
 }));
 
+// ── PUT /api/auth/profile ─────────────────────────────────────────────────────
+
+router.put('/profile', verifyToken, asyncHandler(async (req, res) => {
+  const { name, email } = req.body as { name?: string; email?: string };
+
+  if (!name && !email) {
+    return res.status(400).json({ error: 'Provide name and/or email to update' });
+  }
+
+  const current = await pool.query(
+    'SELECT name, email FROM users WHERE id = $1', [req.userId],
+  );
+  if (!current.rows.length) return res.status(404).json({ error: 'User not found' });
+
+  const newName  = name?.trim()  || current.rows[0].name;
+  const newEmail = email?.trim().toLowerCase() || current.rows[0].email;
+
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET name=$1, email=$2 WHERE id=$3
+       RETURNING id, name, email, created_at`,
+      [newName, newEmail, req.userId],
+    );
+    res.json(rows[0]);
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === '23505') {
+      return res.status(409).json({ error: 'Email already in use' });
+    }
+    throw err;
+  }
+}));
+
 // ── POST /api/auth/change-password ───────────────────────────────────────────
 
 router.post('/change-password', verifyToken, asyncHandler(async (req, res) => {
