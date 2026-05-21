@@ -93,8 +93,8 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 
 router.post('/:id/follow', asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `INSERT INTO author_follows (author_id) VALUES ($1)
-     ON CONFLICT (author_id) DO NOTHING RETURNING *`,
+    `INSERT INTO author_follows (user_id, author_id) VALUES (1, $1)
+     ON CONFLICT (user_id, author_id) DO NOTHING RETURNING *`,
     [req.params['id']],
   );
   res.status(rows.length ? 201 : 200).json({ followed: true });

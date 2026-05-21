@@ -45,7 +45,7 @@ function booksQuery(where = '', values: unknown[] = []) {
       LEFT JOIN series s        ON s.id = bs.series_id
       LEFT JOIN book_tags bt    ON bt.book_id = b.id
       LEFT JOIN tags t          ON t.id = bt.tag_id
-      LEFT JOIN user_books ub   ON ub.book_id = b.id
+      LEFT JOIN user_books ub   ON ub.book_id = b.id AND ub.user_id = 1
       ${where}
       GROUP BY b.id, ub.id
       ORDER BY b.title
@@ -179,9 +179,9 @@ router.put('/:id/shelf', asyncHandler(async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    `INSERT INTO user_books (book_id, status, rating, review, notes, started_at, finished_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (book_id) DO UPDATE SET
+    `INSERT INTO user_books (user_id, book_id, status, rating, review, notes, started_at, finished_at)
+     VALUES (1, $1, $2, $3, $4, $5, $6, $7)
+     ON CONFLICT (user_id, book_id) DO UPDATE SET
        status      = EXCLUDED.status,
        rating      = EXCLUDED.rating,
        review      = EXCLUDED.review,
