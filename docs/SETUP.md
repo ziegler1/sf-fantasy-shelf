@@ -149,7 +149,7 @@ New Project → choose your GitHub repo.
 **2. Add Postgres**
 
 In the Railway project: Add → Database → PostgreSQL.
-Railway automatically sets `DATABASE_URL` on all services in the project.
+**Important:** Railway does NOT auto-inject `DATABASE_URL` into services. You must copy it manually from the Postgres service → Variables tab and add it to the backend service Variables.
 
 **3. Deploy the backend service**
 
@@ -162,22 +162,14 @@ Set environment variables on the backend service:
 |---|---|
 | `ANTHROPIC_API_KEY` | your key |
 | `NODE_ENV` | `production` |
-| `DATABASE_URL` | auto-filled by Postgres plugin |
+| `DATABASE_URL` | copy from Postgres service → Variables tab |
 
 Generate a public domain on the backend service (Settings → Networking → Generate Domain).
 Copy the URL — you'll need it for the frontend.
 
-**4. Run migrations on Railway**
+### 4. Migrations run automatically
 
-```powershell
-railway login
-railway link        # select your project
-railway shell       # opens a shell on the backend service
-
-# Inside the shell:
-cat db/002_full_schema.sql | psql $DATABASE_URL
-cat db/003_add_users.sql | psql $DATABASE_URL
-```
+Migrations are run automatically on every backend startup via `src/migrate.ts`. A `_migrations` table tracks which files have been applied — each migration runs exactly once. No manual steps needed.
 
 **5. Deploy the frontend service**
 
