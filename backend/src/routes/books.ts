@@ -4,6 +4,7 @@ import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
 import { generateAndStoreSummary } from '../lib/generateSummary';
 import { downloadAndStoreCover } from '../lib/downloadAndStoreCover';
+import { populateSeriesBooks } from '../lib/populateSeriesBooks';
 import type { BookWithDetails, ReadingStatus } from '../types';
 
 const router = Router();
@@ -184,16 +185,36 @@ router.post('/import', asyncHandler(async (req, res) => {
     );
     res.status(201).json(rows[0]);
 
+    // Capture values needed by background jobs before client is released
+    const importedBookId   = book.id;
+    const importedCoverUrl = book.cover_url as string | null;
+
     setImmediate(() => {
-      generateAndStoreSummary(book.id).catch(err =>
-        console.error(`Summary generation failed for book ${book.id}:`, err),
+      generateAndStoreSummary(importedBookId).catch(err =>
+        console.error(`Summary generation failed for book ${importedBookId}:`, err),
       );
-      if (book.cover_url) {
-        downloadAndStoreCover(book.id, book.cover_url).catch(err =>
-          console.error(`Cover upload failed for book ${book.id}:`, err),
+      if (importedCoverUrl) {
+        downloadAndStoreCover(importedBookId, importedCoverUrl).catch(err =>
+          console.error(`Cover upload failed for book ${importedBookId}:`, err),
         );
       }
     });
+
+    // Populate other books in the series in the background
+    if (series_name?.trim() && authorNames.length) {
+      const capturedSeriesName = series_name.trim();
+      const capturedAuthor     = authorNames[0];
+      // Look up the series ID we just created/found
+      pool.query<{ id: number }>(
+        'SELECT id FROM series WHERE LOWER(name) = LOWER($1) LIMIT 1',
+        [capturedSeriesName],
+      ).then(({ rows: sr }) => {
+        if (!sr.length) return;
+        return populateSeriesBooks(sr[0].id, capturedSeriesName, capturedAuthor);
+      }).catch(err =>
+        console.error(`Series population failed for "${series_name}":`, err),
+      );
+    }
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
