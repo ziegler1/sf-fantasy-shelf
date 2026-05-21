@@ -10,5 +10,6 @@ WORKDIR /app
 COPY backend/package*.json ./
 RUN npm install --omit=dev
 COPY --from=build /app/dist ./dist
+COPY backend/db ./db
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "node dist/migrate.js && node dist/index.js"]
