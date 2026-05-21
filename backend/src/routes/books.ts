@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { generateAndStoreSummary } from '../lib/generateSummary';
+import { downloadAndStoreCover } from '../lib/downloadAndStoreCover';
 import type { BookWithDetails, ReadingStatus } from '../types';
 
 const router = Router();
@@ -152,11 +153,16 @@ router.post('/import', asyncHandler(async (req, res) => {
     const { rows } = await pool.query<BookWithDetails>(booksQuery('WHERE b.id = $1', [book.id]));
     res.status(201).json(rows[0]);
 
-    // Background summary generation
+    // Background: generate AI summary + upload cover to R2
     setImmediate(() => {
       generateAndStoreSummary(book.id).catch(err =>
         console.error(`Summary generation failed for book ${book.id}:`, err),
       );
+      if (book.cover_url) {
+        downloadAndStoreCover(book.id, book.cover_url).catch(err =>
+          console.error(`Cover upload failed for book ${book.id}:`, err),
+        );
+      }
     });
   } catch (err) {
     await client.query('ROLLBACK');
