@@ -26,8 +26,8 @@ html, body {
 /* ── Book card grid ──────────────────────────────────────── */
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.75rem;
 }
 
 /* ── Material overrides (dark theme) ─────────────────────── */
