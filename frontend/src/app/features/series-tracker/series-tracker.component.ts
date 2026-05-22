@@ -31,6 +31,7 @@ export class SeriesTrackerComponent implements OnInit {
   seriesList: EnrichedSeries[] = [];
   loading = true;
   expanded = new Set<number>();
+  adding  = new Set<number>();
 
   private bookMap = new Map<number, BookWithDetails>();
 
@@ -72,6 +73,26 @@ export class SeriesTrackerComponent implements OnInit {
         this.loading = false;
       },
       error: () => { this.loading = false; },
+    });
+  }
+
+  addToLibrary(bookId: number, event: Event): void {
+    event.stopPropagation();
+    if (this.adding.has(bookId)) return;
+    this.adding.add(bookId);
+
+    this.bookService.updateShelf(bookId, { status: 'want-to-read' }).subscribe({
+      next: () => {
+        // Fetch enriched data so the row updates with the correct status badge
+        this.bookService.getBook(bookId).subscribe({
+          next: book => {
+            this.bookMap.set(bookId, book);
+            this.adding.delete(bookId);
+          },
+          error: () => this.adding.delete(bookId),
+        });
+      },
+      error: () => this.adding.delete(bookId),
     });
   }
 

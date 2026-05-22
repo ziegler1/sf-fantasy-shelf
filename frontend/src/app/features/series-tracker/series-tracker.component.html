@@ -72,6 +72,17 @@
                 <span class="status-badge" [ngClass]="statusClass(book.id)">
                   {{ statusLabel(book.id) }}
                 </span>
+              } @else {
+                <button class="add-to-lib-btn"
+                        (click)="addToLibrary(book.id, $event)"
+                        [disabled]="adding.has(book.id)"
+                        matTooltip="Add to library">
+                  @if (adding.has(book.id)) {
+                    <mat-spinner diameter="14" />
+                  } @else {
+                    <mat-icon>library_add</mat-icon>
+                  }
+                </button>
               }
             </li>
           }
@@ -254,6 +265,37 @@
 
 /* Status badge — uses global status-* classes from styles.css */
 .status-badge { flex-shrink: 0; }
+
+.add-to-lib-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #334155;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+
+.book-entry:hover .add-to-lib-btn {
+  opacity: 1;
+}
+
+.add-to-lib-btn:hover {
+  color: #a78bfa;
+  background: rgba(167,139,250,0.1);
+}
+
+.add-to-lib-btn mat-icon {
+  font-size: 1.05rem;
+  width: 1.05rem;
+  height: 1.05rem;
+}
 
 .expand-btn {
   display: flex;
