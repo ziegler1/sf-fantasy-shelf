@@ -169,14 +169,12 @@ router.post('/import', asyncHandler(async (req, res) => {
       );
     }
 
-    // Optionally place on the user's shelf immediately
-    if (status) {
-      await client.query(
-        `INSERT INTO user_books (user_id, book_id, status) VALUES ($1, $2, $3)
-         ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, updated_at = NOW()`,
-        [req.userId, book.id, status],
-      );
-    }
+    // Always add to the user's shelf — default want-to-read if no status chosen
+    await client.query(
+      `INSERT INTO user_books (user_id, book_id, status) VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, updated_at = NOW()`,
+      [req.userId, book.id, status || 'want-to-read'],
+    );
 
     await client.query('COMMIT');
 
@@ -226,7 +224,9 @@ router.post('/import', asyncHandler(async (req, res) => {
 // ── GET /api/books  (?status=reading&search=dune) ─────────────────────────────
 
 router.get('/', asyncHandler(async (req, res) => {
-  const conditions: string[] = [];
+  // Only show books that are on the user's shelf — auto-populated series
+  // siblings have no user_books entry and must not appear in the library.
+  const conditions: string[] = ['ub.id IS NOT NULL'];
   const values: unknown[] = [];
 
   if (req.query['status']) {

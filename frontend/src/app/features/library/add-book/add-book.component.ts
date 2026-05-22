@@ -32,18 +32,17 @@ export class AddBookComponent implements OnInit, OnDestroy {
   searching = false;
   searchError = false;
   selected: BookSearchResult | null = null;
-  status: ReadingStatus | '' = 'want-to-read';
+  status: ReadingStatus = 'want-to-read';
   seriesName = '';
   seriesPosition: number | null = null;
   saving = false;
   error: string | null = null;
 
-  readonly statusOptions: { label: string; value: ReadingStatus | '' }[] = [
-    { label: 'Just add (no status)',  value: '' },
-    { label: 'Want to Read',          value: 'want-to-read' },
-    { label: 'Reading',               value: 'reading' },
-    { label: 'Read',                  value: 'read' },
-    { label: 'DNF',                   value: 'dnf' },
+  readonly statusOptions: { label: string; value: ReadingStatus }[] = [
+    { label: 'Want to Read', value: 'want-to-read' },
+    { label: 'Reading',      value: 'reading'      },
+    { label: 'Read',         value: 'read'         },
+    { label: 'DNF',          value: 'dnf'          },
   ];
 
   private search$ = new Subject<string>();
@@ -111,7 +110,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
     const { google_id: _gid, ...rest } = this.selected;
     const importBody = {
       ...rest,
-      status: (this.status as ReadingStatus) || undefined,
+      status:          this.status,
       series_name:     this.seriesName.trim() || null,
       series_position: this.seriesPosition || null,
     };
