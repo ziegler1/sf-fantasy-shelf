@@ -40,7 +40,7 @@
 
         <!-- ── Book list ──────────────────────────────────── -->
         <ol class="book-list">
-          @for (book of s.books; track book.id) {
+          @for (book of (isExpanded(s.id) ? s.books : s.books.slice(0, 1)); track book.id) {
             <li class="book-entry"
                 [class.in-library]="inLibrary(book.id)"
                 (click)="inLibrary(book.id) && openBook(book.id)"
@@ -49,7 +49,6 @@
                 [attr.tabindex]="inLibrary(book.id) ? 0 : null"
                 (keydown.enter)="inLibrary(book.id) && openBook(book.id)">
 
-              <!-- Cover thumbnail -->
               <div class="book-thumb">
                 @if (coverUrl(book.id)) {
                   <img [src]="coverUrl(book.id)!" [alt]="book.title" class="thumb-img" loading="lazy">
@@ -60,10 +59,8 @@
                 }
               </div>
 
-              <!-- Position -->
               <span class="book-pos">{{ book.position ?? '?' }}</span>
 
-              <!-- Title + status -->
               <div class="book-info">
                 <span class="book-title" [class.muted]="!inLibrary(book.id)">{{ book.title }}</span>
                 @if (book.published_at) {
@@ -71,7 +68,6 @@
                 }
               </div>
 
-              <!-- Status badge -->
               @if (inLibrary(book.id)) {
                 <span class="status-badge" [ngClass]="statusClass(book.id)">
                   {{ statusLabel(book.id) }}
@@ -80,6 +76,14 @@
             </li>
           }
         </ol>
+
+        <!-- ── Expand / collapse toggle ───────────────────── -->
+        @if (s.books.length > 1) {
+          <button class="expand-btn" (click)="toggleExpanded(s.id)">
+            <mat-icon>{{ isExpanded(s.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            {{ isExpanded(s.id) ? 'Show less' : s.books.length - 1 + ' more book' + (s.books.length - 1 === 1 ? '' : 's') }}
+          </button>
+        }
 
       </mat-card>
     }
@@ -250,4 +254,30 @@
 
 /* Status badge — uses global status-* classes from styles.css */
 .status-badge { flex-shrink: 0; }
+
+.expand-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+  padding: 0.2rem 0.5rem 0.2rem 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #475569;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  transition: color 0.1s, background 0.1s;
+}
+
+.expand-btn:hover {
+  color: #a78bfa;
+  background: rgba(167,139,250,0.07);
+}
+
+.expand-btn mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
 </style>

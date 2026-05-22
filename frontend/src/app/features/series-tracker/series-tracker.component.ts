@@ -30,6 +30,7 @@ interface EnrichedSeries extends SeriesWithBooks {
 export class SeriesTrackerComponent implements OnInit {
   seriesList: EnrichedSeries[] = [];
   loading = true;
+  expanded = new Set<number>();
 
   private bookMap = new Map<number, BookWithDetails>();
 
@@ -72,6 +73,18 @@ export class SeriesTrackerComponent implements OnInit {
       },
       error: () => { this.loading = false; },
     });
+  }
+
+  toggleExpanded(seriesId: number): void {
+    if (this.expanded.has(seriesId)) {
+      this.expanded.delete(seriesId);
+    } else {
+      this.expanded.add(seriesId);
+    }
+  }
+
+  isExpanded(seriesId: number): boolean {
+    return this.expanded.has(seriesId);
   }
 
   openBook(bookId: number): void {
