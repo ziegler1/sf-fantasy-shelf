@@ -452,7 +452,7 @@
     <p>Two Claude-powered sections on the Discover page. Both call the backend which fetches user reading history from Postgres, builds a personalised prompt, and calls Claude with system-prompt caching.</p>
 
     <h3>What to Read Next</h3>
-    <p>Calls <code>POST /api/claude/next</code>. Fetches the user's full shelf (up to 25 books), formats read/reading/want-to-read history, and asks Claude for 3 personalised recommendations with reasons.</p>
+    <p>Calls <code>POST /api/claude/next</code>. Fetches the user's <strong>entire shelf</strong> (no limit), formats read/reading/want-to-read history ordered by rating, and asks Claude for 3 personalised recommendations with reasons. The more books in your library, the better the recommendations.</p>
 
     <h3>Authors You Might Enjoy</h3>
     <p>User selects an author from a dropdown. Calls <code>POST /api/claude/similar-authors</code>. Fetches <code>AuthorWithBooks</code> + reading history, returns 3 similar authors with style explanation.</p>
