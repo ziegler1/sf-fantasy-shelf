@@ -53,8 +53,7 @@ router.post('/next', asyncHandler(async (req, res) => {
      LEFT JOIN tags t          ON t.id = bt.tag_id
      WHERE ub.user_id = $1
      GROUP BY b.id, ub.status, ub.rating, ub.updated_at
-     ORDER BY ub.rating DESC NULLS LAST, ub.updated_at DESC
-     LIMIT 25`,
+     ORDER BY ub.rating DESC NULLS LAST, ub.updated_at DESC`,
     [userId],
   );
 
@@ -77,9 +76,9 @@ router.post('/next', asyncHandler(async (req, res) => {
   const wtr = rows.filter(b => b.status === 'want-to-read');
 
   const historyText = [
-    read.length ? `Books they've read:\n${read.slice(0, 12).map(fmt).join('\n')}` : '',
+    read.length ? `Books they've read:\n${read.map(fmt).join('\n')}` : '',
     reading.length ? `\nCurrently reading:\n${reading.map(fmt).join('\n')}` : '',
-    wtr.length ? `\nWant to read:\n${wtr.slice(0, 5).map(fmt).join('\n')}` : '',
+    wtr.length ? `\nWant to read:\n${wtr.map(fmt).join('\n')}` : '',
   ].filter(Boolean).join('\n');
 
   const stream = anthropic.messages.stream({
