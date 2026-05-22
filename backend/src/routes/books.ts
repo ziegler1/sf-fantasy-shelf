@@ -235,7 +235,12 @@ router.get('/', asyncHandler(async (req, res) => {
   }
   if (req.query['search']) {
     values.push(`%${req.query['search']}%`);
-    conditions.push(`b.title ILIKE $${values.length}`);
+    const p = `$${values.length}`;
+    conditions.push(`(b.title ILIKE ${p} OR EXISTS (
+      SELECT 1 FROM book_authors ba2
+      JOIN authors a2 ON a2.id = ba2.author_id
+      WHERE ba2.book_id = b.id AND a2.name ILIKE ${p}
+    ))`);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
