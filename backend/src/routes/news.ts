@@ -11,14 +11,19 @@ router.get('/', asyncHandler(async (req, res) => {
   const limit  = Math.min(Number(req.query['limit']  ?? 60), 100);
   const offset = Math.max(Number(req.query['offset'] ?? 0),  0);
 
-  const { rows } = await pool.query(
-    `SELECT id, source_name, title, url, description, image_url, published_at, created_at
-     FROM news_articles
-     ORDER BY COALESCE(published_at, created_at) DESC
-     LIMIT $1 OFFSET $2`,
-    [limit, offset],
-  );
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, source_name, title, url, description, image_url, published_at, created_at
+       FROM news_articles
+       ORDER BY published_at DESC NULLS LAST, created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('[news] GET / error:', err);
+    throw err;
+  }
 }));
 
 // Manual refresh — triggers an immediate fetch and returns per-source results
