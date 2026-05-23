@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
+import { fetchNewsFeeds } from '../lib/fetchNewsFeeds';
 
 const router = Router();
 router.use(verifyToken);
@@ -18,6 +19,13 @@ router.get('/', asyncHandler(async (req, res) => {
     [limit, offset],
   );
   res.json(rows);
+}));
+
+// Manual refresh — triggers an immediate fetch and returns per-source results
+router.post('/refresh', asyncHandler(async (req, res) => {
+  const results = await fetchNewsFeeds();
+  const total = await pool.query<{ count: string }>('SELECT COUNT(*) FROM news_articles');
+  res.json({ results, total: Number(total.rows[0].count) });
 }));
 
 export default router;

@@ -11,17 +11,21 @@ const parser = new Parser({
       ['content:encoded', 'contentEncoded'],
     ],
   },
-  timeout: 10000,
+  timeout: 15000,
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (compatible; SFFantasyShelf/1.0; +https://github.com/ziegler1/sf-fantasy-shelf)',
+    'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+  },
 });
 
 interface FeedSource { name: string; url: string }
 
 const FEEDS: FeedSource[] = [
-  { name: 'Tor.com',         url: 'https://www.tor.com/feed/'                         },
-  { name: 'Locus Magazine',  url: 'https://locusmag.com/feed/'                        },
-  { name: 'Fantasy Faction', url: 'https://fantasy-faction.com/feed'                  },
-  { name: 'SFF World',       url: 'https://www.sffworld.com/feed/'                    },
-  { name: 'Reddit Fantasy',  url: 'https://www.reddit.com/r/Fantasy/hot.rss?limit=20' },
+  { name: 'Tor.com',        url: 'https://www.tor.com/feed/'                        },
+  { name: 'Locus Magazine', url: 'https://locusmag.com/feed/'                       },
+  { name: 'SFF World',      url: 'https://www.sffworld.com/feed/'                   },
+  { name: 'Reddit Fantasy', url: 'https://www.reddit.com/r/Fantasy/top.rss?t=week'  },
+  { name: 'Reddit SF',      url: 'https://www.reddit.com/r/printSF/top.rss?t=week'  },
 ];
 
 function extractImage(item: RssItem): string | null {
@@ -31,7 +35,7 @@ function extractImage(item: RssItem): string | null {
   const mt = item['mediaThumbnail'] as { $?: { url?: string } } | undefined;
   if (mt?.$?.url) return mt.$.url;
 
-  const html = (item['contentEncoded'] as string | undefined) ?? (item.content ?? '');
+  const html = (item['contentEncoded'] as string | undefined) ?? ((item.content as string | undefined) ?? '');
   const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   return m ? m[1] : null;
 }
@@ -42,8 +46,11 @@ function truncate(s: string | null | undefined, max: number): string | null {
   return plain.length > max ? plain.slice(0, max - 1) + '…' : plain;
 }
 
-export async function fetchNewsFeeds(): Promise<void> {
+export async function fetchNewsFeeds(): Promise<{ source: string; added: number; error?: string }[]> {
+  const results: { source: string; added: number; error?: string }[] = [];
+
   for (const feed of FEEDS) {
+    let added = 0;
     try {
       const result = await parser.parseURL(feed.url);
       for (const raw of result.items.slice(0, 25)) {
@@ -54,15 +61,22 @@ export async function fetchNewsFeeds(): Promise<void> {
         const description = truncate(item.contentSnippet ?? (item.content as string | undefined), 400);
         const pubDate     = item.pubDate ? new Date(item.pubDate) : null;
 
-        await pool.query(
+        const { rowCount } = await pool.query(
           `INSERT INTO news_articles (source_name, title, url, description, image_url, published_at)
            VALUES ($1,$2,$3,$4,$5,$6)
            ON CONFLICT (url) DO NOTHING`,
           [feed.name, item.title.trim(), item.link, description, image, pubDate],
         );
+        added += rowCount ?? 0;
       }
+      console.log(`[news] ${feed.name}: +${added} articles`);
+      results.push({ source: feed.name, added });
     } catch (err) {
-      console.error(`[news] fetch failed for ${feed.name}:`, err instanceof Error ? err.message : err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[news] fetch failed for ${feed.name}:`, msg);
+      results.push({ source: feed.name, added: 0, error: msg });
     }
   }
+
+  return results;
 }

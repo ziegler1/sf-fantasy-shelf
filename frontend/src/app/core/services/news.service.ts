@@ -21,4 +21,10 @@ export class NewsService {
     const params = new HttpParams().set('limit', limit).set('offset', offset);
     return this.http.get<NewsArticle[]>('/api/news', { params });
   }
+
+  refresh(): Observable<{ results: { source: string; added: number; error?: string }[]; total: number }> {
+    return this.http.post<{ results: { source: string; added: number; error?: string }[]; total: number }>(
+      '/api/news/refresh', {},
+    );
+  }
 }

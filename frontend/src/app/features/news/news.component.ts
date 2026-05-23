@@ -25,7 +25,7 @@ const SOURCE_COLORS: Record<string, string> = {
   template: `
     <div class="page-header">
       <h1 class="page-title">News Feed</h1>
-      <button mat-icon-button matTooltip="Refresh" (click)="load()" [disabled]="loading">
+      <button mat-icon-button matTooltip="Fetch latest articles from sources" (click)="refresh()" [disabled]="loading || refreshing">
         <mat-icon>refresh</mat-icon>
       </button>
     </div>
@@ -249,6 +249,7 @@ const SOURCE_COLORS: Record<string, string> = {
 export class NewsComponent implements OnInit {
   articles: NewsArticle[] = [];
   loading = true;
+  refreshing = false;
   activeSource: string | null = null;
   readonly imgErrors = new Set<number>();
 
@@ -263,6 +264,14 @@ export class NewsComponent implements OnInit {
     this.newsService.getArticles().subscribe({
       next: (data) => { this.articles = data; this.loading = false; },
       error: ()     => { this.loading = false; },
+    });
+  }
+
+  refresh(): void {
+    this.refreshing = true;
+    this.newsService.refresh().subscribe({
+      next: () => { this.refreshing = false; this.load(); },
+      error: () => { this.refreshing = false; },
     });
   }
 
