@@ -53,9 +53,7 @@ async function searchGoogleBooks(q: string, apiKey: string): Promise<BookSearchR
     const isbn13 = isbns.find(i => i.type === 'ISBN_13')?.identifier ?? null;
 
     const rawCover = v.imageLinks?.thumbnail ?? v.imageLinks?.smallThumbnail ?? null;
-    const cover_url = rawCover
-      ? rawCover.replace('http://', 'https://').replace('&zoom=1', '&zoom=2')
-      : null;
+    const cover_url = rawCover ? rawCover.replace('http://', 'https://') : null;
 
     const { name: series_name, position: series_position } =
       extractSeries(v.title ?? '', v.subtitle, item.seriesInfo);
