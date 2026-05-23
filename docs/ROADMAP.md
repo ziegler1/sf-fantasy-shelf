@@ -67,13 +67,9 @@
 
 ### ✅ Done (continued)
 
-- [x] Edit existing book metadata from detail dialog — **5 fields**: Title, Year, Pages, ISBN-13, Description (cover image, authors, series position not yet editable in UI)
-
-### ❌ Still To Do
-
-- [ ] Manual book entry form (no-search fallback for books not on Google Books)
-- [ ] Edit cover image URL from detail dialog
-- [ ] Edit authors (add/remove/swap) from detail dialog
+- [x] Edit existing book metadata from detail dialog — pencil icon opens edit mode with fields: Title, Authors (comma-separated), Year, Pages, ISBN-13, Cover URL, Description
+- [x] Manual book entry form — "Add manually" link in search step; same field set as above plus Series and Status
+- [x] Edit authors saves via `PUT /api/books/:id/authors` — lookup-or-create per name, replaces junction rows
 
 ---
 

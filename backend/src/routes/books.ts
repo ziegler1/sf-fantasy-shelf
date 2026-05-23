@@ -59,6 +59,10 @@ const shelfUpdateSchema = z.object({
   finished_at: z.string().nullable().optional(),
 });
 
+const bookAuthorsSchema = z.object({
+  authors: z.array(z.string().min(1).max(255)).max(20),
+});
+
 const router = Router();
 
 // All book routes require authentication
@@ -436,6 +440,57 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   const result = await pool.query('DELETE FROM books WHERE id=$1', [req.params['id']]);
   if (!result.rowCount) return res.status(404).json({ error: 'Not found' });
   res.status(204).send();
+}));
+
+// ── PUT /api/books/:id/authors ────────────────────────────────────────────────
+
+router.put('/:id/authors', validate(bookAuthorsSchema), asyncHandler(async (req, res) => {
+  const { authors } = req.body as z.infer<typeof bookAuthorsSchema>;
+  const bookId = Number(req.params['id']);
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM book_authors WHERE book_id = $1', [bookId]);
+
+    for (const name of authors) {
+      const trimmed = name.trim();
+      if (!trimmed) continue;
+      const found = await client.query<{ id: number }>(
+        'SELECT id FROM authors WHERE LOWER(name) = LOWER($1) LIMIT 1', [trimmed],
+      );
+      let authorId: number;
+      if (found.rows.length) {
+        authorId = found.rows[0].id;
+      } else {
+        const { rows: [a] } = await client.query<{ id: number }>(
+          'INSERT INTO authors (name) VALUES ($1) RETURNING id', [trimmed],
+        );
+        authorId = a.id;
+      }
+      await client.query(
+        'INSERT INTO book_authors (book_id, author_id, role) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+        [bookId, authorId, 'author'],
+      );
+    }
+
+    await client.query('COMMIT');
+
+    const { rows } = await pool.query(
+      `SELECT a.id, a.name, a.bio, a.website, a.image_url, a.created_at, a.updated_at, ba.role
+       FROM authors a
+       JOIN book_authors ba ON ba.author_id = a.id
+       WHERE ba.book_id = $1
+       ORDER BY a.name`,
+      [bookId],
+    );
+    res.json(rows);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }));
 
 // ── PUT /api/books/:id/shelf ──────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { Book, BookWithDetails, UserBook, ReadingStatus } from '../../types/schema.types';
+import type { Author, AuthorRole, Book, BookWithDetails, UserBook, ReadingStatus } from '../../types/schema.types';
 
 type CreateBookBody = Partial<Book> & {
   author_ids?: { author_id: number; role?: string }[];
@@ -46,5 +46,9 @@ export class BookService {
 
   removeFromShelf(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}/shelf`);
+  }
+
+  updateBookAuthors(id: number, authors: string[]): Observable<(Author & { role: AuthorRole })[]> {
+    return this.http.put<(Author & { role: AuthorRole })[]>(`${this.base}/${id}/authors`, { authors });
   }
 }

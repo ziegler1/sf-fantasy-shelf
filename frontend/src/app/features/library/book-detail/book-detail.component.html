@@ -44,17 +44,24 @@
           <mat-label>Title</mat-label>
           <input matInput [(ngModel)]="metaForm.title">
         </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-title-field">
+          <mat-label>Authors</mat-label>
+          <input matInput [(ngModel)]="editAuthors" placeholder="Author 1, Author 2">
+          <mat-hint>Separate multiple authors with commas</mat-hint>
+        </mat-form-field>
       }
 
-      <div class="detail-authors">
-        @for (author of book.authors; track author.id) {
-          @if (author.website) {
-            <a [href]="author.website" target="_blank" rel="noopener" class="author-link">{{ author.name }}</a>
-          } @else {
-            <span class="author-name">{{ author.name }}</span>
+      @if (!editMode) {
+        <div class="detail-authors">
+          @for (author of book.authors; track author.id) {
+            @if (author.website) {
+              <a [href]="author.website" target="_blank" rel="noopener" class="author-link">{{ author.name }}</a>
+            } @else {
+              <span class="author-name">{{ author.name }}</span>
+            }
           }
-        }
-      </div>
+        </div>
+      }
 
       @if (!editMode) {
         <div class="meta-pills">
@@ -83,6 +90,11 @@
             <input matInput [(ngModel)]="metaForm.isbn13">
           </mat-form-field>
         </div>
+        <mat-form-field appearance="outline" class="edit-title-field">
+          <mat-label>Cover image URL</mat-label>
+          <input matInput [(ngModel)]="metaForm.cover_url" placeholder="https://…">
+          <mat-icon matSuffix>image</mat-icon>
+        </mat-form-field>
         <div class="edit-actions-row">
           <button mat-flat-button color="primary" (click)="saveMetadata()" [disabled]="metaSaving">
             @if (metaSaving) { Saving… } @else { Save }
