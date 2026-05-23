@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { SearchService, BookSearchResult, ImportBookBody } from '../../../core/services/search.service';
+import { UpcomingService } from '../../../core/services/upcoming.service';
 import type { BookWithDetails, ReadingStatus } from '../../../types/schema.types';
 
 @Component({
@@ -52,6 +53,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
 
   constructor(
     private searchService: SearchService,
+    private upcomingService: UpcomingService,
     private dialogRef: MatDialogRef<AddBookComponent>,
   ) {}
 
@@ -167,6 +169,36 @@ export class AddBookComponent implements OnInit, OnDestroy {
         this.error = 'Failed to add book. Please try again.';
       },
     });
+  }
+
+  trackAsUpcoming(): void {
+    if (!this.selected || this.saving) return;
+    this.saving = true;
+    this.error = null;
+    this.upcomingService.add({
+      title: this.selected.title,
+      author_name: this.selected.authors.join(', ') || null,
+      release_date: this.toDateInput(this.selected.published_at),
+      isbn: this.selected.isbn13 || this.selected.isbn || null,
+      cover_url: this.selected.cover_url,
+      notes: null,
+    }).subscribe({
+      next: () => {
+        this.saving = false;
+        this.dialogRef.close(undefined);
+      },
+      error: () => {
+        this.saving = false;
+        this.error = 'Failed to track release. Please try again.';
+      },
+    });
+  }
+
+  private toDateInput(dt: string | null): string | null {
+    if (!dt) return null;
+    if (/^\d{4}$/.test(dt)) return `${dt}-01-01`;
+    if (/^\d{4}-\d{2}$/.test(dt)) return `${dt}-01`;
+    return dt.slice(0, 10);
   }
 
   authorLine(book: BookSearchResult): string {

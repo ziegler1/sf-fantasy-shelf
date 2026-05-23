@@ -214,6 +214,10 @@
 
     <div class="confirm-actions">
       <button mat-button (click)="back()">Cancel</button>
+      <button mat-stroked-button class="track-btn" (click)="trackAsUpcoming()"
+              [disabled]="saving" matTooltip="Save to Upcoming Releases instead">
+        <mat-icon>event_available</mat-icon> Track Release
+      </button>
       <button mat-flat-button color="primary" (click)="addToLibrary()" [disabled]="saving">
         @if (saving) {
           <mat-spinner diameter="18" style="display:inline-block" />
@@ -519,5 +523,12 @@
   justify-content: flex-end;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.track-btn {
+  color: #a78bfa !important;
+  border-color: rgba(167,139,250,0.3) !important;
+  font-size: 0.82rem;
 }
 </style>
