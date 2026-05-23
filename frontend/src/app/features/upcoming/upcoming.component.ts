@@ -98,13 +98,13 @@ interface ReleaseGroup {
       font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.1em;
-      color: #64748b;
+      color: var(--text-muted);
       margin: 0 0 0.75rem;
       padding-bottom: 0.4rem;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid var(--border);
     }
 
-    .month-heading.past { color: #f87171; }
+    .month-heading.past { color: var(--error); }
 
     .release-list {
       display: flex;
@@ -117,9 +117,9 @@ interface ReleaseGroup {
       align-items: center;
       gap: 0.875rem;
       padding: 0.75rem;
-      background: #1e293b;
+      background: var(--bg-surface);
       border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
     }
 
     .release-cover {
@@ -128,7 +128,7 @@ interface ReleaseGroup {
       height: 72px;
       border-radius: 4px;
       overflow: hidden;
-      background: #0f172a;
+      background: var(--bg-base);
     }
 
     .cover-img {
@@ -150,7 +150,7 @@ interface ReleaseGroup {
       font-size: 1.25rem;
       width: 1.25rem;
       height: 1.25rem;
-      color: #334155;
+      color: var(--text-disabled);
     }
 
     .release-info {
@@ -161,7 +161,7 @@ interface ReleaseGroup {
     .release-title {
       font-size: 0.9rem;
       font-weight: 600;
-      color: #f1f5f9;
+      color: var(--text-bright);
       margin: 0 0 0.2rem;
       overflow: hidden;
       white-space: nowrap;
@@ -170,7 +170,7 @@ interface ReleaseGroup {
 
     .release-author {
       font-size: 0.78rem;
-      color: #94a3b8;
+      color: var(--text-secondary);
       margin: 0 0 0.3rem;
     }
 
@@ -179,7 +179,7 @@ interface ReleaseGroup {
       align-items: center;
       gap: 0.2rem;
       font-size: 0.72rem;
-      color: #64748b;
+      color: var(--text-muted);
       margin: 0 0 0.25rem;
     }
 
@@ -187,12 +187,12 @@ interface ReleaseGroup {
       font-size: 0.85rem;
       width: 0.85rem;
       height: 0.85rem;
-      color: #a78bfa;
+      color: var(--accent);
     }
 
     .release-notes {
       font-size: 0.75rem;
-      color: #64748b;
+      color: var(--text-muted);
       margin: 0;
       overflow: hidden;
       display: -webkit-box;
@@ -201,17 +201,17 @@ interface ReleaseGroup {
     }
 
     .release-notes-user {
-      color: #94a3b8;
+      color: var(--text-secondary);
       margin-top: 0.2rem;
       font-style: italic;
     }
 
     .delete-btn {
       flex-shrink: 0;
-      color: #334155 !important;
+      color: var(--text-disabled) !important;
     }
 
-    .delete-btn:hover { color: #f87171 !important; }
+    .delete-btn:hover { color: var(--error) !important; }
   `],
 })
 export class UpcomingComponent implements OnInit {

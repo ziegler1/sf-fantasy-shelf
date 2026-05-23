@@ -135,18 +135,18 @@ interface RefreshResult { source: string; added: number; error?: string }
     .filter-chip {
       padding: 0.25rem 0.75rem;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid var(--border-hover);
       background: transparent;
-      color: #94a3b8;
+      color: var(--text-secondary);
       font-size: 0.75rem;
       cursor: pointer;
       transition: all 0.15s;
     }
 
-    .filter-chip:hover { border-color: rgba(255,255,255,0.25); color: #f1f5f9; }
+    .filter-chip:hover { border-color: var(--border-hover); color: var(--text-bright); }
 
     .filter-chip.active {
-      background: var(--chip-color, #a78bfa);
+      background: var(--chip-color, var(--accent));
       border-color: transparent;
       color: #fff;
     }
@@ -166,9 +166,9 @@ interface RefreshResult { source: string; added: number; error?: string }
     .article-card {
       display: flex;
       flex-direction: column;
-      background: #1e293b;
+      background: var(--bg-surface);
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
       overflow: hidden;
       text-decoration: none;
       color: inherit;
@@ -177,7 +177,7 @@ interface RefreshResult { source: string; added: number; error?: string }
     }
 
     .article-card:hover {
-      border-color: rgba(167,139,250,0.35);
+      border-color: var(--accent-border-hover);
       transform: translateY(-2px);
     }
 
@@ -185,7 +185,7 @@ interface RefreshResult { source: string; added: number; error?: string }
       width: 100%;
       height: 140px;
       overflow: hidden;
-      background: #0f172a;
+      background: var(--bg-base);
       flex-shrink: 0;
     }
 
@@ -208,7 +208,7 @@ interface RefreshResult { source: string; added: number; error?: string }
       font-size: 2rem;
       width: 2rem;
       height: 2rem;
-      color: #1e293b;
+      color: var(--bg-surface);
     }
 
     .article-body {
@@ -236,14 +236,14 @@ interface RefreshResult { source: string; added: number; error?: string }
 
     .article-date {
       font-size: 0.7rem;
-      color: #475569;
+      color: var(--text-faint);
       margin-left: auto;
     }
 
     .article-title {
       font-size: 0.875rem;
       font-weight: 600;
-      color: #f1f5f9;
+      color: var(--text-bright);
       margin: 0;
       line-height: 1.4;
       display: -webkit-box;
@@ -254,7 +254,7 @@ interface RefreshResult { source: string; added: number; error?: string }
 
     .article-desc {
       font-size: 0.75rem;
-      color: #64748b;
+      color: var(--text-muted);
       margin: 0;
       line-height: 1.5;
       display: -webkit-box;
@@ -270,7 +270,7 @@ interface RefreshResult { source: string; added: number; error?: string }
       font-size: 0.9rem !important;
       width: 0.9rem !important;
       height: 0.9rem !important;
-      color: #334155;
+      color: var(--text-disabled);
       opacity: 0;
       transition: opacity 0.15s;
     }

@@ -49,9 +49,9 @@ export class SeriesTrackerComponent implements OnInit {
   ngOnInit(): void {
     forkJoin({
       series: this.seriesService.getSeries(),
-      books:  this.bookService.getBooks(),
+      books:  this.bookService.getBooks({ limit: 200 }),
     }).subscribe({
-      next: ({ series, books }) => {
+      next: ({ series, books: { books } }) => {
         this.bookMap = new Map(books.map(b => [b.id, b]));
 
         const readSet = new Set(

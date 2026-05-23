@@ -30,9 +30,16 @@
       @if (auth.currentUser()) {
         <span class="user-name">{{ auth.currentUser()!.name }}</span>
       }
-      <button mat-icon-button (click)="auth.logout()" matTooltip="Sign out" class="logout-btn">
-        <mat-icon>logout</mat-icon>
-      </button>
+      <div class="footer-actions">
+        <button mat-icon-button (click)="theme.toggle()"
+                [matTooltip]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+                class="theme-btn">
+          <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
+        <button mat-icon-button (click)="auth.logout()" matTooltip="Sign out" class="logout-btn">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
     </div>
   </mat-sidenav>
 

@@ -17,11 +17,13 @@ export class BookService {
 
   constructor(private http: HttpClient) {}
 
-  getBooks(filters?: { status?: ReadingStatus; search?: string }): Observable<BookWithDetails[]> {
+  getBooks(filters?: { status?: ReadingStatus; search?: string; limit?: number; offset?: number }): Observable<{ books: BookWithDetails[]; total: number }> {
     let params = new HttpParams();
     if (filters?.status) params = params.set('status', filters.status);
     if (filters?.search) params = params.set('search', filters.search);
-    return this.http.get<BookWithDetails[]>(this.base, { params });
+    if (filters?.limit  != null) params = params.set('limit',  String(filters.limit));
+    if (filters?.offset != null) params = params.set('offset', String(filters.offset));
+    return this.http.get<{ books: BookWithDetails[]; total: number }>(this.base, { params });
   }
 
   getBook(id: number): Observable<BookWithDetails> {

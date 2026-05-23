@@ -110,7 +110,7 @@
 }
 
 .series-card {
-  border: 1px solid rgba(255,255,255,0.06) !important;
+  border: 1px solid var(--border) !important;
   padding: 1.25rem !important;
 }
 
@@ -128,13 +128,13 @@
 .series-name {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin: 0 0 0.2rem;
 }
 
 .series-desc {
   font-size: 0.78rem;
-  color: #475569;
+  color: var(--text-faint);
   margin: 0;
   line-height: 1.5;
 }
@@ -147,19 +147,19 @@
 .stat-fraction {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #a78bfa;
+  color: var(--accent);
   line-height: 1;
 }
 
 .stat-total {
   font-size: 0.95rem;
-  color: #475569;
+  color: var(--text-faint);
 }
 
 .stat-label {
   display: block;
   font-size: 0.7rem;
-  color: #475569;
+  color: var(--text-faint);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -169,8 +169,8 @@
   margin-bottom: 1rem;
   border-radius: 4px;
   height: 6px !important;
-  --mdc-linear-progress-active-indicator-color: #a78bfa;
-  --mdc-linear-progress-track-color: rgba(167,139,250,0.12);
+  --mdc-linear-progress-active-indicator-color: var(--accent);
+  --mdc-linear-progress-track-color: var(--accent-bg-soft);
 }
 
 /* ── Book list ─── */
@@ -197,7 +197,7 @@
 }
 
 .book-entry.in-library:hover {
-  background: rgba(255,255,255,0.04);
+  background: var(--border-subtle);
 }
 
 /* Cover thumbnail */
@@ -207,7 +207,7 @@
   height: 48px;
   border-radius: 3px;
   overflow: hidden;
-  background: #0f172a;
+  background: var(--bg-base);
 }
 
 .thumb-img {
@@ -229,14 +229,14 @@
   font-size: 0.9rem;
   width: 0.9rem;
   height: 0.9rem;
-  color: #334155;
+  color: var(--text-disabled);
 }
 
 /* Position number */
 .book-pos {
   min-width: 1.25rem;
   font-size: 0.72rem;
-  color: #334155;
+  color: var(--text-disabled);
   text-align: right;
   flex-shrink: 0;
 }
@@ -250,17 +250,17 @@
 .book-title {
   display: block;
   font-size: 0.85rem;
-  color: #cbd5e1;
+  color: var(--text-soft);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.book-title.muted { color: #334155; }
+.book-title.muted { color: var(--text-disabled); }
 
 .book-year {
   font-size: 0.7rem;
-  color: #475569;
+  color: var(--text-faint);
 }
 
 /* Status badge — uses global status-* classes from styles.css */
@@ -277,7 +277,7 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  color: #334155;
+  color: var(--text-disabled);
   opacity: 0;
   transition: opacity 0.15s, color 0.15s, background 0.15s;
 }
@@ -287,8 +287,8 @@
 }
 
 .add-to-lib-btn:hover {
-  color: #a78bfa;
-  background: rgba(167,139,250,0.1);
+  color: var(--accent);
+  background: var(--accent-bg-soft);
 }
 
 .add-to-lib-btn mat-icon {
@@ -306,15 +306,15 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #475569;
+  color: var(--text-faint);
   font-size: 0.75rem;
   border-radius: 4px;
   transition: color 0.1s, background 0.1s;
 }
 
 .expand-btn:hover {
-  color: #a78bfa;
-  background: rgba(167,139,250,0.07);
+  color: var(--accent);
+  background: var(--accent-bg-soft);
 }
 
 .expand-btn mat-icon {

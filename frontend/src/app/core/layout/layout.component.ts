@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
+import { ThemeService } from '../services/theme.service';
 
 interface NavItem {
   label: string;
@@ -46,6 +47,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   constructor(
     private breakpoints: BreakpointObserver,
     public auth: AuthService,
+    public theme: ThemeService,
   ) {}
 
   ngOnInit(): void {

@@ -137,8 +137,8 @@ import type { UpcomingRelease } from '../../types/schema.types';
       width: min(480px, 90vw);
       max-height: 85vh;
       overflow-y: auto;
-      background: #1e293b;
-      color: #e2e8f0;
+      background: var(--bg-surface);
+      color: var(--text-primary);
       padding: 1.25rem;
       display: flex;
       flex-direction: column;
@@ -146,7 +146,7 @@ import type { UpcomingRelease } from '../../types/schema.types';
     .dialog-title {
       font-size: 1.1rem;
       font-weight: 700;
-      color: #f1f5f9;
+      color: var(--text-bright);
       margin: 0 0 1rem;
     }
     .full-field { width: 100%; margin-bottom: 0.25rem; }
@@ -155,7 +155,7 @@ import type { UpcomingRelease } from '../../types/schema.types';
       justify-content: center;
       padding: 2rem 0;
     }
-    .center-state.muted { color: #475569; font-size: 0.85rem; }
+    .center-state.muted { color: var(--text-faint); font-size: 0.85rem; }
     .results-list {
       max-height: 340px;
       overflow-y: auto;
@@ -170,41 +170,41 @@ import type { UpcomingRelease } from '../../types/schema.types';
       cursor: pointer;
       transition: background 0.1s;
     }
-    .result-row:hover { background: rgba(255,255,255,0.05); }
+    .result-row:hover { background: var(--border-subtle); }
     .result-cover {
       flex-shrink: 0;
       width: 44px;
       height: 66px;
       border-radius: 3px;
       overflow: hidden;
-      background: #0f172a;
+      background: var(--bg-base);
     }
     .result-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .result-cover-placeholder {
       width: 100%; height: 100%;
       display: flex; align-items: center; justify-content: center;
     }
-    .result-cover-placeholder mat-icon { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; color: #334155; }
+    .result-cover-placeholder mat-icon { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; color: var(--text-disabled); }
     .result-info { flex: 1; min-width: 0; }
     .result-title {
-      font-size: 0.85rem; font-weight: 600; color: #e2e8f0;
+      font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
       margin: 0 0 0.15rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
     }
     .result-author {
-      font-size: 0.75rem; color: #94a3b8; margin: 0 0 0.1rem;
+      font-size: 0.75rem; color: var(--text-secondary); margin: 0 0 0.1rem;
       overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
     }
-    .result-meta { font-size: 0.7rem; color: #475569; margin: 0; display: flex; gap: 0.3rem; }
-    .result-arrow { color: #334155; flex-shrink: 0; }
+    .result-meta { font-size: 0.7rem; color: var(--text-faint); margin: 0; display: flex; gap: 0.3rem; }
+    .result-arrow { color: var(--text-disabled); flex-shrink: 0; }
     .manual-link-row {
       display: flex;
       justify-content: center;
       margin-top: 0.75rem;
-      border-top: 1px solid rgba(255,255,255,0.05);
+      border-top: 1px solid var(--border-subtle);
       padding-top: 0.75rem;
     }
-    .manual-link-btn { color: #475569 !important; font-size: 0.78rem; }
-    .manual-link-btn:hover { color: #a78bfa !important; }
+    .manual-link-btn { color: var(--text-faint) !important; font-size: 0.78rem; }
+    .manual-link-btn:hover { color: var(--accent) !important; }
     .manual-link-btn mat-icon { font-size: 1rem; width: 1rem; height: 1rem; margin-right: 0.25rem; }
     .form-header {
       display: flex;
@@ -213,8 +213,8 @@ import type { UpcomingRelease } from '../../types/schema.types';
       margin-bottom: 0.5rem;
     }
     .form-header .dialog-title { margin: 0; }
-    .back-btn { color: #64748b !important; margin-left: -0.5rem; }
-    .error-msg { color: #f87171; font-size: 0.78rem; margin: 0 0 0.75rem; }
+    .back-btn { color: var(--text-muted) !important; margin-left: -0.5rem; }
+    .error-msg { color: var(--error); font-size: 0.78rem; margin: 0 0 0.75rem; }
     .dialog-actions {
       display: flex;
       justify-content: flex-end;

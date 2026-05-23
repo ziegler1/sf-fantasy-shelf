@@ -5,8 +5,8 @@
 /* ── Sidenav ───────────────────────────────────────────────── */
 .sidenav {
   width: 240px;
-  background: #1e293b;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
 }
 
 .sidenav-header {
@@ -14,11 +14,11 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem 1rem 1.25rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border);
 }
 
 .brand-icon {
-  color: #a78bfa;
+  color: var(--accent);
   font-size: 1.6rem;
   width: 1.6rem;
   height: 1.6rem;
@@ -27,7 +27,7 @@
 .brand-name {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
   letter-spacing: 0.01em;
 }
 
@@ -45,39 +45,53 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 0.75rem 0.75rem 1.25rem;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 0.75rem 0.5rem 0.75rem 1.25rem;
+  border-top: 1px solid var(--border);
   margin-top: auto;
 }
 
 .user-name {
   font-size: 0.78rem;
-  color: #475569;
+  color: var(--text-faint);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.footer-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.theme-btn {
+  color: var(--text-faint) !important;
+}
+
+.theme-btn:hover {
+  color: var(--accent) !important;
+}
+
 .logout-btn {
-  color: #475569 !important;
+  color: var(--text-faint) !important;
   flex-shrink: 0;
 }
 
 .logout-btn:hover {
-  color: #f87171 !important;
+  color: var(--error) !important;
 }
 
 /* Nav items */
 .nav-list .mat-mdc-list-item {
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin: 2px 8px;
   border-radius: 8px;
   width: calc(100% - 16px) !important;
 }
 
 .nav-list .mat-mdc-list-item:hover {
-  color: #e2e8f0;
-  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-primary);
+  background: var(--border-subtle) !important;
 }
 
 .nav-list .mat-mdc-list-item .mat-icon {
@@ -86,20 +100,20 @@
 
 /* Active link */
 .nav-list .nav-active {
-  background: rgba(167, 139, 250, 0.15) !important;
-  color: #a78bfa !important;
+  background: var(--accent-bg) !important;
+  color: var(--accent) !important;
 }
 
 /* ── Main content ──────────────────────────────────────────── */
 .main {
-  background: #0f172a;
+  background: var(--bg-base);
   display: flex;
   flex-direction: column;
 }
 
 .mobile-bar {
-  background: #1e293b !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-surface) !important;
+  border-bottom: 1px solid var(--border);
   min-height: 56px;
 }
 

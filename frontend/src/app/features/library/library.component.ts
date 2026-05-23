@@ -39,6 +39,10 @@ export class LibraryComponent implements OnInit, OnDestroy {
   activeStatus: ReadingStatus | '' = '';
   searchQuery = '';
 
+  readonly PAGE_SIZE = 48;
+  page = 0;
+  total = 0;
+
   readonly filters: StatusFilter[] = [
     { label: 'All',           value: ''            },
     { label: 'Reading',       value: 'reading'     },
@@ -72,30 +76,46 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   onSearchChange(q: string): void {
     this.searchQuery = q;
+    this.page = 0;
     this.search$.next(q);
   }
 
   clearSearch(): void {
     this.searchQuery = '';
+    this.page = 0;
     this.load();
   }
 
   setFilter(value: ReadingStatus | ''): void {
     if (this.activeStatus === value) return;
     this.activeStatus = value;
+    this.page = 0;
     this.load();
   }
 
   load(): void {
     this.loading = true;
-    const filters: { status?: ReadingStatus; search?: string } = {};
+    const filters: { status?: ReadingStatus; search?: string; limit: number; offset: number } = {
+      limit: this.PAGE_SIZE,
+      offset: this.page * this.PAGE_SIZE,
+    };
     if (this.activeStatus) filters.status = this.activeStatus as ReadingStatus;
     if (this.searchQuery.trim()) filters.search = this.searchQuery.trim();
 
-    this.bookService.getBooks(Object.keys(filters).length ? filters : undefined).subscribe({
-      next: books => { this.books = books; this.loading = false; },
-      error: ()    => { this.loading = false; },
+    this.bookService.getBooks(filters).subscribe({
+      next: ({ books, total }) => { this.books = books; this.total = total; this.loading = false; },
+      error: () => { this.loading = false; },
     });
+  }
+
+  get totalPages(): number { return Math.ceil(this.total / this.PAGE_SIZE); }
+
+  prevPage(): void {
+    if (this.page > 0) { this.page--; this.load(); }
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages - 1) { this.page++; this.load(); }
   }
 
   openDetail(book: BookWithDetails): void {

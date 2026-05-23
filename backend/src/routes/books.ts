@@ -80,9 +80,20 @@ function toDateValue(s: string | null | undefined): string | null {
 // ── Enriched query helper ─────────────────────────────────────────────────────
 // userId is appended as the last parameter so existing $1/$2 WHERE refs don't shift.
 
-function booksQuery(userId: number, where = '', extraValues: unknown[] = []) {
+function booksQuery(userId: number, where = '', extraValues: unknown[] = [], limit?: number, offset?: number) {
   const values = [...extraValues, userId];
   const userParam = `$${values.length}`;
+
+  let pagination = '';
+  if (limit !== undefined) {
+    values.push(limit);
+    pagination += ` LIMIT $${values.length}`;
+  }
+  if (offset !== undefined && offset > 0) {
+    values.push(offset);
+    pagination += ` OFFSET $${values.length}`;
+  }
+
   return {
     text: `
       SELECT
@@ -123,7 +134,7 @@ function booksQuery(userId: number, where = '', extraValues: unknown[] = []) {
       LEFT JOIN user_books ub   ON ub.book_id = b.id AND ub.user_id = ${userParam}
       ${where}
       GROUP BY b.id, ub.id
-      ORDER BY b.title
+      ORDER BY b.title${pagination}
     `,
     values,
   };
@@ -317,7 +328,7 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
   }
 }));
 
-// ── GET /api/books  (?status=reading&search=dune) ─────────────────────────────
+// ── GET /api/books  (?status=reading&search=dune&limit=50&offset=0) ──────────
 
 router.get('/', asyncHandler(async (req, res) => {
   // Only show books that are on the user's shelf — auto-populated series
@@ -340,8 +351,22 @@ router.get('/', asyncHandler(async (req, res) => {
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-  const { rows } = await pool.query<BookWithDetails>(booksQuery(req.userId, where, values));
-  res.json(rows);
+
+  const limit  = Math.min(Math.max(parseInt(String(req.query['limit']  || '50'),  10), 1), 200);
+  const offset = Math.max(parseInt(String(req.query['offset'] || '0'), 10), 0);
+
+  const [booksResult, countResult] = await Promise.all([
+    pool.query<BookWithDetails>(booksQuery(req.userId, where, values, limit, offset)),
+    pool.query<{ count: string }>(
+      `SELECT COUNT(DISTINCT b.id) AS count
+       FROM books b
+       LEFT JOIN user_books ub ON ub.book_id = b.id AND ub.user_id = $${values.length + 1}
+       ${where}`,
+      [...values, req.userId],
+    ),
+  ]);
+
+  res.json({ books: booksResult.rows, total: parseInt(countResult.rows[0].count, 10) });
 }));
 
 // ── GET /api/books/:id ────────────────────────────────────────────────────────

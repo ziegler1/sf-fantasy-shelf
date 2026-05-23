@@ -1,9 +1,54 @@
+/* ── Theme tokens ────────────────────────────────────────────── */
+:root {
+  --bg-base:            #0f172a;
+  --bg-surface:         #1e293b;
+  --text-bright:        #f1f5f9;
+  --text-primary:       #e2e8f0;
+  --text-soft:          #cbd5e1;
+  --text-secondary:     #94a3b8;
+  --text-muted:         #64748b;
+  --text-faint:         #475569;
+  --text-disabled:      #334155;
+  --border:             rgba(255,255,255,0.06);
+  --border-subtle:      rgba(255,255,255,0.05);
+  --border-hover:       rgba(255,255,255,0.12);
+  --accent:             #a78bfa;
+  --accent-bg:          rgba(167,139,250,0.15);
+  --accent-bg-soft:     rgba(167,139,250,0.10);
+  --accent-border:      rgba(167,139,250,0.30);
+  --accent-border-hover:rgba(167,139,250,0.35);
+  --error:              #f87171;
+  --star:               #f59e0b;
+}
+
+body.light-theme {
+  --bg-base:            #f1f5f9;
+  --bg-surface:         #ffffff;
+  --text-bright:        #0f172a;
+  --text-primary:       #1e293b;
+  --text-soft:          #334155;
+  --text-secondary:     #475569;
+  --text-muted:         #64748b;
+  --text-faint:         #94a3b8;
+  --text-disabled:      #cbd5e1;
+  --border:             rgba(0,0,0,0.08);
+  --border-subtle:      rgba(0,0,0,0.05);
+  --border-hover:       rgba(0,0,0,0.12);
+  --accent:             #7c3aed;
+  --accent-bg:          rgba(124,58,237,0.12);
+  --accent-bg-soft:     rgba(124,58,237,0.08);
+  --accent-border:      rgba(124,58,237,0.25);
+  --accent-border-hover:rgba(124,58,237,0.30);
+  --error:              #dc2626;
+  --star:               #d97706;
+}
+
 html, body {
   height: 100%;
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
-  background: #0f172a;
-  color: #e2e8f0;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 /* ── Page layout ─────────────────────────────────────────── */
@@ -19,7 +64,7 @@ html, body {
 .page-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -30,18 +75,18 @@ html, body {
   gap: 0.75rem;
 }
 
-/* ── Material overrides (dark theme) ─────────────────────── */
+/* ── Material overrides ──────────────────────────────────── */
 .mat-mdc-card {
-  background: #1e293b !important;
-  color: #e2e8f0 !important;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .mat-mdc-card-subtitle {
-  color: #94a3b8 !important;
+  color: var(--text-secondary) !important;
 }
 
 .mat-mdc-progress-bar {
-  --mdc-linear-progress-track-color: rgba(255,255,255,0.08);
+  --mdc-linear-progress-track-color: var(--border);
 }
 
 /* ── Status badges ───────────────────────────────────────── */
@@ -58,25 +103,25 @@ html, body {
 .status-reading     { background: rgba(34,197,94,.15);  color: #22c55e; }
 .status-want-to-read{ background: rgba(59,130,246,.15); color: #60a5fa; }
 .status-read        { background: rgba(168,85,247,.15); color: #c084fc; }
-.status-dnf         { background: rgba(239,68,68,.15);  color: #f87171; }
-.status-none        { background: rgba(100,116,139,.15);color: #64748b; }
+.status-dnf         { background: rgba(239,68,68,.15);  color: var(--error); }
+.status-none        { background: rgba(100,116,139,.15);color: var(--text-muted); }
 
 /* ── Snackbar toasts ─────────────────────────────────────── */
 .snack-success .mdc-snackbar__surface {
-  background: #1e293b !important;
+  background: var(--bg-surface) !important;
   border-left: 3px solid #22c55e;
 }
 
 .snack-error .mdc-snackbar__surface {
-  background: #1e293b !important;
-  border-left: 3px solid #f87171;
+  background: var(--bg-surface) !important;
+  border-left: 3px solid var(--error);
 }
 
-.mdc-snackbar__label { color: #e2e8f0 !important; }
+.mdc-snackbar__label { color: var(--text-primary) !important; }
 
 /* ── Book detail dialog ──────────────────────────────────── */
 .book-detail-panel .mat-mdc-dialog-container {
-  background: #1e293b !important;
+  background: var(--bg-surface) !important;
   border-radius: 10px !important;
   padding: 0 !important;
   overflow: hidden;
@@ -89,7 +134,7 @@ html, body {
   align-items: center;
   justify-content: center;
   padding: 4rem 1rem;
-  color: #475569;
+  color: var(--text-faint);
   gap: 0.75rem;
   text-align: center;
 }
