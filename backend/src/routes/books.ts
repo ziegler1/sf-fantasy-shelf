@@ -102,7 +102,8 @@ router.post('/import', asyncHandler(async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // If a book with the same ISBN already exists, return it instead of duplicating
+    // If a book with the same ISBN already exists, reuse it — but still wire up
+    // the series link, add to shelf, and trigger series population.
     if (isbn13 || isbn) {
       const existing = await client.query<{ id: number }>(
         `SELECT id FROM books WHERE (isbn13 = $1 AND isbn13 IS NOT NULL)
@@ -110,11 +111,58 @@ router.post('/import', asyncHandler(async (req, res) => {
         [isbn13 ?? null, isbn ?? null],
       );
       if (existing.rows.length) {
-        await client.query('ROLLBACK');
-        const { rows } = await pool.query<BookWithDetails>(
-          booksQuery(req.userId, 'WHERE b.id = $1', [existing.rows[0].id]),
+        const existingId = existing.rows[0].id;
+
+        if (series_name?.trim()) {
+          const trimmedSeries = series_name.trim();
+          const sf = await client.query<{ id: number }>(
+            `SELECT id FROM series WHERE REGEXP_REPLACE(LOWER(name), '^the\\s+', '') = REGEXP_REPLACE(LOWER($1), '^the\\s+', '') LIMIT 1`,
+            [trimmedSeries],
+          );
+          let seriesId: number;
+          if (sf.rows.length) {
+            seriesId = sf.rows[0].id;
+          } else {
+            const { rows: [s] } = await client.query<{ id: number }>(
+              'INSERT INTO series (name) VALUES ($1) RETURNING id', [trimmedSeries],
+            );
+            seriesId = s.id;
+          }
+          await client.query(
+            'INSERT INTO book_series (book_id, series_id, position) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+            [existingId, seriesId, series_position ?? null],
+          );
+        }
+
+        await client.query(
+          `INSERT INTO user_books (user_id, book_id, status) VALUES ($1,$2,$3)
+           ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, updated_at = NOW()`,
+          [req.userId, existingId, status || 'want-to-read'],
         );
-        return res.status(200).json(rows[0]);
+
+        await client.query('COMMIT');
+
+        const { rows } = await pool.query<BookWithDetails>(
+          booksQuery(req.userId, 'WHERE b.id = $1', [existingId]),
+        );
+        res.status(200).json(rows[0]);
+
+        if (series_name?.trim()) {
+          const capturedSeriesName = series_name.trim();
+          const { rows: bookRows } = await pool.query<{ google_books_id: string | null }>(
+            'SELECT google_books_id FROM books WHERE id = $1', [existingId],
+          );
+          const capturedGoogleBooksId = bookRows[0]?.google_books_id ?? null;
+          pool.query<{ id: number }>(
+            `SELECT id FROM series WHERE REGEXP_REPLACE(LOWER(name), '^the\\s+', '') = REGEXP_REPLACE(LOWER($1), '^the\\s+', '') LIMIT 1`,
+            [capturedSeriesName],
+          ).then(({ rows: sr }) => {
+            if (!sr.length) return;
+            return populateSeriesBooks(sr[0].id, capturedSeriesName, capturedGoogleBooksId);
+          }).catch(err => console.error(`Series population failed for "${series_name}":`, err));
+        }
+
+        return;
       }
     }
 
