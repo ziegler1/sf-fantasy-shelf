@@ -49,8 +49,9 @@ interface ReleaseGroup {
             @for (r of group.items; track r.id) {
               <div class="release-card">
                 <div class="release-cover">
-                  @if (r.cover_url) {
-                    <img [src]="r.cover_url" [alt]="r.title" class="cover-img">
+                  @if (r.cover_url && !coverErrors.has(r.id)) {
+                    <img [src]="r.cover_url" [alt]="r.title" class="cover-img"
+                         (error)="coverErrors.add(r.id)">
                   } @else {
                     <div class="cover-placeholder"><mat-icon>menu_book</mat-icon></div>
                   }
@@ -216,6 +217,7 @@ interface ReleaseGroup {
 export class UpcomingComponent implements OnInit {
   releases: UpcomingRelease[] = [];
   loading = true;
+  readonly coverErrors = new Set<number>();
 
   constructor(
     private upcomingService: UpcomingService,

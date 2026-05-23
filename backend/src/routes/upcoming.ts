@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
+import { fetchAndUploadCover } from '../lib/downloadAndStoreCover';
 
 const router = Router();
 
@@ -32,7 +33,18 @@ router.post('/', asyncHandler(async (req, res) => {
     [req.userId, title, author_name ?? null, release_date ?? null,
      isbn ?? null, cover_url ?? null, description ?? null, notes ?? null],
   );
-  res.status(201).json(rows[0]);
+  const inserted = rows[0];
+  res.status(201).json(inserted);
+
+  // Background: download cover to R2 so it's served reliably
+  if (cover_url) {
+    fetchAndUploadCover(cover_url).then(r2Url => {
+      if (r2Url && r2Url !== cover_url) {
+        pool.query('UPDATE upcoming_releases SET cover_url = $1 WHERE id = $2', [r2Url, inserted.id])
+          .catch(() => {});
+      }
+    }).catch(() => {});
+  }
 }));
 
 // ── DELETE /api/upcoming/:id ──────────────────────────────────────────────────

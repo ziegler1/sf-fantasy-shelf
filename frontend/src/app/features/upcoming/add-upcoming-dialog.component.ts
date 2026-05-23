@@ -135,6 +135,8 @@ import type { UpcomingRelease } from '../../types/schema.types';
     <style>
     .dialog-wrap {
       width: min(480px, 90vw);
+      max-height: 85vh;
+      overflow-y: auto;
       background: #1e293b;
       color: #e2e8f0;
       padding: 1.25rem;
