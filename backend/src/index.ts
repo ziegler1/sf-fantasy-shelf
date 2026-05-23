@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cron from 'node-cron';
 
 import booksRouter    from './routes/books';
 import authorsRouter  from './routes/authors';
@@ -10,7 +11,9 @@ import claudeRouter   from './routes/claude';
 import searchRouter   from './routes/search';
 import authRouter     from './routes/auth';
 import upcomingRouter from './routes/upcoming';
+import newsRouter     from './routes/news';
 import { errorHandler } from './middleware/errorHandler';
+import { fetchNewsFeeds } from './lib/fetchNewsFeeds';
 
 const app = express();
 const PORT = process.env['PORT'] ?? 3000;
@@ -28,7 +31,16 @@ app.use('/api/uploads',  uploadsRouter);
 app.use('/api/claude',   claudeRouter);
 app.use('/api/search',   searchRouter);
 app.use('/api/upcoming', upcomingRouter);
+app.use('/api/news',     newsRouter);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`Backend listening on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Backend listening on port ${PORT}`);
+
+  // Fetch news on startup, then every 4 hours
+  fetchNewsFeeds().catch(err => console.error('[news] initial fetch failed:', err));
+  cron.schedule('0 */4 * * *', () => {
+    fetchNewsFeeds().catch(err => console.error('[news] scheduled fetch failed:', err));
+  });
+});
