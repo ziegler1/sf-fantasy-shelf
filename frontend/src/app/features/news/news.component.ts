@@ -35,10 +35,10 @@ interface RefreshResult { source: string; added: number; error?: string }
     @if (lastRefresh.length) {
       <div class="refresh-results">
         @for (r of lastRefresh; track r.source) {
-          <span class="refresh-pill" [class.ok]="!r.error" [class.err]="!!r.error"
-                [matTooltip]="r.error ?? (r.added + ' new')">
-            {{ r.source }}: {{ r.error ? 'error' : '+' + r.added }}
-          </span>
+          <div class="refresh-row" [class.ok]="!r.error" [class.err]="!!r.error">
+            <strong>{{ r.source }}:</strong>
+            {{ r.error ? r.error : '+' + r.added + ' articles' }}
+          </div>
         }
       </div>
     }
