@@ -1,8 +1,20 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
+import { validate, requiredStr, nullableStr } from '../lib/validate';
 import { fetchAndUploadCover } from '../lib/downloadAndStoreCover';
+
+const upcomingSchema = z.object({
+  title:        requiredStr(500),
+  author_name:  nullableStr(255),
+  release_date: nullableStr(20),
+  isbn:         nullableStr(20),
+  cover_url:    nullableStr(2048),
+  description:  nullableStr(5000),
+  notes:        nullableStr(5000),
+});
 
 const router = Router();
 
@@ -22,9 +34,8 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // ── POST /api/upcoming ────────────────────────────────────────────────────────
 
-router.post('/', asyncHandler(async (req, res) => {
-  const { title, author_name, release_date, isbn, cover_url, description, notes } = req.body;
-  if (!title) return res.status(400).json({ error: 'title is required' });
+router.post('/', validate(upcomingSchema), asyncHandler(async (req, res) => {
+  const { title, author_name, release_date, isbn, cover_url, description, notes } = req.body as z.infer<typeof upcomingSchema>;
 
   const { rows } = await pool.query(
     `INSERT INTO upcoming_releases (user_id, title, author_name, release_date, isbn, cover_url, description, notes)

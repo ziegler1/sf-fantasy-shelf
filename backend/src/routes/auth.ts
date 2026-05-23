@@ -1,25 +1,41 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
+import { z } from 'zod';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { signToken, verifyToken } from '../middleware/auth';
+import { validate, requiredStr, nullableStr } from '../lib/validate';
+
+const registerSchema = z.object({
+  email:    z.string().email().max(255).trim(),
+  name:     requiredStr(100),
+  password: z.string().min(8).max(128),
+});
+
+const loginSchema = z.object({
+  email:    z.string().email().trim(),
+  password: z.string().min(1),
+});
+
+const profileSchema = z.object({
+  name:  requiredStr(100).optional(),
+  email: z.string().email().max(255).trim().optional(),
+}).refine(d => d.name !== undefined || d.email !== undefined, {
+  message: 'Provide name and/or email to update',
+});
+
+const changePasswordSchema = z.object({
+  current_password: z.string().min(1),
+  new_password:     z.string().min(8).max(128),
+});
 
 const router = Router();
 const BCRYPT_ROUNDS = 12;
 
 // ── POST /api/auth/register ───────────────────────────────────────────────────
 
-router.post('/register', asyncHandler(async (req, res) => {
-  const { email, name, password } = req.body as {
-    email?: string; name?: string; password?: string;
-  };
-
-  if (!email || !name || !password) {
-    return res.status(400).json({ error: 'email, name, and password are required' });
-  }
-  if (password.length < 8) {
-    return res.status(400).json({ error: 'Password must be at least 8 characters' });
-  }
+router.post('/register', validate(registerSchema), asyncHandler(async (req, res) => {
+  const { email, name, password } = req.body as z.infer<typeof registerSchema>;
 
   const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
@@ -67,12 +83,8 @@ router.post('/register', asyncHandler(async (req, res) => {
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 
-router.post('/login', asyncHandler(async (req, res) => {
-  const { email, password } = req.body as { email?: string; password?: string };
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'email and password are required' });
-  }
+router.post('/login', validate(loginSchema), asyncHandler(async (req, res) => {
+  const { email, password } = req.body as z.infer<typeof loginSchema>;
 
   const { rows } = await pool.query(
     `SELECT id, email, name, password_hash FROM users WHERE email = $1`,
@@ -106,20 +118,16 @@ router.get('/me', verifyToken, asyncHandler(async (req, res) => {
 
 // ── PUT /api/auth/profile ─────────────────────────────────────────────────────
 
-router.put('/profile', verifyToken, asyncHandler(async (req, res) => {
-  const { name, email } = req.body as { name?: string; email?: string };
-
-  if (!name && !email) {
-    return res.status(400).json({ error: 'Provide name and/or email to update' });
-  }
+router.put('/profile', verifyToken, validate(profileSchema), asyncHandler(async (req, res) => {
+  const { name, email } = req.body as z.infer<typeof profileSchema>;
 
   const current = await pool.query(
     'SELECT name, email FROM users WHERE id = $1', [req.userId],
   );
   if (!current.rows.length) return res.status(404).json({ error: 'User not found' });
 
-  const newName  = name?.trim()  || current.rows[0].name;
-  const newEmail = email?.trim().toLowerCase() || current.rows[0].email;
+  const newName  = name  ?? current.rows[0].name;
+  const newEmail = email ?? current.rows[0].email;
 
   try {
     const { rows } = await pool.query(
@@ -138,18 +146,8 @@ router.put('/profile', verifyToken, asyncHandler(async (req, res) => {
 
 // ── POST /api/auth/change-password ───────────────────────────────────────────
 
-router.post('/change-password', verifyToken, asyncHandler(async (req, res) => {
-  const { current_password, new_password } = req.body as {
-    current_password?: string;
-    new_password?: string;
-  };
-
-  if (!current_password || !new_password) {
-    return res.status(400).json({ error: 'current_password and new_password are required' });
-  }
-  if (new_password.length < 8) {
-    return res.status(400).json({ error: 'New password must be at least 8 characters' });
-  }
+router.post('/change-password', verifyToken, validate(changePasswordSchema), asyncHandler(async (req, res) => {
+  const { current_password, new_password } = req.body as z.infer<typeof changePasswordSchema>;
 
   const { rows } = await pool.query(
     'SELECT password_hash FROM users WHERE id = $1', [req.userId],

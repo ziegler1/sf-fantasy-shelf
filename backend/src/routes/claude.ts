@@ -1,9 +1,11 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import rateLimit from 'express-rate-limit';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
+import { validate, requiredStr } from '../lib/validate';
 import { generateAndStoreSummary } from '../lib/generateSummary';
 
 const router = Router();
@@ -34,6 +36,10 @@ const seriesDetectRateLimit = rateLimit({
 // User specified claude-sonnet-4-20250514; alias is claude-sonnet-4-6
 const MODEL = 'claude-sonnet-4-5';
 
+const summarySchema        = z.object({ book_id:   z.number().int().positive() });
+const similarAuthorsSchema = z.object({ author_id: z.number().int().positive() });
+const seriesDetectSchema   = z.object({ title: requiredStr(500), author: requiredStr(255) });
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function extractJson(text: string): string {
@@ -43,12 +49,11 @@ function extractJson(text: string): string {
 
 // ── POST /api/claude/summary ──────────────────────────────────────────────────
 
-router.post('/summary', heavyRateLimit, asyncHandler(async (req, res) => {
-  const { book_id } = req.body;
-  if (!book_id) return res.status(400).json({ error: 'book_id is required' });
+router.post('/summary', heavyRateLimit, validate(summarySchema), asyncHandler(async (req, res) => {
+  const { book_id } = req.body as z.infer<typeof summarySchema>;
 
-  const summary = await generateAndStoreSummary(Number(book_id));
-  res.json({ summary, book_id: Number(book_id) });
+  const summary = await generateAndStoreSummary(book_id);
+  res.json({ summary, book_id });
 }));
 
 // ── POST /api/claude/next ─────────────────────────────────────────────────────
@@ -188,9 +193,8 @@ Return ONLY this JSON:
 
 // ── POST /api/claude/similar-authors ─────────────────────────────────────────
 
-router.post('/similar-authors', heavyRateLimit, asyncHandler(async (req, res) => {
-  const { author_id } = req.body;
-  if (!author_id) return res.status(400).json({ error: 'author_id is required' });
+router.post('/similar-authors', heavyRateLimit, validate(similarAuthorsSchema), asyncHandler(async (req, res) => {
+  const { author_id } = req.body as z.infer<typeof similarAuthorsSchema>;
   const userId = req.userId;
 
   const { rows: authorRows } = await pool.query(
@@ -326,9 +330,8 @@ Return ONLY this JSON:
 
 // ── POST /api/claude/series-detect ───────────────────────────────────────────
 
-router.post('/series-detect', seriesDetectRateLimit, asyncHandler(async (req, res) => {
-  const { title, author } = req.body as { title?: string; author?: string };
-  if (!title || !author) return res.status(400).json({ error: 'title and author are required' });
+router.post('/series-detect', seriesDetectRateLimit, validate(seriesDetectSchema), asyncHandler(async (req, res) => {
+  const { title, author } = req.body as z.infer<typeof seriesDetectSchema>;
 
   const message = await anthropic.messages.create({
     model: MODEL,

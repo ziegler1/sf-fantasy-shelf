@@ -1,8 +1,15 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
+import { validate, requiredStr, nullableStr } from '../lib/validate';
 import type { SeriesWithBooks } from '../types';
+
+const seriesSchema = z.object({
+  name:        requiredStr(255),
+  description: nullableStr(5000),
+});
 
 const router = Router();
 
@@ -64,9 +71,8 @@ router.get('/:id', asyncHandler(async (req, res) => {
 
 // ── POST /api/series ──────────────────────────────────────────────────────────
 
-router.post('/', asyncHandler(async (req, res) => {
-  const { name, description } = req.body;
-  if (!name) return res.status(400).json({ error: 'name is required' });
+router.post('/', validate(seriesSchema), asyncHandler(async (req, res) => {
+  const { name, description } = req.body as z.infer<typeof seriesSchema>;
 
   const { rows } = await pool.query(
     'INSERT INTO series (name, description) VALUES ($1,$2) RETURNING *',
@@ -77,8 +83,8 @@ router.post('/', asyncHandler(async (req, res) => {
 
 // ── PUT /api/series/:id ───────────────────────────────────────────────────────
 
-router.put('/:id', asyncHandler(async (req, res) => {
-  const { name, description } = req.body;
+router.put('/:id', validate(seriesSchema), asyncHandler(async (req, res) => {
+  const { name, description } = req.body as z.infer<typeof seriesSchema>;
 
   const { rows } = await pool.query(
     `UPDATE series SET name=$1, description=$2, updated_at=NOW()

@@ -1,11 +1,63 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
+import { validate, requiredStr, nullableStr, readingStatus } from '../lib/validate';
 import { generateAndStoreSummary } from '../lib/generateSummary';
 import { downloadAndStoreCover } from '../lib/downloadAndStoreCover';
 import { populateSeriesBooks } from '../lib/populateSeriesBooks';
 import type { BookWithDetails, ReadingStatus } from '../types';
+
+const importSchema = z.object({
+  title:           requiredStr(500),
+  authors:         z.array(z.string()).optional().default([]),
+  cover_url:       nullableStr(2048),
+  published_at:    nullableStr(20),
+  page_count:      z.number().int().positive().nullable().optional(),
+  isbn:            nullableStr(20),
+  isbn13:          nullableStr(20),
+  description:     nullableStr(5000),
+  language:        z.string().max(10).optional().default('en'),
+  status:          readingStatus.optional(),
+  series_name:     nullableStr(500),
+  series_position: z.number().nullable().optional(),
+  google_id:       nullableStr(100),
+});
+
+const bookCreateSchema = z.object({
+  title:        requiredStr(500),
+  isbn:         nullableStr(20),
+  isbn13:       nullableStr(20),
+  description:  nullableStr(5000),
+  cover_url:    nullableStr(2048),
+  published_at: nullableStr(20),
+  page_count:   z.number().int().positive().nullable().optional(),
+  language:     z.string().max(10).optional(),
+  author_ids:   z.array(z.object({ author_id: z.number(), role: z.string().optional() })).optional(),
+  tag_ids:      z.array(z.number()).optional(),
+  series:       z.array(z.object({ series_id: z.number(), position: z.number().nullable().optional() })).optional(),
+});
+
+const bookUpdateSchema = z.object({
+  title:        requiredStr(500),
+  isbn:         nullableStr(20),
+  isbn13:       nullableStr(20),
+  description:  nullableStr(5000),
+  cover_url:    nullableStr(2048),
+  published_at: nullableStr(20),
+  page_count:   z.number().int().positive().nullable().optional(),
+  language:     z.string().max(10).optional(),
+});
+
+const shelfUpdateSchema = z.object({
+  status:      readingStatus.optional(),
+  rating:      z.number().min(1).max(5).nullable().optional(),
+  review:      nullableStr(10000),
+  notes:       nullableStr(5000),
+  started_at:  z.string().nullable().optional(),
+  finished_at: z.string().nullable().optional(),
+});
 
 const router = Router();
 
@@ -75,28 +127,12 @@ function booksQuery(userId: number, where = '', extraValues: unknown[] = []) {
 
 // ── POST /api/books/import  (Google Books → DB, author lookup-or-create) ──────
 
-router.post('/import', asyncHandler(async (req, res) => {
+router.post('/import', validate(importSchema), asyncHandler(async (req, res) => {
   const {
-    title, authors: authorNames = [], cover_url, published_at,
-    page_count, isbn, isbn13, description, language = 'en',
+    title, authors: authorNames, cover_url, published_at,
+    page_count, isbn, isbn13, description, language,
     status, series_name, series_position, google_id,
-  } = req.body as {
-    title: string;
-    authors: string[];
-    cover_url?: string;
-    published_at?: string;
-    page_count?: number;
-    isbn?: string;
-    isbn13?: string;
-    description?: string;
-    language?: string;
-    status?: ReadingStatus;
-    series_name?: string;
-    series_position?: number | null;
-    google_id?: string;
-  };
-
-  if (!title) return res.status(400).json({ error: 'title is required' });
+  } = req.body as z.infer<typeof importSchema>;
 
   const client = await pool.connect();
   try {
@@ -316,11 +352,9 @@ router.get('/:id', asyncHandler(async (req, res) => {
 
 // ── POST /api/books ───────────────────────────────────────────────────────────
 
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', validate(bookCreateSchema), asyncHandler(async (req, res) => {
   const { title, isbn, isbn13, description, cover_url, published_at,
-          page_count, language, author_ids, tag_ids, series: seriesLinks } = req.body;
-
-  if (!title) return res.status(400).json({ error: 'title is required' });
+          page_count, language, author_ids, tag_ids, series: seriesLinks } = req.body as z.infer<typeof bookCreateSchema>;
 
   const client = await pool.connect();
   try {
@@ -379,9 +413,9 @@ router.post('/', asyncHandler(async (req, res) => {
 
 // ── PUT /api/books/:id ────────────────────────────────────────────────────────
 
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', validate(bookUpdateSchema), asyncHandler(async (req, res) => {
   const { title, isbn, isbn13, description, cover_url,
-          published_at, page_count, language } = req.body;
+          published_at, page_count, language } = req.body as z.infer<typeof bookUpdateSchema>;
 
   const { rows } = await pool.query(
     `UPDATE books
@@ -406,13 +440,8 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 
 // ── PUT /api/books/:id/shelf ──────────────────────────────────────────────────
 
-router.put('/:id/shelf', asyncHandler(async (req, res) => {
-  const { status, rating, review, notes, started_at, finished_at } = req.body;
-
-  const validStatuses: ReadingStatus[] = ['want-to-read', 'reading', 'read', 'dnf'];
-  if (status && !validStatuses.includes(status)) {
-    return res.status(400).json({ error: 'Invalid status' });
-  }
+router.put('/:id/shelf', validate(shelfUpdateSchema), asyncHandler(async (req, res) => {
+  const { status, rating, review, notes, started_at, finished_at } = req.body as z.infer<typeof shelfUpdateSchema>;
 
   const { rows } = await pool.query(
     `INSERT INTO user_books (user_id, book_id, status, rating, review, notes, started_at, finished_at)

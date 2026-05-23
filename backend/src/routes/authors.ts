@@ -1,8 +1,17 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
+import { validate, requiredStr, nullableStr } from '../lib/validate';
 import type { AuthorWithBooks } from '../types';
+
+const authorSchema = z.object({
+  name:      requiredStr(255),
+  bio:       nullableStr(5000),
+  website:   nullableStr(500),
+  image_url: nullableStr(2048),
+});
 
 const router = Router();
 
@@ -60,9 +69,8 @@ router.get('/:id', asyncHandler(async (req, res) => {
 
 // ── POST /api/authors ─────────────────────────────────────────────────────────
 
-router.post('/', asyncHandler(async (req, res) => {
-  const { name, bio, website, image_url } = req.body;
-  if (!name) return res.status(400).json({ error: 'name is required' });
+router.post('/', validate(authorSchema), asyncHandler(async (req, res) => {
+  const { name, bio, website, image_url } = req.body as z.infer<typeof authorSchema>;
 
   const { rows } = await pool.query(
     `INSERT INTO authors (name, bio, website, image_url) VALUES ($1,$2,$3,$4) RETURNING *`,
@@ -73,8 +81,8 @@ router.post('/', asyncHandler(async (req, res) => {
 
 // ── PUT /api/authors/:id ──────────────────────────────────────────────────────
 
-router.put('/:id', asyncHandler(async (req, res) => {
-  const { name, bio, website, image_url } = req.body;
+router.put('/:id', validate(authorSchema), asyncHandler(async (req, res) => {
+  const { name, bio, website, image_url } = req.body as z.infer<typeof authorSchema>;
 
   const { rows } = await pool.query(
     `UPDATE authors SET name=$1, bio=$2, website=$3, image_url=$4, updated_at=NOW()
