@@ -5,7 +5,22 @@
       "Bash(docker exec *)",
       "Read(//c/Users/ziegl/.claude/projects/c--Users-ziegl-sf-fantasy-shelf/**)",
       "Read(//c/Users/ziegl/.claude/projects/c--Users-ziegl-sf-fantasy-shelf/memory/**)",
-      "Read(//c/Users/ziegl/.claude/projects/**)"
+      "Read(//c/Users/ziegl/.claude/projects/**)",
+      "Bash(mkdir -p \"c:/Users/ziegl/.claude/projects/c--Users-ziegl-sf-fantasy-shelf/memory\" && echo done)",
+      "Read(//c/Users/ziegl/OneDrive-Documents/**)",
+      "Read(//c/Users/ziegl/**)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s \"https://www.googleapis.com/books/v1/volumes?q=Dune&maxResults=3&langRestrict=en\")",
+      "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\);const j=JSON.parse\\(d\\);console.log\\('total:',j.totalItems,'items:',j.items?.length,j.items?.[0]?.volumeInfo?.title\\)\")",
+      "Bash(curl -s \"https://www.googleapis.com/books/v1/volumes?q=Dune&maxResults=3&langRestrict=en\" -o tmp_books.json)",
+      "Bash(node -e \"const j=require\\('./tmp_books.json'\\);console.log\\('total:',j.totalItems,'items:',j.items?.length,'first:',j.items?.[0]?.volumeInfo?.title\\)\")",
+      "Bash(del tmp_books.json)",
+      "PowerShell($r = Invoke-RestMethod \"https://www.googleapis.com/books/v1/volumes?q=Dune&maxResults=3&langRestrict=en\"; \"totalItems: $\\($r.totalItems\\)\"; \"items: $\\($r.items.Count\\)\"; \"first: $\\($r.items[0].volumeInfo.title\\)\")",
+      "PowerShell($r = Invoke-RestMethod \"https://openlibrary.org/search.json?q=Dune+Frank+Herbert&limit=5&fields=key,title,author_name,cover_i,first_publish_year,number_of_pages_median,isbn,language,edition_count\"; \"total: $\\($r.numFound\\)\"; \"count: $\\($r.docs.Count\\)\"; $r.docs[0] | Select-Object title, author_name, cover_i, first_publish_year, number_of_pages_median | ConvertTo-Json)",
+      "Bash(grep -n \"user_id = 1\\\\|user_id = \\\\$\\\\|AND ub.user_id = 1\\\\|ub.user_id = 1\\\\|VALUES \\(1,\" src/routes/books.ts)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\ziegl\\.claude\\projects\\c--Users-ziegl-sf-fantasy-shelf"
     ]
   }
 }

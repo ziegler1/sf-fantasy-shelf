@@ -8,12 +8,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthorService } from '../../../core/services/author.service';
 import { ClaudeService } from '../../../core/services/claude.service';
 import { BookService } from '../../../core/services/book.service';
-import type { AuthorWithBooks, BookWithDetails, ReadingStatus, UserBook } from '../../../types/schema.types';
+import type { AuthorWithBooks, Book, BookWithDetails, ReadingStatus, UserBook } from '../../../types/schema.types';
 
 @Component({
   selector: 'app-book-detail',
@@ -22,7 +23,7 @@ import type { AuthorWithBooks, BookWithDetails, ReadingStatus, UserBook } from '
     CommonModule, DatePipe, FormsModule,
     MatDialogModule, MatIconModule, MatButtonModule,
     MatProgressSpinnerModule, MatTooltipModule,
-    MatSelectModule, MatFormFieldModule,
+    MatSelectModule, MatFormFieldModule, MatInputModule,
   ],
   templateUrl: './book-detail.component.html',
 })
@@ -38,6 +39,11 @@ export class BookDetailComponent implements OnInit {
   deleteConfirm = false;
   deleting = false;
   private dirty = false;
+
+  // Metadata editing state
+  editMode = false;
+  metaForm = { title: '', description: '', year: '', page_count: '', isbn13: '' };
+  metaSaving = false;
 
   readonly statusOptions: { label: string; value: ReadingStatus | '' }[] = [
     { label: 'Not on shelf',  value: '' },
@@ -130,6 +136,52 @@ export class BookDetailComponent implements OnInit {
         this.shelfSaving = false;
       },
       error: () => { this.shelfSaving = false; },
+    });
+  }
+
+  enterEditMode(): void {
+    const y = this.book.published_at
+      ? new Date(this.book.published_at).getUTCFullYear()
+      : null;
+    this.metaForm = {
+      title: this.book.title,
+      description: this.book.description ?? '',
+      year: y != null ? String(y) : '',
+      page_count: this.book.page_count != null ? String(this.book.page_count) : '',
+      isbn13: this.book.isbn13 ?? '',
+    };
+    this.editMode = true;
+  }
+
+  cancelEdit(): void {
+    this.editMode = false;
+  }
+
+  saveMetadata(): void {
+    this.metaSaving = true;
+    const year = parseInt(this.metaForm.year, 10);
+    const payload: Partial<Book> = {
+      title: this.metaForm.title,
+      description: this.metaForm.description || null,
+      page_count: this.metaForm.page_count ? parseInt(this.metaForm.page_count, 10) : null,
+      published_at: !isNaN(year) ? `${year}-01-01` : null,
+      isbn13: this.metaForm.isbn13 || null,
+      isbn: this.book.isbn,
+      cover_url: this.book.cover_url,
+      language: this.book.language,
+    };
+    this.bookService.updateBook(this.book.id, payload).subscribe({
+      next: (updated) => {
+        this.book.title = updated.title;
+        this.book.description = updated.description;
+        this.book.page_count = updated.page_count;
+        this.book.published_at = updated.published_at;
+        this.book.isbn13 = updated.isbn13;
+        this.dirty = true;
+        this.editMode = false;
+        this.metaSaving = false;
+      },
+      error: () => { this.metaSaving = false; },
     });
   }
 

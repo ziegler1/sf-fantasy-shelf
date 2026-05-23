@@ -14,9 +14,14 @@
 
     <div class="detail-meta">
       <div class="header-actions">
-        <button mat-icon-button class="delete-btn" (click)="confirmDelete()" matTooltip="Remove from library">
-          <mat-icon>delete_outline</mat-icon>
-        </button>
+        @if (!editMode) {
+          <button mat-icon-button class="edit-meta-btn" (click)="enterEditMode()" matTooltip="Edit metadata">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button class="delete-btn" (click)="confirmDelete()" matTooltip="Remove from library">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        }
         <button mat-icon-button class="close-btn" (click)="close()">
           <mat-icon>close</mat-icon>
         </button>
@@ -32,7 +37,14 @@
         </div>
       }
 
-      <h2 class="detail-title">{{ book.title }}</h2>
+      @if (!editMode) {
+        <h2 class="detail-title">{{ book.title }}</h2>
+      } @else {
+        <mat-form-field appearance="outline" class="edit-title-field">
+          <mat-label>Title</mat-label>
+          <input matInput [(ngModel)]="metaForm.title">
+        </mat-form-field>
+      }
 
       <div class="detail-authors">
         @for (author of book.authors; track author.id) {
@@ -44,17 +56,40 @@
         }
       </div>
 
-      <div class="meta-pills">
-        @if (book.published_at) {
-          <span class="meta-pill"><mat-icon>calendar_today</mat-icon>{{ book.published_at | date:'yyyy' }}</span>
-        }
-        @if (book.page_count) {
-          <span class="meta-pill"><mat-icon>menu_book</mat-icon>{{ book.page_count }} pages</span>
-        }
-        @if (book.isbn13 || book.isbn) {
-          <span class="meta-pill">ISBN {{ book.isbn13 || book.isbn }}</span>
-        }
-      </div>
+      @if (!editMode) {
+        <div class="meta-pills">
+          @if (book.published_at) {
+            <span class="meta-pill"><mat-icon>calendar_today</mat-icon>{{ book.published_at | date:'yyyy' }}</span>
+          }
+          @if (book.page_count) {
+            <span class="meta-pill"><mat-icon>menu_book</mat-icon>{{ book.page_count }} pages</span>
+          }
+          @if (book.isbn13 || book.isbn) {
+            <span class="meta-pill">ISBN {{ book.isbn13 || book.isbn }}</span>
+          }
+        </div>
+      } @else {
+        <div class="edit-meta-row">
+          <mat-form-field appearance="outline" class="edit-field-year">
+            <mat-label>Year</mat-label>
+            <input matInput type="number" [(ngModel)]="metaForm.year" placeholder="2024">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="edit-field-pages">
+            <mat-label>Pages</mat-label>
+            <input matInput type="number" [(ngModel)]="metaForm.page_count">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="edit-field-isbn">
+            <mat-label>ISBN-13</mat-label>
+            <input matInput [(ngModel)]="metaForm.isbn13">
+          </mat-form-field>
+        </div>
+        <div class="edit-actions-row">
+          <button mat-flat-button color="primary" (click)="saveMetadata()" [disabled]="metaSaving">
+            @if (metaSaving) { Saving… } @else { Save }
+          </button>
+          <button mat-button (click)="cancelEdit()" [disabled]="metaSaving">Cancel</button>
+        </div>
+      }
 
       @if (book.series.length) {
         <div class="series-line">
@@ -113,10 +148,17 @@
   </div>
 
   <!-- ── Publisher Description ──────────────────────────────── -->
-  @if (book.description) {
+  @if (book.description || editMode) {
     <div class="detail-section">
       <h3 class="section-heading"><mat-icon>description</mat-icon> Description</h3>
-      <p class="description-text">{{ book.description }}</p>
+      @if (editMode) {
+        <mat-form-field appearance="outline" class="edit-description-field">
+          <textarea matInput [(ngModel)]="metaForm.description" rows="5"
+                    placeholder="Publisher description…"></textarea>
+        </mat-form-field>
+      } @else {
+        <p class="description-text">{{ book.description }}</p>
+      }
     </div>
   }
 
@@ -214,6 +256,8 @@
   gap: 0.1rem;
 }
 
+.edit-meta-btn { color: #475569 !important; }
+.edit-meta-btn:hover { color: #a78bfa !important; }
 .delete-btn { color: #475569 !important; }
 .delete-btn:hover { color: #f87171 !important; }
 .close-btn  { color: #64748b !important; }
@@ -349,6 +393,30 @@
   font-size: 0.65rem;
   color: #64748b;
 }
+
+.edit-title-field {
+  width: calc(100% - 2rem);
+  margin-bottom: 0.1rem;
+}
+
+.edit-meta-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.1rem;
+}
+
+.edit-field-year  { width: 74px; flex-shrink: 0; }
+.edit-field-pages { width: 74px; flex-shrink: 0; }
+.edit-field-isbn  { width: 148px; flex-shrink: 0; }
+
+.edit-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.edit-description-field { width: 100%; }
 
 .shelf-edit-row {
   display: flex;
