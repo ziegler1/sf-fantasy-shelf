@@ -9,26 +9,41 @@ function toDate(s: string | undefined | null): string | null {
 export async function populateSeriesBooks(
   seriesId: number,
   seriesName: string,
-  primaryAuthor: string,
+  googleBooksId: string | null,
 ): Promise<void> {
   const apiKey = process.env['GOOGLE_BOOKS_API_KEY'];
-  if (!apiKey) return; // no key → skip gracefully
+  if (!apiKey) return;
 
-  // Search by series name only — omitting the author so co-authored later entries
-  // (e.g. WoT books 12-14 by Jordan & Sanderson) are not missed.
-  // Fetch two pages (0-39, 40-79) in parallel to handle large series where
-  // duplicate editions from page 1 eat into the result budget.
-  const q = encodeURIComponent(`"${seriesName}"`);
-  const base = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=40&orderBy=relevance&key=${apiKey}`;
+  // Strategy 1: associated endpoint — given the imported book's volume ID,
+  // Google returns all volumes in the same series. Most reliable approach.
+  let items: GBVolume[] = [];
+  if (googleBooksId) {
+    const url = `https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(googleBooksId)}/associated?maxResults=40&key=${apiKey}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json() as { items?: GBVolume[] };
+      items = data.items ?? [];
+    }
+  }
 
-  const fetchPage = async (startIndex: number): Promise<{ items?: GBVolume[] }> => {
-    const res = await fetch(`${base}&startIndex=${startIndex}`);
-    if (!res.ok) return {};
-    return res.json() as Promise<{ items?: GBVolume[] }>;
-  };
+  // Strategy 2: text search fallback — search by series name across two pages.
+  // Less reliable (seriesInfo is sparsely populated) but covers cases where the
+  // imported book had no Google Books ID (e.g. manual entry).
+  if (!items.length) {
+    const q = encodeURIComponent(`"${seriesName}"`);
+    const base = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=40&orderBy=relevance&key=${apiKey}`;
 
-  const [data1, data2] = await Promise.all([fetchPage(0), fetchPage(40)]);
-  const items: GBVolume[] = [...(data1.items ?? []), ...(data2.items ?? [])];
+    const fetchPage = async (startIndex: number): Promise<{ items?: GBVolume[] }> => {
+      const res = await fetch(`${base}&startIndex=${startIndex}`);
+      if (!res.ok) return {};
+      return res.json() as Promise<{ items?: GBVolume[] }>;
+    };
+
+    const [data1, data2] = await Promise.all([fetchPage(0), fetchPage(40)]);
+    items = [...(data1.items ?? []), ...(data2.items ?? [])];
+  }
+
+  const fromAssociated = !!googleBooksId && items.length > 0;
 
   for (const item of items) {
     const v = item.volumeInfo;
@@ -36,17 +51,19 @@ export async function populateSeriesBooks(
       v.title ?? '', v.subtitle, item.seriesInfo,
     );
 
-    // Accept the book if EITHER:
-    // 1. The detected series name matches (subtitle/title pattern), OR
-    // 2. Google Books provided an explicit order number via seriesInfo
-    //    (strong signal we're in the right series — we searched by name)
-    const nameMatch = detectedSeries && isSameSeries(detectedSeries, seriesName);
-    const apiOrderNumber = item.seriesInfo?.bookSeries?.[0]?.orderNumber;
-    if (!nameMatch && !apiOrderNumber) continue;
-    if (!position) continue;
+    // For associated results we trust Google's grouping — only require a position.
+    // For text-search fallback, require either a name match or an API order number.
+    if (fromAssociated) {
+      if (!position) continue;
+    } else {
+      const nameMatch = detectedSeries && isSameSeries(detectedSeries, seriesName);
+      const apiOrderNumber = item.seriesInfo?.bookSeries?.[0]?.orderNumber;
+      if (!nameMatch && !apiOrderNumber) continue;
+      if (!position) continue;
+    }
 
-    // Skip if we already have a book at this position — avoids duplicate
-    // editions (hardcover, paperback, ebook) creating multiple DB records.
+    // Skip if we already have a book at this position — prevents duplicate
+    // editions (hardcover, paperback, ebook) from creating multiple DB records.
     const posCheck = await pool.query<{ exists: boolean }>(
       'SELECT EXISTS(SELECT 1 FROM book_series WHERE series_id = $1 AND position = $2)',
       [seriesId, position],
@@ -68,14 +85,14 @@ export async function populateSeriesBooks(
       if (found.rows.length) bookId = found.rows[0].id;
     }
 
-    // If not found, insert a minimal book record
+    // If not found, insert a new book record
     if (!bookId) {
       const rawCover = v.imageLinks?.thumbnail ?? v.imageLinks?.smallThumbnail ?? null;
       const cover_url = rawCover ? rawCover.replace('http://', 'https://') : null;
       try {
         const { rows } = await pool.query<{ id: number }>(
-          `INSERT INTO books (title, isbn, isbn13, description, cover_url, published_at, page_count, language)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+          `INSERT INTO books (title, isbn, isbn13, description, cover_url, published_at, page_count, language, google_books_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
           [
             v.title ?? 'Unknown Title',
             isbn10, isbn13,
@@ -84,11 +101,11 @@ export async function populateSeriesBooks(
             toDate(v.publishedDate),
             v.pageCount ?? null,
             v.language ?? 'en',
+            item.id ?? null,
           ],
         );
         bookId = rows[0]?.id ?? null;
       } catch {
-        // Unique constraint violation — find the conflicting row
         if (isbn13) {
           const r = await pool.query<{ id: number }>('SELECT id FROM books WHERE isbn13=$1', [isbn13]);
           bookId = r.rows[0]?.id ?? null;
@@ -101,7 +118,7 @@ export async function populateSeriesBooks(
 
     if (!bookId) continue;
 
-    // Link authors — lookup-or-create each name, then insert book_authors
+    // Link authors
     for (const authorName of v.authors ?? []) {
       const trimmed = authorName.trim();
       if (!trimmed) continue;

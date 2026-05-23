@@ -111,9 +111,8 @@ export class AddBookComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.error = null;
 
-    const { google_id: _gid, ...rest } = this.selected;
     const importBody = {
-      ...rest,
+      ...this.selected,
       status:          this.status,
       series_name:     this.seriesName.trim() || null,
       series_position: this.seriesPosition || null,

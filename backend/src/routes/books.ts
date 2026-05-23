@@ -79,7 +79,7 @@ router.post('/import', asyncHandler(async (req, res) => {
   const {
     title, authors: authorNames = [], cover_url, published_at,
     page_count, isbn, isbn13, description, language = 'en',
-    status, series_name, series_position,
+    status, series_name, series_position, google_id,
   } = req.body as {
     title: string;
     authors: string[];
@@ -93,6 +93,7 @@ router.post('/import', asyncHandler(async (req, res) => {
     status?: ReadingStatus;
     series_name?: string;
     series_position?: number | null;
+    google_id?: string;
   };
 
   if (!title) return res.status(400).json({ error: 'title is required' });
@@ -119,10 +120,11 @@ router.post('/import', asyncHandler(async (req, res) => {
 
     // Insert the book
     const { rows: [book] } = await client.query(
-      `INSERT INTO books (title, isbn, isbn13, description, cover_url, published_at, page_count, language)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      `INSERT INTO books (title, isbn, isbn13, description, cover_url, published_at, page_count, language, google_books_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
       [title, isbn ?? null, isbn13 ?? null, description ?? null,
-       cover_url ?? null, toDateValue(published_at), page_count ?? null, language],
+       cover_url ?? null, toDateValue(published_at), page_count ?? null, language,
+       google_id ?? null],
     );
 
     // Lookup-or-create each author
@@ -204,9 +206,9 @@ router.post('/import', asyncHandler(async (req, res) => {
     });
 
     // Populate other books in the series in the background
-    if (series_name?.trim() && authorNames.length) {
-      const capturedSeriesName = series_name.trim();
-      const capturedAuthor     = authorNames[0];
+    if (series_name?.trim()) {
+      const capturedSeriesName  = series_name.trim();
+      const capturedGoogleBooksId = book.google_books_id as string | null;
       // Look up the series ID — use the same normalised match as the find-or-create
       // so "The Wheel of Time" finds an existing "Wheel of Time" record correctly.
       pool.query<{ id: number }>(
@@ -214,7 +216,7 @@ router.post('/import', asyncHandler(async (req, res) => {
         [capturedSeriesName],
       ).then(({ rows: sr }) => {
         if (!sr.length) return;
-        return populateSeriesBooks(sr[0].id, capturedSeriesName, capturedAuthor);
+        return populateSeriesBooks(sr[0].id, capturedSeriesName, capturedGoogleBooksId);
       }).catch(err =>
         console.error(`Series population failed for "${series_name}":`, err),
       );
