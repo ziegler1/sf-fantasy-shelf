@@ -16,13 +16,19 @@ export async function populateSeriesBooks(
 
   // Search by series name only — omitting the author so co-authored later entries
   // (e.g. WoT books 12-14 by Jordan & Sanderson) are not missed.
-  const q = `"${seriesName}"`;
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=40&orderBy=relevance&key=${apiKey}`;
-  const response = await fetch(url);
-  if (!response.ok) return;
+  // Fetch two pages (0-39, 40-79) in parallel to handle large series where
+  // duplicate editions from page 1 eat into the result budget.
+  const q = encodeURIComponent(`"${seriesName}"`);
+  const base = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=40&orderBy=relevance&key=${apiKey}`;
 
-  const data = await response.json() as { items?: GBVolume[] };
-  const items = data.items ?? [];
+  const fetchPage = async (startIndex: number): Promise<{ items?: GBVolume[] }> => {
+    const res = await fetch(`${base}&startIndex=${startIndex}`);
+    if (!res.ok) return {};
+    return res.json() as Promise<{ items?: GBVolume[] }>;
+  };
+
+  const [data1, data2] = await Promise.all([fetchPage(0), fetchPage(40)]);
+  const items: GBVolume[] = [...(data1.items ?? []), ...(data2.items ?? [])];
 
   for (const item of items) {
     const v = item.volumeInfo;
@@ -33,6 +39,14 @@ export async function populateSeriesBooks(
     // Only include books that match the series and have a known position
     if (!detectedSeries || !isSameSeries(detectedSeries, seriesName)) continue;
     if (!position) continue;
+
+    // Skip if we already have a book at this position — avoids duplicate
+    // editions (hardcover, paperback, ebook) creating multiple DB records.
+    const posCheck = await pool.query<{ exists: boolean }>(
+      'SELECT EXISTS(SELECT 1 FROM book_series WHERE series_id = $1 AND position = $2)',
+      [seriesId, position],
+    );
+    if (posCheck.rows[0].exists) continue;
 
     const isbns = v.industryIdentifiers ?? [];
     const isbn13 = isbns.find(i => i.type === 'ISBN_13')?.identifier ?? null;

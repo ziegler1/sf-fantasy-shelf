@@ -40,6 +40,13 @@
             <div class="result-info">
               <p class="result-title">{{ book.title }}</p>
               <p class="result-author">{{ authorLine(book) }}</p>
+              @if (book.series_name) {
+                <p class="result-series">
+                  <mat-icon>auto_stories</mat-icon>
+                  @if (book.series_position) { Book {{ book.series_position }} · }
+                  {{ book.series_name }}
+                </p>
+              }
               <p class="result-meta">
                 @if (yearOf(book)) { <span>{{ yearOf(book) }}</span> }
                 @if (book.page_count) { <span>· {{ book.page_count }}p</span> }
@@ -356,6 +363,25 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.result-series {
+  font-size: 0.7rem;
+  color: #a78bfa;
+  margin: 0 0 0.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.result-series mat-icon {
+  font-size: 0.8rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  flex-shrink: 0;
 }
 
 .result-meta {
