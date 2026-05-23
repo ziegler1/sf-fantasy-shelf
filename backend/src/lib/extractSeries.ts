@@ -4,11 +4,15 @@ export function extractSeries(
   title: string,
   subtitle: string | undefined,
   seriesInfo?: {
+    shortSeriesBookTitle?: string;
     bookSeries?: { orderNumber?: string }[];
   },
 ): { name: string | null; position: number | null } {
   const orderStr = seriesInfo?.bookSeries?.[0]?.orderNumber;
   const apiPosition = orderStr ? parseFloat(orderStr) : null;
+  // Canonical series name from Google Books API — used as fallback when
+  // the title/subtitle don't contain an explicit "Book N of X" pattern
+  const apiSeriesName = seriesInfo?.shortSeriesBookTitle ?? null;
 
   const ordinals: Record<string, number> = {
     one: 1, two: 2, three: 3, four: 4, five: 5,
@@ -39,7 +43,9 @@ export function extractSeries(
     if (hash) return { name: hash[1].trim(), position: parseFloat(hash[2]) };
   }
 
-  return { name: null, position: apiPosition };
+  // Fall back to the API-provided series name (covers books whose title/subtitle
+  // don't embed the series pattern — e.g. "The Eye of the World" for WoT)
+  return { name: apiSeriesName, position: apiPosition };
 }
 
 export function normaliseSeries(name: string): string {

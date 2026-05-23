@@ -147,12 +147,17 @@ router.post('/import', asyncHandler(async (req, res) => {
       );
     }
 
-    // Find-or-create series and link to book
+    // Find-or-create series and link to book.
+    // Normalise by stripping a leading "The " so "The Wheel of Time" and
+    // "Wheel of Time" resolve to the same series record.
     if (series_name?.trim()) {
       const trimmed = series_name.trim();
       let seriesId: number;
       const found = await client.query<{ id: number }>(
-        'SELECT id FROM series WHERE LOWER(name) = LOWER($1) LIMIT 1', [trimmed],
+        `SELECT id FROM series
+         WHERE REGEXP_REPLACE(LOWER(name), '^the\\s+', '') = REGEXP_REPLACE(LOWER($1), '^the\\s+', '')
+         LIMIT 1`,
+        [trimmed],
       );
       if (found.rows.length) {
         seriesId = found.rows[0].id;

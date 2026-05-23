@@ -9,8 +9,11 @@ const router = Router();
 router.use(verifyToken);
 
 // ── Enriched query helper ─────────────────────────────────────────────────────
+// $1 is always userId — only returns series where the user owns at least one book.
+// extraValues are appended starting at $2 and referenced in extraWhere.
 
-function seriesQuery(where = '', values: unknown[] = []) {
+function seriesQuery(userId: number, extraWhere = '', extraValues: unknown[] = []) {
+  const values: unknown[] = [userId, ...extraValues];
   return {
     text: `
       SELECT
@@ -29,7 +32,12 @@ function seriesQuery(where = '', values: unknown[] = []) {
       FROM series s
       LEFT JOIN book_series bs ON bs.series_id = s.id
       LEFT JOIN books b        ON b.id = bs.book_id
-      ${where}
+      WHERE EXISTS (
+        SELECT 1 FROM book_series bs2
+        JOIN user_books ub ON ub.book_id = bs2.book_id
+        WHERE bs2.series_id = s.id AND ub.user_id = $1
+      )
+      ${extraWhere}
       GROUP BY s.id
       ORDER BY s.name
     `,
@@ -39,8 +47,8 @@ function seriesQuery(where = '', values: unknown[] = []) {
 
 // ── GET /api/series ───────────────────────────────────────────────────────────
 
-router.get('/', asyncHandler(async (_req, res) => {
-  const { rows } = await pool.query<SeriesWithBooks>(seriesQuery());
+router.get('/', asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<SeriesWithBooks>(seriesQuery(req.userId));
   res.json(rows);
 }));
 
@@ -48,7 +56,7 @@ router.get('/', asyncHandler(async (_req, res) => {
 
 router.get('/:id', asyncHandler(async (req, res) => {
   const { rows } = await pool.query<SeriesWithBooks>(
-    seriesQuery('WHERE s.id = $1', [req.params['id']]),
+    seriesQuery(req.userId, 'AND s.id = $2', [req.params['id']]),
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   res.json(rows[0]);

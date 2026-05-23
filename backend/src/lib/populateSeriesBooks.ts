@@ -14,8 +14,10 @@ export async function populateSeriesBooks(
   const apiKey = process.env['GOOGLE_BOOKS_API_KEY'];
   if (!apiKey) return; // no key → skip gracefully
 
-  const q = `"${seriesName}" "${primaryAuthor}"`;
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=20&orderBy=newest&key=${apiKey}`;
+  // Search by series name only — omitting the author so co-authored later entries
+  // (e.g. WoT books 12-14 by Jordan & Sanderson) are not missed.
+  const q = `"${seriesName}"`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=40&orderBy=relevance&key=${apiKey}`;
   const response = await fetch(url);
   if (!response.ok) return;
 
@@ -125,6 +127,7 @@ interface GBVolume {
     industryIdentifiers?: { type: string; identifier: string }[];
   };
   seriesInfo?: {
+    shortSeriesBookTitle?: string;
     bookSeries?: { orderNumber?: string }[];
   };
 }
