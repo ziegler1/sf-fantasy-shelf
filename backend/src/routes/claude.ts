@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
+import rateLimit from 'express-rate-limit';
 import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
@@ -9,6 +10,15 @@ const router = Router();
 const anthropic = new Anthropic({ apiKey: process.env['ANTHROPIC_API_KEY'] });
 
 router.use(verifyToken);
+
+router.use(rateLimit({
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  max: 20,
+  keyGenerator: (req) => String(req.userId),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many AI requests — limit is 20 per hour.' },
+}));
 
 // User specified claude-sonnet-4-20250514; alias is claude-sonnet-4-6
 const MODEL = 'claude-sonnet-4-5';
