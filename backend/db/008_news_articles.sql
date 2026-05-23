@@ -13,4 +13,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS news_articles_url_idx
   ON news_articles (url);
 
 CREATE INDEX IF NOT EXISTS news_articles_published_at_idx
-  ON news_articles (COALESCE(published_at, created_at) DESC);
+  ON news_articles (published_at DESC NULLS LAST, created_at DESC);
