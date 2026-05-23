@@ -108,6 +108,11 @@ import type { UpcomingRelease } from '../../types/schema.types';
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-field">
+          <mat-label>Description</mat-label>
+          <textarea matInput [(ngModel)]="form.description" rows="3"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-field">
           <mat-label>Notes</mat-label>
           <textarea matInput [(ngModel)]="form.notes" rows="2"></textarea>
         </mat-form-field>
@@ -225,7 +230,7 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
   results: BookSearchResult[] = [];
   searching = false;
 
-  form = { title: '', author_name: '', release_date: '', isbn: '', cover_url: '', notes: '' };
+  form = { title: '', author_name: '', release_date: '', isbn: '', cover_url: '', description: '', notes: '' };
   saving = false;
   error: string | null = null;
 
@@ -275,7 +280,8 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
       author_name: book.authors.join(', '),
       release_date: this.toDateInput(book.published_at),
       isbn: book.isbn13 || book.isbn || '',
-      cover_url: book.cover_url || '',
+      cover_url: this.httpsUrl(book.cover_url) ?? '',
+      description: book.description || '',
       notes: '',
     };
     this.error = null;
@@ -284,7 +290,7 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
 
   enterManual(): void {
     this.fromSearch = false;
-    this.form = { title: '', author_name: '', release_date: '', isbn: '', cover_url: '', notes: '' };
+    this.form = { title: '', author_name: '', release_date: '', isbn: '', cover_url: '', description: '', notes: '' };
     this.error = null;
     this.step = 'form';
   }
@@ -298,7 +304,8 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
       author_name: this.form.author_name.trim() || null,
       release_date: this.form.release_date || null,
       isbn: this.form.isbn.trim() || null,
-      cover_url: this.form.cover_url.trim() || null,
+      cover_url: this.httpsUrl(this.form.cover_url.trim() || null),
+      description: this.form.description.trim() || null,
       notes: this.form.notes.trim() || null,
     }).subscribe({
       next: (release: UpcomingRelease) => {
@@ -317,5 +324,9 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
     if (/^\d{4}$/.test(dt)) return `${dt}-01-01`;
     if (/^\d{4}-\d{2}$/.test(dt)) return `${dt}-01`;
     return dt.slice(0, 10);
+  }
+
+  private httpsUrl(url: string | null): string | null {
+    return url ? url.replace(/^http:\/\//, 'https://') : null;
   }
 }

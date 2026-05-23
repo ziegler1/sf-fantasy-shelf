@@ -22,15 +22,15 @@ router.get('/', asyncHandler(async (req, res) => {
 // ── POST /api/upcoming ────────────────────────────────────────────────────────
 
 router.post('/', asyncHandler(async (req, res) => {
-  const { title, author_name, release_date, isbn, cover_url, notes } = req.body;
+  const { title, author_name, release_date, isbn, cover_url, description, notes } = req.body;
   if (!title) return res.status(400).json({ error: 'title is required' });
 
   const { rows } = await pool.query(
-    `INSERT INTO upcoming_releases (user_id, title, author_name, release_date, isbn, cover_url, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO upcoming_releases (user_id, title, author_name, release_date, isbn, cover_url, description, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
     [req.userId, title, author_name ?? null, release_date ?? null,
-     isbn ?? null, cover_url ?? null, notes ?? null],
+     isbn ?? null, cover_url ?? null, description ?? null, notes ?? null],
   );
   res.status(201).json(rows[0]);
 }));

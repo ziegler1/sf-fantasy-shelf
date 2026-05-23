@@ -66,8 +66,11 @@ interface ReleaseGroup {
                       {{ r.release_date | date:'MMMM d, yyyy' : 'UTC' }}
                     </p>
                   }
+                  @if (r.description) {
+                    <p class="release-notes">{{ r.description }}</p>
+                  }
                   @if (r.notes) {
-                    <p class="release-notes">{{ r.notes }}</p>
+                    <p class="release-notes release-notes-user">{{ r.notes }}</p>
                   }
                 </div>
                 <button mat-icon-button class="delete-btn" matTooltip="Remove"
@@ -188,12 +191,18 @@ interface ReleaseGroup {
 
     .release-notes {
       font-size: 0.75rem;
-      color: #475569;
+      color: #64748b;
       margin: 0;
       overflow: hidden;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
+    }
+
+    .release-notes-user {
+      color: #94a3b8;
+      margin-top: 0.2rem;
+      font-style: italic;
     }
 
     .delete-btn {

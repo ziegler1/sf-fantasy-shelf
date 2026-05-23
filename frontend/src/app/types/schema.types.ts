@@ -108,6 +108,7 @@ export interface UpcomingRelease {
   release_date: string | null;  // ISO date string
   isbn: string | null;
   cover_url: string | null;
+  description: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

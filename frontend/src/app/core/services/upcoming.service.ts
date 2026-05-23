@@ -9,6 +9,7 @@ export interface AddUpcomingBody {
   release_date?: string | null;
   isbn?: string | null;
   cover_url?: string | null;
+  description?: string | null;
   notes?: string | null;
 }
 
