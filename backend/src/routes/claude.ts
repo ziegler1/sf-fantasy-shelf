@@ -11,14 +11,25 @@ const anthropic = new Anthropic({ apiKey: process.env['ANTHROPIC_API_KEY'] });
 
 router.use(verifyToken);
 
-router.use(rateLimit({
+const heavyRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000,  // 1 hour
   max: 20,
   keyGenerator: (req) => String(req.userId),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many AI requests — limit is 20 per hour.' },
-}));
+});
+
+// series-detect fires automatically on every book pick so it needs its own
+// more permissive limit separate from the user-triggered heavy endpoints.
+const seriesDetectRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 100,
+  keyGenerator: (req) => String(req.userId),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many series-detect requests.' },
+});
 
 // User specified claude-sonnet-4-20250514; alias is claude-sonnet-4-6
 const MODEL = 'claude-sonnet-4-5';
@@ -32,7 +43,7 @@ function extractJson(text: string): string {
 
 // ── POST /api/claude/summary ──────────────────────────────────────────────────
 
-router.post('/summary', asyncHandler(async (req, res) => {
+router.post('/summary', heavyRateLimit, asyncHandler(async (req, res) => {
   const { book_id } = req.body;
   if (!book_id) return res.status(400).json({ error: 'book_id is required' });
 
@@ -42,7 +53,7 @@ router.post('/summary', asyncHandler(async (req, res) => {
 
 // ── POST /api/claude/next ─────────────────────────────────────────────────────
 
-router.post('/next', asyncHandler(async (req, res) => {
+router.post('/next', heavyRateLimit, asyncHandler(async (req, res) => {
   const userId = req.userId;
 
   const { rows } = await pool.query(
@@ -177,7 +188,7 @@ Return ONLY this JSON:
 
 // ── POST /api/claude/similar-authors ─────────────────────────────────────────
 
-router.post('/similar-authors', asyncHandler(async (req, res) => {
+router.post('/similar-authors', heavyRateLimit, asyncHandler(async (req, res) => {
   const { author_id } = req.body;
   if (!author_id) return res.status(400).json({ error: 'author_id is required' });
   const userId = req.userId;
@@ -315,7 +326,7 @@ Return ONLY this JSON:
 
 // ── POST /api/claude/series-detect ───────────────────────────────────────────
 
-router.post('/series-detect', asyncHandler(async (req, res) => {
+router.post('/series-detect', seriesDetectRateLimit, asyncHandler(async (req, res) => {
   const { title, author } = req.body as { title?: string; author?: string };
   if (!title || !author) return res.status(400).json({ error: 'title and author are required' });
 

@@ -91,6 +91,69 @@ async function insertBookAtPosition(
   );
 }
 
+// ── Stub fallback ─────────────────────────────────────────────────────────────
+// Used when Google Books returns no match for a Claude-identified series book.
+// Inserts a minimal record (title + author) so the position appears in the tracker.
+
+async function insertStubAtPosition(
+  seriesId: number,
+  position: number,
+  title: string,
+  authorName: string,
+): Promise<void> {
+  const posCheck = await pool.query<{ exists: boolean }>(
+    'SELECT EXISTS(SELECT 1 FROM book_series WHERE series_id = $1 AND position = $2)',
+    [seriesId, position],
+  );
+  if (posCheck.rows[0].exists) return;
+
+  // Reuse an existing book with matching title + author rather than creating a duplicate
+  let bookId: number | null = null;
+  const lastName = authorName.split(' ').pop() ?? authorName;
+  const existing = await pool.query<{ id: number }>(
+    `SELECT b.id FROM books b
+     JOIN book_authors ba ON ba.book_id = b.id
+     JOIN authors a ON a.id = ba.author_id
+     WHERE LOWER(b.title) = LOWER($1) AND LOWER(a.name) LIKE LOWER($2)
+     LIMIT 1`,
+    [title, `%${lastName}%`],
+  );
+  if (existing.rows.length) {
+    bookId = existing.rows[0].id;
+  } else {
+    const { rows } = await pool.query<{ id: number }>(
+      'INSERT INTO books (title) VALUES ($1) RETURNING id', [title],
+    );
+    bookId = rows[0]?.id ?? null;
+  }
+  if (!bookId) return;
+
+  const trimmed = authorName.trim();
+  if (trimmed) {
+    const aFound = await pool.query<{ id: number }>(
+      'SELECT id FROM authors WHERE LOWER(name) = LOWER($1) LIMIT 1', [trimmed],
+    );
+    let authorId: number;
+    if (aFound.rows.length) {
+      authorId = aFound.rows[0].id;
+    } else {
+      const { rows: [a] } = await pool.query<{ id: number }>(
+        'INSERT INTO authors (name) VALUES ($1) RETURNING id', [trimmed],
+      );
+      authorId = a.id;
+    }
+    await pool.query(
+      'INSERT INTO book_authors (book_id, author_id, role) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+      [bookId, authorId, 'author'],
+    );
+  }
+
+  await pool.query(
+    'INSERT INTO book_series (book_id, series_id, position) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+    [bookId, seriesId, position],
+  );
+}
+
 // ── Claude gap-fill ───────────────────────────────────────────────────────────
 
 async function fillGapsWithClaude(
@@ -157,12 +220,21 @@ async function fillGapsWithClaude(
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json() as { items?: GBVolume[] };
-        gbItem = data.items?.[0] ?? null;
+        const items = data.items ?? [];
+        // Prefer a result whose title closely matches what Claude told us
+        const titleLower = book.title.toLowerCase();
+        gbItem = items.find(item => {
+          const t = (item.volumeInfo.title ?? '').toLowerCase();
+          return t === titleLower || t.startsWith(titleLower) || titleLower.startsWith(t);
+        }) ?? items[0] ?? null;
       }
     } catch { /* skip if fetch fails */ }
 
     if (gbItem) {
       await insertBookAtPosition(seriesId, pos, gbItem);
+    } else {
+      // Google Books has no match — insert a minimal stub so the position is tracked
+      await insertStubAtPosition(seriesId, pos, book.title, book.author);
     }
 
     foundPositions.add(pos);
