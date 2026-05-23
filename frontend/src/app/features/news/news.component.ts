@@ -7,12 +7,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NewsService, NewsArticle } from '../../core/services/news.service';
 
 const SOURCE_COLORS: Record<string, string> = {
-  'Tor.com':         '#f97316',
-  'Locus Magazine':  '#a78bfa',
-  'Fantasy Faction': '#06b6d4',
-  'SFF World':       '#10b981',
-  'Reddit Fantasy':  '#f43f5e',
+  'Tor.com':        '#f97316',
+  'Locus Magazine': '#a78bfa',
+  'SFF World':      '#10b981',
+  'Reddit Fantasy': '#f43f5e',
+  'Reddit SF':      '#fb923c',
 };
+
+interface RefreshResult { source: string; added: number; error?: string }
 
 @Component({
   selector: 'app-news',
@@ -26,9 +28,20 @@ const SOURCE_COLORS: Record<string, string> = {
     <div class="page-header">
       <h1 class="page-title">News Feed</h1>
       <button mat-icon-button matTooltip="Fetch latest articles from sources" (click)="refresh()" [disabled]="loading || refreshing">
-        <mat-icon>refresh</mat-icon>
+        <mat-icon [class.spinning]="refreshing">refresh</mat-icon>
       </button>
     </div>
+
+    @if (lastRefresh.length) {
+      <div class="refresh-results">
+        @for (r of lastRefresh; track r.source) {
+          <span class="refresh-pill" [class.ok]="!r.error" [class.err]="!!r.error"
+                [matTooltip]="r.error ?? (r.added + ' new')">
+            {{ r.source }}: {{ r.error ? 'error' : '+' + r.added }}
+          </span>
+        }
+      </div>
+    }
 
     @if (sources.length > 1) {
       <div class="source-filters">
@@ -92,6 +105,26 @@ const SOURCE_COLORS: Record<string, string> = {
     }
 
     .page-header h1 { flex: 1; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinning { animation: spin 0.8s linear infinite; }
+
+    .refresh-results {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .refresh-pill {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      cursor: default;
+    }
+
+    .refresh-pill.ok  { background: rgba(16,185,129,0.15); color: #34d399; }
+    .refresh-pill.err { background: rgba(248,113,113,0.15); color: #f87171; }
 
     .source-filters {
       display: flex;
@@ -250,6 +283,7 @@ export class NewsComponent implements OnInit {
   articles: NewsArticle[] = [];
   loading = true;
   refreshing = false;
+  lastRefresh: RefreshResult[] = [];
   activeSource: string | null = null;
   readonly imgErrors = new Set<number>();
 
@@ -269,8 +303,13 @@ export class NewsComponent implements OnInit {
 
   refresh(): void {
     this.refreshing = true;
+    this.lastRefresh = [];
     this.newsService.refresh().subscribe({
-      next: () => { this.refreshing = false; this.load(); },
+      next: (res) => {
+        this.lastRefresh = res.results;
+        this.refreshing = false;
+        this.load();
+      },
       error: () => { this.refreshing = false; },
     });
   }
