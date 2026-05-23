@@ -1,5 +1,132 @@
 # Changelog
 
+## [0.14.0] — 2026-05-23 — Zod input validation
+
+### Added
+
+- `backend/src/lib/validate.ts` — `validate(schema)` Express middleware; also exports `requiredStr`, `nullableStr`, `readingStatus` Zod helpers
+- Zod schemas and `validate()` middleware on every POST/PUT route: auth, books, authors, series, upcoming, claude
+
+### Changed
+
+- `backend/src/routes/auth.ts` — `profileSchema` uses `.refine()` to enforce at least one field; manual `if (!field)` guards removed
+- `backend/src/routes/books.ts` — `shelfUpdateSchema` replaces manual status enum check; `importSchema` uses `.default([])` for authors array
+- `backend/src/routes/claude.ts` — `book_id` / `author_id` now typed as `z.number().int().positive()`; no more `Number()` coercions inside handlers
+
+### Notes
+
+- No visible behaviour change for valid requests — validation only affects malformed input (now returns 400 with field-level detail instead of 500 or silent bad insert)
+
+---
+
+## [0.13.0] — 2026-05-23 — News feed, series fixes, rate limiting
+
+### Added
+
+- `backend/db/008_news_articles.sql` — `news_articles` table (id, source_name, title, url, description, image_url, published_at, created_at); unique index on url
+- `backend/db/009_news_patch.sql` — patch migration adding `source_name` column and fixing multi-column index (COALESCE functional index caused silent migration failure)
+- `backend/db/010_news_columns.sql` — patch migration adding `description`, `image_url`, `published_at` columns missing due to earlier migration abort
+- `backend/src/lib/fetchNewsFeeds.ts` — RSS fetcher using `rss-parser`; extracts images from `media:content`, `media:thumbnail`, `content:encoded`; truncates descriptions to 400 chars plain text; prunes articles older than 90 days before each fetch
+- `backend/src/routes/news.ts` — `GET /api/news` (paginated, ordered by published_at), `POST /api/news/refresh` (manual trigger)
+- `frontend/src/app/core/services/news.service.ts` — `NewsService` with `getArticles()` and `refresh()`
+- `frontend/src/app/features/news/news.component.ts` — card grid with source filter chips, per-source colour badges, 90-day rolling display; refresh button shows per-source result pills (green = ok, red = error)
+- `backend/src/index.ts` — `node-cron` job runs `fetchNewsFeeds()` every 4 hours; also fires once on startup
+
+### Changed
+
+- `backend/src/routes/claude.ts` — separate rate limit for `series-detect` (100/hr) vs heavy endpoints (20/hr); series-detect fires on every book pick so needs its own budget
+- `backend/src/routes/books.ts` — fixed ISBN early-return path: when a book already exists by ISBN, now correctly finds/creates the series link, upserts `user_books`, commits, returns the book, and triggers `populateSeriesBooks` in the background (previously did ROLLBACK and returned without any of this)
+
+### Feed sources
+
+- Tor.com, Locus Magazine, SFF World, The Wertzone
+- Reddit SFF/Fantasy removed — returns 403 without OAuth
+
+### Retention policy
+
+- Articles older than 90 days are deleted at the start of each `fetchNewsFeeds()` run (no archiving — deliberate, keeps the DB small)
+
+### Migration gotcha
+
+- Multi-statement SQL in a single migration file: if an intermediate statement fails, earlier statements are already auto-committed but the `_migrations` record is never written — so the migration re-runs on next deploy, hitting "column already exists" errors. Fix: keep migrations idempotent (`ADD COLUMN IF NOT EXISTS`) or split into separate files.
+
+---
+
+## [0.12.0] — 2026-05-23 — Upcoming releases
+
+### Added
+
+- `backend/src/routes/upcoming.ts` — `GET /api/upcoming`, `POST /api/upcoming`, `DELETE /api/upcoming/:id`; background job downloads cover to R2 and patches the row with the R2 URL
+- `frontend/src/app/features/upcoming/upcoming.component.ts` — timeline list grouped by month; empty state; delete with confirm
+- `frontend/src/app/features/upcoming/add-upcoming-dialog.component.ts` — Google Books search + manual entry fallback; populates title, author, date, ISBN, cover
+- `frontend/src/app/core/services/upcoming.service.ts`
+
+---
+
+## [0.11.0] — 2026-05-22 — Claude series detection + series population
+
+### Added
+
+- `POST /api/claude/series-detect` — given title + author, returns `{ series_name, series_position }` using Claude; used automatically when a book is picked in the add-book flow
+- `backend/src/lib/populateSeriesBooks.ts` — after importing a book that belongs to a series, fetches all sibling books from Google Books and pre-inserts them (no `user_books` row — they appear in Series Tracker as unowned, greyed out)
+- Gap-fill logic: if a series already exists in DB, checks for missing position slots and back-fills them
+
+### Changed
+
+- `frontend/src/app/features/library/add-book/add-book.component.ts` — calls `series-detect` on every book selection; pre-fills series name + position fields; shows series chip in search results
+- `backend/src/routes/books.ts` — `POST /import` triggers `populateSeriesBooks` in background after commit
+
+### Design decisions
+
+- Series population runs fire-and-forget (`setImmediate` / `.catch()`); import response is not delayed
+- Dedup: `INSERT … ON CONFLICT DO NOTHING` on both `books` (by isbn13) and `book_series` (by book_id + series_id)
+- "The " prefix normalisation: series lookup uses `REGEXP_REPLACE(LOWER(name), '^the\s+', '')` so "The Wheel of Time" and "Wheel of Time" resolve to the same record
+
+---
+
+## [0.10.0] — 2026-05-21 — Book detail dialog + metadata editing
+
+### Added
+
+- `frontend/src/app/features/library/book-detail/book-detail.component.ts` + HTML — full book detail dialog:
+  - Header: cover, title, authors, year/pages/ISBN pills, series line, tags
+  - Inline shelf editing: status dropdown + 5-star rating (auto-saves on change)
+  - AI Summary section: shows cached summary or "Generate" button
+  - Publisher description section
+  - Reading notes + dates (started/finished)
+  - Per-author section: avatar, bio, website, "other books" thumbnail grid
+  - Delete book with confirm step
+- **Metadata edit mode** (pencil icon): edits **Title, Year, Pages, ISBN-13, Description** — calls `PUT /api/books/:id`; cover image, authors, and series position are *not* editable in this UI
+
+### Changed
+
+- `frontend/src/app/features/library/library.component.ts` — book card click opens `BookDetailComponent` dialog
+- `backend/src/routes/books.ts` — `GET /api/books` filters to `ub.id IS NOT NULL` so auto-populated series siblings don't appear in My Library
+
+---
+
+## [0.9.0] — 2026-05-21 — Authentication (Phase 1)
+
+### Added
+
+- `backend/db/003_add_users.sql` — `users` table; seed row (id=1, password_hash=''); `user_id` FK on `user_books` and `author_follows`; unique constraints updated to `(user_id, book_id)` / `(user_id, author_id)`
+- `backend/src/middleware/auth.ts` — `signToken` / `verifyToken` (30-day JWT, HS256, `req.userId` set on every protected request)
+- `backend/src/routes/auth.ts` — register (bcrypt 12 rounds, claims seed user on first registration), login, `GET /me`, `PUT /profile`, `POST /change-password`
+- `frontend/src/app/core/services/auth.service.ts` — login/register/logout/updateProfile/changePassword; 30-day JWT stored in localStorage
+- `frontend/src/app/core/interceptors/auth.interceptor.ts` — attaches Bearer token; auto-logout on 401
+- `frontend/src/app/core/guards/auth.guard.ts` — redirects unauthenticated users to `/login`
+- `frontend/src/app/features/auth/login/` and `register/` — full form pages
+- `frontend/src/app/features/account/account.component.ts` — edit profile, change password, sign out
+- `docs/AUTH.md`
+
+### Design decisions
+
+- First `POST /register` call when `password_hash = ''` exists claims the seed row (id=1) rather than inserting a new user — all existing shelf data transfers automatically with no migration
+- Subsequent registrations insert new rows normally
+- All routes use `req.userId` — hardcoded `user_id = 1` fully removed
+
+---
+
 ## [0.8.0] — 2026-05-20 — Railway production deployment
 
 ### Added

@@ -65,9 +65,15 @@
 - [x] Library search bar — debounced, searches title AND author name
 - [x] Auto-populated series books hidden from My Library (only visible in Series Tracker)
 
+### ✅ Done (continued)
+
+- [x] Edit existing book metadata from detail dialog — **5 fields**: Title, Year, Pages, ISBN-13, Description (cover image, authors, series position not yet editable in UI)
+
 ### ❌ Still To Do
-- [ ] Edit existing book metadata (title, authors, cover, description) from detail dialog
+
 - [ ] Manual book entry form (no-search fallback for books not on Google Books)
+- [ ] Edit cover image URL from detail dialog
+- [ ] Edit authors (add/remove/swap) from detail dialog
 
 ---
 
@@ -84,27 +90,28 @@ The series tracker was a placeholder — now fully wired:
 
 ---
 
-## Phase 3 — Upcoming Releases
+## Phase 3 — Upcoming Releases ✅ COMPLETE
 
 **Goal:** Track books you're waiting for before they release.
 
-- [ ] `GET /api/upcoming` — list releases ordered by `release_date`
-- [ ] `POST /api/upcoming` — add manually (title, author, date, ISBN, cover)
-- [ ] `DELETE /api/upcoming/:id` — remove
-- [ ] Frontend: timeline/list grouped by month
-- [ ] "Link to book" — when the book releases and gets added to library, link the record
+- [x] `GET /api/upcoming` — list releases ordered by `release_date`
+- [x] `POST /api/upcoming` — add manually (title, author, date, ISBN, cover)
+- [x] `DELETE /api/upcoming/:id` — remove
+- [x] Frontend: timeline/list grouped by month
+- [ ] "Link to book" — when the book releases and gets added to library, link the record (deferred)
 
 ---
 
-## Phase 4 — News Feed
+## Phase 4 — News Feed ✅ COMPLETE
 
 **Goal:** SFF news from RSS feeds directly in the app.
 
-- [ ] `POST /api/news/sources` — add an RSS/Atom source URL
-- [ ] `GET /api/news/articles` — paginated, newest first, optional source filter
-- [ ] Background RSS fetch job — `node-cron` inside backend, runs every 6 hours
-- [ ] Frontend: article cards with title, source, summary, published date, link out
-- [ ] Seed with 3–4 default SFF sources (Tor.com, The Verge SFF, Fantasy Book Review)
+- [x] `GET /api/news` — paginated, newest first, optional source filter
+- [x] `POST /api/news/refresh` — manual refresh trigger
+- [x] Background RSS fetch job — `node-cron` inside backend, runs every 4 hours + on startup
+- [x] Frontend: article cards with source badge, image, date, title, description snippet; source filter chips
+- [x] 90-day rolling retention — articles older than 90 days pruned on each fetch run
+- [x] Active sources: Tor.com, Locus Magazine, SFF World, The Wertzone
 
 ---
 
@@ -113,6 +120,7 @@ The series tracker was a placeholder — now fully wired:
 **Goal:** App feels complete and is hardened for daily use.
 
 ### UX
+
 - [ ] Loading skeletons instead of spinners
 - [ ] Empty states with prompts (e.g. "Add a book to get started")
 - [x] Toast notifications — Snackbar wired for auth; extend to book add/delete actions
@@ -120,17 +128,21 @@ The series tracker was a placeholder — now fully wired:
 - [ ] Dark/light mode toggle
 
 ### Performance
+
 - [ ] Paginate `GET /api/books` (currently returns all — fine for small libraries)
 - [ ] Angular `OnPush` change detection on book card
 
 ### Security & ops
-- [ ] Rate limiting on `/api/claude/*` routes (per user, e.g. 20 req/hour)
-- [ ] Input validation with `zod` on all POST/PUT body parsing
+
+- [x] Rate limiting on `/api/claude/*` routes — 20 req/hr for heavy endpoints, 100 req/hr for series-detect
+- [x] Input validation with `zod` on all POST/PUT body parsing
 - [ ] Error monitoring (Sentry or Railway logs)
 
 ### Remaining Phase 2 items
-- [ ] Edit existing book metadata from detail dialog
+
 - [ ] Manual book entry (no-search fallback)
+- [ ] Edit cover image URL from detail dialog
+- [ ] Edit authors (add/remove/swap) from detail dialog
 
 ---
 
