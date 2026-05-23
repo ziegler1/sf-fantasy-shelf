@@ -36,8 +36,13 @@ export async function populateSeriesBooks(
       v.title ?? '', v.subtitle, item.seriesInfo,
     );
 
-    // Only include books that match the series and have a known position
-    if (!detectedSeries || !isSameSeries(detectedSeries, seriesName)) continue;
+    // Accept the book if EITHER:
+    // 1. The detected series name matches (subtitle/title pattern), OR
+    // 2. Google Books provided an explicit order number via seriesInfo
+    //    (strong signal we're in the right series — we searched by name)
+    const nameMatch = detectedSeries && isSameSeries(detectedSeries, seriesName);
+    const apiOrderNumber = item.seriesInfo?.bookSeries?.[0]?.orderNumber;
+    if (!nameMatch && !apiOrderNumber) continue;
     if (!position) continue;
 
     // Skip if we already have a book at this position — avoids duplicate

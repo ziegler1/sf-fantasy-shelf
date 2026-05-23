@@ -207,9 +207,10 @@ router.post('/import', asyncHandler(async (req, res) => {
     if (series_name?.trim() && authorNames.length) {
       const capturedSeriesName = series_name.trim();
       const capturedAuthor     = authorNames[0];
-      // Look up the series ID we just created/found
+      // Look up the series ID — use the same normalised match as the find-or-create
+      // so "The Wheel of Time" finds an existing "Wheel of Time" record correctly.
       pool.query<{ id: number }>(
-        'SELECT id FROM series WHERE LOWER(name) = LOWER($1) LIMIT 1',
+        `SELECT id FROM series WHERE REGEXP_REPLACE(LOWER(name), '^the\\s+', '') = REGEXP_REPLACE(LOWER($1), '^the\\s+', '') LIMIT 1`,
         [capturedSeriesName],
       ).then(({ rows: sr }) => {
         if (!sr.length) return;
