@@ -192,13 +192,17 @@
       <p class="confirm-description">{{ selected.description | slice:0:320 }}{{ selected.description.length > 320 ? '…' : '' }}</p>
     }
 
-    <!-- Series (pre-filled from Google Books, editable) -->
+    <!-- Series (pre-filled from Google Books or Claude detection, editable) -->
     <div class="series-row">
       <mat-form-field appearance="outline" class="series-name-field">
         <mat-label>Series name</mat-label>
         <input matInput [(ngModel)]="seriesName" placeholder="e.g. Stormlight Archive">
-        <mat-icon matSuffix>auto_stories</mat-icon>
-        <mat-hint>Leave blank if standalone</mat-hint>
+        @if (detectingSeries) {
+          <mat-spinner matSuffix diameter="16" style="margin-right:8px" />
+        } @else {
+          <mat-icon matSuffix>auto_stories</mat-icon>
+        }
+        <mat-hint>{{ detectingSeries ? 'Detecting series…' : 'Leave blank if standalone' }}</mat-hint>
       </mat-form-field>
       <mat-form-field appearance="outline" class="series-pos-field">
         <mat-label>Book #</mat-label>

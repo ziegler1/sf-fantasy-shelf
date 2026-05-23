@@ -36,6 +36,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
   status: ReadingStatus = 'want-to-read';
   seriesName = '';
   seriesPosition: number | null = null;
+  detectingSeries = false;
   saving = false;
   error: string | null = null;
 
@@ -98,6 +99,23 @@ export class AddBookComponent implements OnInit, OnDestroy {
     this.seriesPosition = book.series_position ?? null;
     this.step = 'confirm';
     this.error = null;
+
+    // If Google Books didn't provide series info, ask Claude
+    if (!book.series_name) {
+      this.detectingSeries = true;
+      const author = this.authorLine(book);
+      this.searchService.detectSeries(book.title, author).subscribe({
+        next: (result) => {
+          // Only pre-fill if the user hasn't already typed something
+          if (!this.seriesName && result.series_name) {
+            this.seriesName = result.series_name;
+            this.seriesPosition = result.series_position;
+          }
+          this.detectingSeries = false;
+        },
+        error: () => { this.detectingSeries = false; },
+      });
+    }
   }
 
   back(): void {

@@ -313,4 +313,43 @@ Return ONLY this JSON:
   }
 }));
 
+// ── POST /api/claude/series-detect ───────────────────────────────────────────
+
+router.post('/series-detect', asyncHandler(async (req, res) => {
+  const { title, author } = req.body as { title?: string; author?: string };
+  if (!title || !author) return res.status(400).json({ error: 'title and author are required' });
+
+  const message = await anthropic.messages.create({
+    model: MODEL,
+    max_tokens: 256,
+    system: 'You are a science fiction and fantasy bibliographer with encyclopedic knowledge of book series. Respond ONLY with valid JSON — no markdown fences, no text outside the JSON object.',
+    messages: [{
+      role: 'user',
+      content: `Is "${title}" by ${author} part of a series? If yes, return the series name and this book's position number. If it is a standalone novel, return null for both fields.
+
+Return ONLY this JSON:
+{
+  "series_name": "Series Name or null",
+  "series_position": 1
+}
+
+Where series_name is null (not the string "null") if standalone, and series_position is null if standalone or unknown.`,
+    }],
+  });
+
+  const text = message.content.find(b => b.type === 'text')?.text ?? '{}';
+  try {
+    const parsed = JSON.parse(extractJson(text)) as {
+      series_name?: string | null;
+      series_position?: number | null;
+    };
+    res.json({
+      series_name:     parsed.series_name ?? null,
+      series_position: parsed.series_position ?? null,
+    });
+  } catch {
+    res.json({ series_name: null, series_position: null });
+  }
+}));
+
 export default router;

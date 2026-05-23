@@ -35,4 +35,10 @@ export class SearchService {
   importBook(body: ImportBookBody): Observable<BookWithDetails> {
     return this.http.post<BookWithDetails>('/api/books/import', body);
   }
+
+  detectSeries(title: string, author: string): Observable<{ series_name: string | null; series_position: number | null }> {
+    return this.http.post<{ series_name: string | null; series_position: number | null }>(
+      '/api/claude/series-detect', { title, author },
+    );
+  }
 }

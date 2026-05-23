@@ -16,6 +16,14 @@ async function insertBookAtPosition(
   position: number,
   item: GBVolume,
 ): Promise<void> {
+  // Guard: bail out if this series already has a book at this position.
+  // Centralised here so every call path is protected regardless of outer checks.
+  const posCheck = await pool.query<{ exists: boolean }>(
+    'SELECT EXISTS(SELECT 1 FROM book_series WHERE series_id = $1 AND position = $2)',
+    [seriesId, position],
+  );
+  if (posCheck.rows[0].exists) return;
+
   const v = item.volumeInfo;
   const isbns = v.industryIdentifiers ?? [];
   const isbn13 = isbns.find(i => i.type === 'ISBN_13')?.identifier ?? null;
@@ -213,12 +221,6 @@ export async function populateSeriesBooks(
     const apiOrderNumber = item.seriesInfo?.bookSeries?.[0]?.orderNumber;
     if (!nameMatch && !apiOrderNumber) continue;
     if (!position) continue;
-
-    const posCheck = await pool.query<{ exists: boolean }>(
-      'SELECT EXISTS(SELECT 1 FROM book_series WHERE series_id = $1 AND position = $2)',
-      [seriesId, position],
-    );
-    if (posCheck.rows[0].exists) continue;
 
     await insertBookAtPosition(seriesId, position, item);
   }
