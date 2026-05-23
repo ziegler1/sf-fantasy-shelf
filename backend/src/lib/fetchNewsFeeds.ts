@@ -21,11 +21,10 @@ const parser = new Parser({
 interface FeedSource { name: string; url: string }
 
 const FEEDS: FeedSource[] = [
-  { name: 'Tor.com',        url: 'https://www.tor.com/feed/'                        },
-  { name: 'Locus Magazine', url: 'https://locusmag.com/feed/'                       },
-  { name: 'SFF World',      url: 'https://www.sffworld.com/feed/'                   },
-  { name: 'Reddit Fantasy', url: 'https://www.reddit.com/r/Fantasy/top.rss?t=week'  },
-  { name: 'Reddit SF',      url: 'https://www.reddit.com/r/printSF/top.rss?t=week'  },
+  { name: 'Tor.com',        url: 'https://www.tor.com/feed/'              },
+  { name: 'Locus Magazine', url: 'https://locusmag.com/feed/'             },
+  { name: 'SFF World',      url: 'https://www.sffworld.com/feed/'         },
+  { name: 'The Wertzone',   url: 'https://thewertzone.blogspot.com/feeds/posts/default' },
 ];
 
 function extractImage(item: RssItem): string | null {

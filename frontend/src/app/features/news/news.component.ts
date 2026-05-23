@@ -10,8 +10,7 @@ const SOURCE_COLORS: Record<string, string> = {
   'Tor.com':        '#f97316',
   'Locus Magazine': '#a78bfa',
   'SFF World':      '#10b981',
-  'Reddit Fantasy': '#f43f5e',
-  'Reddit SF':      '#fb923c',
+  'The Wertzone':   '#06b6d4',
 };
 
 interface RefreshResult { source: string; added: number; error?: string }
