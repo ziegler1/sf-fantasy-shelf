@@ -80,6 +80,28 @@ export async function populateSeriesBooks(
 
     if (!bookId) continue;
 
+    // Link authors — lookup-or-create each name, then insert book_authors
+    for (const authorName of v.authors ?? []) {
+      const trimmed = authorName.trim();
+      if (!trimmed) continue;
+      let authorId: number;
+      const found = await pool.query<{ id: number }>(
+        'SELECT id FROM authors WHERE LOWER(name) = LOWER($1) LIMIT 1', [trimmed],
+      );
+      if (found.rows.length) {
+        authorId = found.rows[0].id;
+      } else {
+        const { rows: [a] } = await pool.query<{ id: number }>(
+          'INSERT INTO authors (name) VALUES ($1) RETURNING id', [trimmed],
+        );
+        authorId = a.id;
+      }
+      await pool.query(
+        'INSERT INTO book_authors (book_id, author_id, role) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+        [bookId, authorId, 'author'],
+      );
+    }
+
     // Link the book to the series
     await pool.query(
       `INSERT INTO book_series (book_id, series_id, position)
