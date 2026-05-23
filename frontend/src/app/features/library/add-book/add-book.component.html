@@ -52,6 +52,99 @@
     } @else if (query.trim().length >= 2) {
       <div class="center-state muted">No results found.</div>
     }
+
+    <div class="manual-link-row">
+      <button mat-button class="manual-link-btn" (click)="enterManual()">
+        <mat-icon>edit_note</mat-icon>
+        Add manually
+      </button>
+    </div>
+  }
+
+  <!-- ── Step 3: Manual entry ────────────────────────────────── -->
+  @if (step === 'manual') {
+    <div class="confirm-header">
+      <button mat-icon-button (click)="step = 'search'" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h2 class="dialog-title">Add Manually</h2>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-field">
+      <mat-label>Title *</mat-label>
+      <input matInput [(ngModel)]="manualForm.title" autocomplete="off">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-field">
+      <mat-label>Author(s)</mat-label>
+      <input matInput [(ngModel)]="manualForm.authors" placeholder="e.g. Brandon Sanderson, Isaac Asimov">
+      <mat-hint>Separate multiple authors with commas</mat-hint>
+    </mat-form-field>
+
+    <div class="manual-meta-row">
+      <mat-form-field appearance="outline" class="edit-field-year">
+        <mat-label>Year</mat-label>
+        <input matInput type="number" [(ngModel)]="manualForm.year" placeholder="2024">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="edit-field-pages">
+        <mat-label>Pages</mat-label>
+        <input matInput type="number" [(ngModel)]="manualForm.page_count">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="edit-field-isbn">
+        <mat-label>ISBN-13</mat-label>
+        <input matInput [(ngModel)]="manualForm.isbn13">
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-field">
+      <mat-label>Cover image URL</mat-label>
+      <input matInput [(ngModel)]="manualForm.cover_url" placeholder="https://…">
+      <mat-icon matSuffix>image</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-field">
+      <mat-label>Description</mat-label>
+      <textarea matInput [(ngModel)]="manualForm.description" rows="3"></textarea>
+    </mat-form-field>
+
+    <div class="series-row">
+      <mat-form-field appearance="outline" class="series-name-field">
+        <mat-label>Series name</mat-label>
+        <input matInput [(ngModel)]="seriesName" placeholder="e.g. Stormlight Archive">
+        <mat-icon matSuffix>auto_stories</mat-icon>
+        <mat-hint>Leave blank if standalone</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="series-pos-field">
+        <mat-label>Book #</mat-label>
+        <input matInput type="number" min="0.5" step="0.5" [(ngModel)]="seriesPosition">
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="status-field">
+      <mat-label>Add to shelf as</mat-label>
+      <mat-select [(ngModel)]="status">
+        @for (opt of statusOptions; track opt.value) {
+          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (error) {
+      <p class="error-msg">{{ error }}</p>
+    }
+
+    <div class="confirm-actions">
+      <button mat-button (click)="step = 'search'" [disabled]="saving">Cancel</button>
+      <button mat-flat-button color="primary" (click)="addManually()"
+              [disabled]="saving || !manualForm.title.trim()">
+        @if (saving) {
+          <mat-spinner diameter="18" style="display:inline-block" />
+        } @else {
+          <mat-icon>add</mat-icon>
+        }
+        Add to Library
+      </button>
+    </div>
   }
 
   <!-- ── Step 2: Confirm ──────────────────────────────────────── -->
@@ -376,6 +469,44 @@
   width: 100%;
   margin-bottom: 0.5rem;
 }
+
+.manual-link-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.75rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 0.75rem;
+}
+
+.manual-link-btn {
+  color: #475569 !important;
+  font-size: 0.78rem;
+}
+
+.manual-link-btn:hover { color: #a78bfa !important; }
+
+.manual-link-btn mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+}
+
+.full-field {
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+.manual-meta-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.edit-field-year  { width: 74px; flex-shrink: 0; }
+.edit-field-pages { width: 74px; flex-shrink: 0; }
+.edit-field-isbn  { flex: 1; min-width: 120px; }
 
 .error-msg {
   color: #f87171;

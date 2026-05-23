@@ -11,7 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
-import { SearchService, BookSearchResult } from '../../../core/services/search.service';
+import { SearchService, BookSearchResult, ImportBookBody } from '../../../core/services/search.service';
 import type { BookWithDetails, ReadingStatus } from '../../../types/schema.types';
 
 @Component({
@@ -26,7 +26,7 @@ import type { BookWithDetails, ReadingStatus } from '../../../types/schema.types
   templateUrl: './add-book.component.html',
 })
 export class AddBookComponent implements OnInit, OnDestroy {
-  step: 'search' | 'confirm' = 'search';
+  step: 'search' | 'confirm' | 'manual' = 'search';
   query = '';
   results: BookSearchResult[] = [];
   searching = false;
@@ -37,6 +37,8 @@ export class AddBookComponent implements OnInit, OnDestroy {
   seriesPosition: number | null = null;
   saving = false;
   error: string | null = null;
+
+  manualForm = { title: '', authors: '', year: '', page_count: '', isbn13: '', description: '', cover_url: '' };
 
   readonly statusOptions: { label: string; value: ReadingStatus }[] = [
     { label: 'Want to Read', value: 'want-to-read' },
@@ -116,6 +118,46 @@ export class AddBookComponent implements OnInit, OnDestroy {
     };
 
     this.searchService.importBook(importBody).subscribe({
+      next: (book: BookWithDetails) => {
+        this.saving = false;
+        this.dialogRef.close(book);
+      },
+      error: () => {
+        this.saving = false;
+        this.error = 'Failed to add book. Please try again.';
+      },
+    });
+  }
+
+  enterManual(): void {
+    this.manualForm = { title: '', authors: '', year: '', page_count: '', isbn13: '', description: '', cover_url: '' };
+    this.seriesName = '';
+    this.seriesPosition = null;
+    this.status = 'want-to-read';
+    this.error = null;
+    this.step = 'manual';
+  }
+
+  addManually(): void {
+    if (!this.manualForm.title.trim() || this.saving) return;
+    this.saving = true;
+    this.error = null;
+    const year = parseInt(this.manualForm.year, 10);
+    const body: ImportBookBody = {
+      title: this.manualForm.title.trim(),
+      authors: this.manualForm.authors.split(',').map(a => a.trim()).filter(Boolean),
+      cover_url: this.manualForm.cover_url.trim() || null,
+      published_at: !isNaN(year) ? `${year}-01-01` : null,
+      page_count: this.manualForm.page_count ? parseInt(this.manualForm.page_count, 10) : null,
+      isbn: null,
+      isbn13: this.manualForm.isbn13.trim() || null,
+      description: this.manualForm.description.trim() || null,
+      language: 'en',
+      series_name: this.seriesName.trim() || null,
+      series_position: this.seriesPosition || null,
+      status: this.status,
+    };
+    this.searchService.importBook(body).subscribe({
       next: (book: BookWithDetails) => {
         this.saving = false;
         this.dialogRef.close(book);
