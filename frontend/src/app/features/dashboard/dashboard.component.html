@@ -140,6 +140,75 @@
       </div>
 
     </div>
+    <!-- Row 3: Upcoming Releases + Top Picks -->
+    <div class="main-grid">
+
+      <div class="panel">
+        <div class="panel-label">UPCOMING RELEASES</div>
+        @if (upcomingReleases.length) {
+          @for (r of upcomingReleases; track r.id) {
+            <div class="recent-row">
+              @if (r.cover_url) {
+                <img class="recent-cover" [src]="r.cover_url" [alt]="r.title">
+              } @else {
+                <div class="recent-cover no-cover"><mat-icon>event_available</mat-icon></div>
+              }
+              <div class="recent-info">
+                <p class="recent-title">{{ r.title }}</p>
+                @if (r.author_name) {
+                  <p class="recent-author">{{ r.author_name }}</p>
+                }
+                @if (r.release_date) {
+                  <p class="upcoming-date">
+                    <mat-icon>event</mat-icon>
+                    {{ r.release_date | date:'MMM d, yyyy' : 'UTC' }}
+                  </p>
+                }
+              </div>
+            </div>
+          }
+          <a class="panel-link" routerLink="/upcoming">View all releases →</a>
+        } @else {
+          <div class="panel-empty">
+            <mat-icon>event_available</mat-icon>
+            <p>No upcoming releases tracked.</p>
+            <a routerLink="/upcoming">Add a release</a>
+          </div>
+        }
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">TOP SF/FANTASY READS</div>
+        @if (topPicksLoading) {
+          <div class="panel-empty">
+            <mat-spinner diameter="24" />
+          </div>
+        } @else if (topPicks.length) {
+          @for (p of topPicks; track p.key) {
+            <div class="pick-row">
+              @if (p.cover_url) {
+                <img class="pick-cover" [src]="p.cover_url" [alt]="p.title">
+              } @else {
+                <div class="pick-cover no-cover"><mat-icon>menu_book</mat-icon></div>
+              }
+              <div class="pick-info">
+                <p class="pick-title">{{ p.title }}</p>
+                <p class="pick-author">{{ p.author }}</p>
+              </div>
+              <span class="badge" [ngClass]="p.genre === 'Sci-Fi' ? 'badge-scifi' : 'badge-fantasy'">
+                {{ p.genre }}
+              </span>
+            </div>
+          }
+        } @else {
+          <div class="panel-empty">
+            <mat-icon>star</mat-icon>
+            <p>Couldn't load top picks.</p>
+          </div>
+        }
+      </div>
+
+    </div>
   }
 
 </div>

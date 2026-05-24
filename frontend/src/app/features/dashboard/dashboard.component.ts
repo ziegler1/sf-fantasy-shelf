@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { forkJoin } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { BookService } from '../../core/services/book.service';
 import { SeriesService } from '../../core/services/series.service';
+import { UpcomingService } from '../../core/services/upcoming.service';
 import { AuthService } from '../../core/services/auth.service';
-import type { BookWithDetails, SeriesWithBooks } from '../../types/schema.types';
+import type { BookWithDetails, SeriesWithBooks, UpcomingRelease } from '../../types/schema.types';
 
 interface DashSeries {
   id: number;
@@ -23,10 +25,18 @@ interface GenreBar {
   pct: number;
 }
 
+interface TopPick {
+  key:       string;
+  title:     string;
+  author:    string;
+  cover_url: string | null;
+  genre:     'Sci-Fi' | 'Fantasy';
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, DatePipe, RouterLink, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -39,27 +49,43 @@ export class DashboardComponent implements OnInit {
   readingCount = 0;
   seriesCount  = 0;
 
-  nowReading:   BookWithDetails | null = null;
-  seriesList:   DashSeries[]          = [];
-  recentlyRead: BookWithDetails[]     = [];
-  genreBars:    GenreBar[]            = [];
+  nowReading:      BookWithDetails | null = null;
+  seriesList:      DashSeries[]          = [];
+  recentlyRead:    BookWithDetails[]     = [];
+  genreBars:       GenreBar[]            = [];
+  upcomingReleases: UpcomingRelease[]    = [];
+  topPicks:        TopPick[]            = [];
+  topPicksLoading  = true;
 
   constructor(
-    private bookService:   BookService,
-    private seriesService: SeriesService,
-    public  auth:          AuthService,
+    private bookService:    BookService,
+    private seriesService:  SeriesService,
+    private upcomingService: UpcomingService,
+    private http:           HttpClient,
+    public  auth:           AuthService,
   ) {}
 
   ngOnInit(): void {
     forkJoin({
       booksResp: this.bookService.getBooks({ limit: 1000 }),
       series:    this.seriesService.getSeries(),
+      upcoming:  this.upcomingService.getAll(),
     }).subscribe({
-      next: ({ booksResp: { books }, series }) => {
+      next: ({ booksResp: { books }, series, upcoming }) => {
         this.compute(books, series);
+        const now = new Date().toISOString().slice(0, 10);
+        this.upcomingReleases = upcoming
+          .filter(r => !r.release_date || r.release_date >= now)
+          .sort((a, b) => (a.release_date ?? 'zzzz').localeCompare(b.release_date ?? 'zzzz'))
+          .slice(0, 4);
         this.loading = false;
       },
       error: () => { this.loading = false; },
+    });
+
+    this.http.get<TopPick[]>('/api/toppicks').subscribe({
+      next:  picks => { this.topPicks = picks; this.topPicksLoading = false; },
+      error: ()    => { this.topPicksLoading = false; },
     });
   }
 

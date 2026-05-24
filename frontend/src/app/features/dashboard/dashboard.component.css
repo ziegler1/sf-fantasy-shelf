@@ -288,6 +288,76 @@
   flex-shrink: 0;
 }
 
+/* ── Upcoming date line ──────────────────────────────────── */
+.upcoming-date {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--accent);
+  margin: 0.15rem 0 0;
+}
+
+.upcoming-date mat-icon {
+  font-size: 0.8rem;
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.panel-link {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-decoration: none;
+  text-align: right;
+}
+
+.panel-link:hover { text-decoration: underline; }
+
+/* ── Top Picks rows ──────────────────────────────────────── */
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pick-row:last-child { border-bottom: none; }
+
+.pick-cover {
+  width: 32px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.pick-info { flex: 1; min-width: 0; }
+
+.pick-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pick-author {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge-scifi   { background: rgba(59,130,246,.15);  color: #60a5fa; }
+.badge-fantasy { background: rgba(168,85,247,.15);  color: #c084fc; }
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
   .stat-row { grid-template-columns: repeat(2, 1fr); }

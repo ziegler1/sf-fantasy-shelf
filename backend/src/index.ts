@@ -12,6 +12,7 @@ import searchRouter   from './routes/search';
 import authRouter     from './routes/auth';
 import upcomingRouter from './routes/upcoming';
 import newsRouter     from './routes/news';
+import toppicksRouter from './routes/toppicks';
 import { errorHandler } from './middleware/errorHandler';
 import { fetchNewsFeeds } from './lib/fetchNewsFeeds';
 
@@ -32,6 +33,7 @@ app.use('/api/claude',   claudeRouter);
 app.use('/api/search',   searchRouter);
 app.use('/api/upcoming', upcomingRouter);
 app.use('/api/news',     newsRouter);
+app.use('/api/toppicks', toppicksRouter);
 
 app.use(errorHandler);
 
