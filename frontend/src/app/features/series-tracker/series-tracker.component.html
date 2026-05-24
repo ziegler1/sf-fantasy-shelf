@@ -24,7 +24,22 @@
               <p class="series-desc">{{ s.description }}</p>
             }
           </div>
-          <div class="series-stat">
+          <div class="series-actions">
+            <button class="series-action-btn"
+                    (click)="repopulate(s, $event)"
+                    [disabled]="populating.has(s.id)"
+                    matTooltip="Search for more books in this series">
+              @if (populating.has(s.id)) {
+                <mat-spinner diameter="14" />
+              } @else {
+                <mat-icon>manage_search</mat-icon>
+              }
+            </button>
+            <button class="series-action-btn"
+                    (click)="openAddBook(s)"
+                    matTooltip="Add a book to this series">
+              <mat-icon>add</mat-icon>
+            </button>
             <span class="stat-fraction">{{ s.readCount }}<span class="stat-total">/{{ s.books.length }}</span></span>
           </div>
         </div>
@@ -151,8 +166,42 @@
   text-overflow: ellipsis;
 }
 
-.series-stat {
+.series-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
   flex-shrink: 0;
+}
+
+.series-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-disabled);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.series-card:hover .series-action-btn {
+  opacity: 1;
+}
+
+.series-action-btn:hover {
+  color: var(--accent);
+  background: var(--accent-bg-soft);
+}
+
+.series-action-btn mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 .stat-fraction {

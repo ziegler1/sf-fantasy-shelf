@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, Optional, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -56,7 +56,10 @@ export class AddBookComponent implements OnInit, OnDestroy {
     private searchService: SearchService,
     private upcomingService: UpcomingService,
     private dialogRef: MatDialogRef<AddBookComponent>,
-  ) {}
+    @Optional() @Inject(MAT_DIALOG_DATA) data: { seriesName?: string } | null,
+  ) {
+    if (data?.seriesName) this.seriesName = data.seriesName;
+  }
 
   ngOnInit(): void {
     this.search$.pipe(

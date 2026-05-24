@@ -4,6 +4,7 @@ import pool from '../db';
 import { asyncHandler } from '../lib/asyncHandler';
 import { verifyToken } from '../middleware/auth';
 import { validate, requiredStr, nullableStr } from '../lib/validate';
+import { populateSeriesBooks } from '../lib/populateSeriesBooks';
 import type { SeriesWithBooks } from '../types';
 
 const seriesSchema = z.object({
@@ -101,6 +102,22 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   const result = await pool.query('DELETE FROM series WHERE id=$1', [req.params['id']]);
   if (!result.rowCount) return res.status(404).json({ error: 'Not found' });
   res.status(204).send();
+}));
+
+// ── POST /api/series/:id/populate ────────────────────────────────────────────
+
+router.post('/:id/populate', asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<{ id: number; name: string }>(
+    'SELECT id, name FROM series WHERE id = $1', [req.params['id']],
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Not found' });
+
+  const { id, name } = rows[0];
+  res.status(202).json({ message: 'Population started' });
+
+  populateSeriesBooks(id, name, null).catch(err =>
+    console.error(`Re-populate failed for series ${id} "${name}":`, err),
+  );
 }));
 
 // ── DELETE /api/series/:id/books/:bookId ──────────────────────────────────────

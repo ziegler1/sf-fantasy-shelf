@@ -293,8 +293,11 @@ export async function populateSeriesBooks(
     );
 
     const nameMatch = detectedSeries && isSameSeries(detectedSeries, seriesName);
-    const apiOrderNumber = item.seriesInfo?.bookSeries?.[0]?.orderNumber;
-    if (!nameMatch && !apiOrderNumber) continue;
+    // Require series name match — apiOrderNumber alone is not sufficient.
+    // Without this guard, Google Books returns books from similarly-named
+    // series (e.g. "The Seventh Sword" when searching "The Seven Swords")
+    // that pass purely because they carry a numeric orderNumber.
+    if (!nameMatch) continue;
     if (!position) continue;
 
     await insertBookAtPosition(seriesId, position, item);

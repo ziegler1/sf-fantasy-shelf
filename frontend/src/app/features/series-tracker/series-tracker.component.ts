@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { SeriesService } from '../../core/services/series.service';
 import { BookService } from '../../core/services/book.service';
 import { BookDetailComponent } from '../library/book-detail/book-detail.component';
+import { AddBookComponent } from '../library/add-book/add-book.component';
 import type { SeriesWithBooks, BookWithDetails, ReadingStatus } from '../../types/schema.types';
 import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,9 +32,10 @@ interface EnrichedSeries extends SeriesWithBooks {
 export class SeriesTrackerComponent implements OnInit {
   seriesList: EnrichedSeries[] = [];
   loading = true;
-  expanded = new Set<number>();
-  adding   = new Set<number>();
-  removing = new Set<string>();
+  expanded    = new Set<number>();
+  adding      = new Set<number>();
+  removing    = new Set<string>();
+  populating  = new Set<number>();
 
   private bookMap = new Map<number, BookWithDetails>();
 
@@ -149,6 +151,58 @@ export class SeriesTrackerComponent implements OnInit {
 
   inLibrary(bookId: number): boolean {
     return this.bookMap.has(bookId);
+  }
+
+  openAddBook(series: EnrichedSeries): void {
+    const ref = this.dialog.open(AddBookComponent, {
+      data: { seriesName: series.name },
+      panelClass: 'book-detail-panel',
+      maxWidth: '100vw',
+    });
+    ref.afterClosed().subscribe((book: BookWithDetails | undefined) => {
+      if (!book) return;
+      this.reloadSeries(series.id);
+    });
+  }
+
+  repopulate(series: EnrichedSeries, event: Event): void {
+    event.stopPropagation();
+    if (this.populating.has(series.id)) return;
+    this.populating.add(series.id);
+    this.seriesService.populateSeries(series.id).subscribe({
+      next: () => {
+        // Population runs in the background on the server; wait a few seconds then reload
+        setTimeout(() => {
+          this.reloadSeries(series.id);
+          this.populating.delete(series.id);
+        }, 8000);
+      },
+      error: () => this.populating.delete(series.id),
+    });
+  }
+
+  private reloadSeries(seriesId: number): void {
+    forkJoin({
+      series: this.seriesService.getSeriesById(seriesId),
+      books:  this.bookService.getBooks({ limit: 1000 }),
+    }).subscribe({
+      next: ({ series, books: { books } }) => {
+        books.forEach(b => this.bookMap.set(b.id, b));
+        const readSet = new Set(
+          books.filter(b => b.user_book?.status === 'read').map(b => b.id),
+        );
+        const readCount = series.books.filter(b => readSet.has(b.id)).length;
+        const enriched: EnrichedSeries = {
+          ...series,
+          books: [...series.books].sort((a, b) => (a.position ?? 999) - (b.position ?? 999)),
+          readCount,
+          progress: series.books.length
+            ? Math.round((readCount / series.books.length) * 100)
+            : 0,
+        };
+        this.seriesList = this.seriesList.map(s => s.id === seriesId ? enriched : s);
+      },
+    });
   }
 
   removeFromSeries(seriesId: number, bookId: number, event: Event): void {

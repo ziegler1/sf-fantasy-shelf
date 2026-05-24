@@ -32,4 +32,8 @@ export class SeriesService {
   removeBookFromSeries(seriesId: number, bookId: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${seriesId}/books/${bookId}`);
   }
+
+  populateSeries(id: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/${id}/populate`, {});
+  }
 }
