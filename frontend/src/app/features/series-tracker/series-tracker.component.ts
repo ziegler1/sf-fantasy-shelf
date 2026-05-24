@@ -11,6 +11,7 @@ import { BookService } from '../../core/services/book.service';
 import { BookDetailComponent } from '../library/book-detail/book-detail.component';
 import type { SeriesWithBooks, BookWithDetails, ReadingStatus } from '../../types/schema.types';
 import { forkJoin } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
 
 interface EnrichedSeries extends SeriesWithBooks {
   readCount: number;
@@ -23,7 +24,7 @@ interface EnrichedSeries extends SeriesWithBooks {
   imports: [
     CommonModule,
     MatCardModule, MatProgressBarModule, MatIconModule,
-    MatProgressSpinnerModule, MatTooltipModule,
+    MatProgressSpinnerModule, MatTooltipModule, MatButtonModule,
   ],
   templateUrl: './series-tracker.component.html',
 })
@@ -31,7 +32,8 @@ export class SeriesTrackerComponent implements OnInit {
   seriesList: EnrichedSeries[] = [];
   loading = true;
   expanded = new Set<number>();
-  adding  = new Set<number>();
+  adding   = new Set<number>();
+  removing = new Set<string>();
 
   private bookMap = new Map<number, BookWithDetails>();
 
@@ -147,5 +149,23 @@ export class SeriesTrackerComponent implements OnInit {
 
   inLibrary(bookId: number): boolean {
     return this.bookMap.has(bookId);
+  }
+
+  removeFromSeries(seriesId: number, bookId: number, event: Event): void {
+    event.stopPropagation();
+    const key = `${seriesId}-${bookId}`;
+    if (this.removing.has(key)) return;
+    this.removing.add(key);
+    this.seriesService.removeBookFromSeries(seriesId, bookId).subscribe({
+      next: () => {
+        this.removing.delete(key);
+        this.seriesList = this.seriesList
+          .map(s => s.id === seriesId
+            ? { ...s, books: s.books.filter(b => b.id !== bookId) }
+            : s)
+          .filter(s => s.books.length > 0);
+      },
+      error: () => this.removing.delete(key),
+    });
   }
 }

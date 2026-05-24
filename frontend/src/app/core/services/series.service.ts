@@ -28,4 +28,8 @@ export class SeriesService {
   deleteSeries(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
+
+  removeBookFromSeries(seriesId: number, bookId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${seriesId}/books/${bookId}`);
+  }
 }

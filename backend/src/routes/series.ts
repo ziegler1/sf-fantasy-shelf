@@ -103,4 +103,15 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   res.status(204).send();
 }));
 
+// ── DELETE /api/series/:id/books/:bookId ──────────────────────────────────────
+
+router.delete('/:id/books/:bookId', asyncHandler(async (req, res) => {
+  const result = await pool.query(
+    'DELETE FROM book_series WHERE series_id=$1 AND book_id=$2',
+    [req.params['id'], req.params['bookId']],
+  );
+  if (!result.rowCount) return res.status(404).json({ error: 'Not found' });
+  res.status(204).send();
+}));
+
 export default router;
