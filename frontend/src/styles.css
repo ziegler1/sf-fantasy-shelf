@@ -109,25 +109,45 @@ body.light-theme {
   --mdc-snackbar-supporting-text-color:      #f1f5f9;
 }
 
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  background-color: var(--bg-base);
+/* ── Background image layer ───────────────────────────────── */
+/* Lives in a fixed div in index.html, completely outside Angular
+   Material's DOM so nothing can override it. */
+#app-bg {
+  position: fixed;
+  inset: 0;
   background-image:
     linear-gradient(rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.86)),
     url('/assets/bg-dragon.jpg');
   background-size: cover;
   background-position: center 35%;
-  background-attachment: fixed;
   background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+body.light-theme #app-bg {
+  display: none;
+}
+
+/* Force every Angular Material container to be transparent so #app-bg shows through */
+.mat-drawer-container,
+.mat-sidenav-container {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.mat-drawer-content,
+.mat-sidenav-content {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: var(--bg-base);
   color: var(--text-primary);
 }
-
-body.light-theme {
-  background-image: none;
-}
-
 
 /* ── Page layout ─────────────────────────────────────────── */
 .page-header {
