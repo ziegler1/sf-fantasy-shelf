@@ -101,11 +101,13 @@
     <div class="rec-grid">
       @for (s of suggestions; track s.name) {
         <mat-card class="rec-card">
-          <button class="dismiss-btn" (click)="dismissSuggestion(s.name)" matTooltip="Remove">
-            <mat-icon>close</mat-icon>
-          </button>
           <mat-card-content>
-            <p class="rec-title">{{ s.name }}</p>
+            <div class="rec-header">
+              <p class="rec-title">{{ s.name }}</p>
+              <button class="dismiss-btn" (click)="dismissSuggestion(s.name)" matTooltip="Remove">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
             <p class="rec-author">{{ s.known_for }}</p>
             <p class="rec-reason">{{ s.reason }}</p>
           </mat-card-content>
@@ -186,14 +188,18 @@
 
 .rec-card {
   border: 1px solid var(--border) !important;
-  position: relative;
-  overflow: visible !important;
+}
+
+.rec-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
 }
 
 .dismiss-btn {
-  position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -206,7 +212,7 @@
   color: var(--text-secondary);
   transition: color 0.15s, background 0.15s;
   padding: 0;
-  z-index: 1;
+  margin-top: -1px;
 }
 
 .dismiss-btn:hover {
@@ -224,7 +230,8 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 0.2rem;
+  margin: 0;
+  flex: 1;
 }
 
 .rec-author {
