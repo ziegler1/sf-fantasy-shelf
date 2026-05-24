@@ -179,7 +179,7 @@ import type { UpcomingRelease } from '../../types/schema.types';
       overflow: hidden;
       background: var(--bg-base);
     }
-    .result-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .result-cover-img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .result-cover-placeholder {
       width: 100%; height: 100%;
       display: flex; align-items: center; justify-content: center;
