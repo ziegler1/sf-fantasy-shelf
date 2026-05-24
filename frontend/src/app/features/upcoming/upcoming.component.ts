@@ -125,7 +125,6 @@ interface ReleaseGroup {
     .release-cover {
       flex-shrink: 0;
       width: 48px;
-      height: 72px;
       border-radius: 4px;
       overflow: hidden;
       background: var(--bg-base);
@@ -133,14 +132,13 @@ interface ReleaseGroup {
 
     .cover-img {
       width: 100%;
-      height: 100%;
-      object-fit: contain;
+      height: auto;
       display: block;
     }
 
     .cover-placeholder {
       width: 100%;
-      height: 100%;
+      aspect-ratio: 2/3;
       display: flex;
       align-items: center;
       justify-content: center;

@@ -174,14 +174,14 @@ import type { UpcomingRelease } from '../../types/schema.types';
     .result-cover {
       flex-shrink: 0;
       width: 44px;
-      height: 66px;
       border-radius: 3px;
       overflow: hidden;
       background: var(--bg-base);
+      align-self: center;
     }
-    .result-cover-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .result-cover-img { width: 100%; height: auto; display: block; }
     .result-cover-placeholder {
-      width: 100%; height: 100%;
+      width: 100%; aspect-ratio: 2/3;
       display: flex; align-items: center; justify-content: center;
     }
     .result-cover-placeholder mat-icon { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; color: var(--text-disabled); }
