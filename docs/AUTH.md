@@ -1,6 +1,6 @@
 # Authentication & Account Management
 
-SF Fantasy Shelf uses JWT (JSON Web Token) authentication. There is currently
+Zig's Codex uses JWT (JSON Web Token) authentication. There is currently
 one account per deployment — designed as a personal app. The schema supports
 multiple users if needed in the future.
 

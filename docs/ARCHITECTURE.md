@@ -1,4 +1,4 @@
-# SF Fantasy Shelf — Architecture
+# Zig's Codex — Architecture
 
 ## Stack
 

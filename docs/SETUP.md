@@ -1,4 +1,4 @@
-# SF Fantasy Shelf — Setup Guide
+# Zig's Codex — Setup Guide
 
 ## Prerequisites
 

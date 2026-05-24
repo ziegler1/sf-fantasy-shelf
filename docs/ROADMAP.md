@@ -1,4 +1,4 @@
-# SF Fantasy Shelf — Roadmap
+# Zig's Codex — Roadmap
 
 ## Phase 0 — Foundation ✅ COMPLETE
 

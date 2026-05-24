@@ -193,7 +193,7 @@
 
 ---
 
-All notable changes to SF Fantasy Shelf are documented here.
+All notable changes to Zig's Codex are documented here.
 Format: `[version] — date — summary`
 
 ---

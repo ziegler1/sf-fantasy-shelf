@@ -1,4 +1,4 @@
-# SF Fantasy Shelf
+# Zig's Codex
 
 A web app for tracking your sci-fi and fantasy book collection.
 
