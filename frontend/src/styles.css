@@ -22,6 +22,7 @@
 }
 
 body.light-theme {
+  /* ── App custom tokens ─────────────────────────── */
   --bg-base:            #f1f5f9;
   --bg-surface:         #ffffff;
   --text-bright:        #0f172a;
@@ -31,16 +32,77 @@ body.light-theme {
   --text-muted:         #64748b;
   --text-faint:         #94a3b8;
   --text-disabled:      #cbd5e1;
-  --border:             rgba(0,0,0,0.08);
-  --border-subtle:      rgba(0,0,0,0.05);
-  --border-hover:       rgba(0,0,0,0.12);
+  --border:             rgba(0,0,0,0.10);
+  --border-subtle:      rgba(0,0,0,0.06);
+  --border-hover:       rgba(0,0,0,0.18);
   --accent:             #7c3aed;
   --accent-bg:          rgba(124,58,237,0.12);
   --accent-bg-soft:     rgba(124,58,237,0.08);
-  --accent-border:      rgba(124,58,237,0.25);
-  --accent-border-hover:rgba(124,58,237,0.30);
+  --accent-border:      rgba(124,58,237,0.30);
+  --accent-border-hover:rgba(124,58,237,0.40);
   --error:              #dc2626;
   --star:               #d97706;
+
+  /* ── Angular Material MDC overrides ───────────── */
+  /* Sidenav shell */
+  --mat-sidenav-container-background-color:  #ffffff;
+  --mat-sidenav-content-background-color:    #f1f5f9;
+  --mat-sidenav-container-divider-color:     rgba(0,0,0,0.12);
+  --mat-sidenav-container-text-color:        #1e293b;
+
+  /* Mobile toolbar */
+  --mat-toolbar-container-background-color:  #ffffff;
+  --mat-toolbar-container-text-color:        #1e293b;
+
+  /* Nav list items */
+  --mdc-list-list-item-label-text-color:          #334155;
+  --mdc-list-list-item-leading-icon-color:         #64748b;
+  --mdc-list-list-item-hover-state-layer-color:    rgba(0,0,0,0.04);
+  --mdc-list-list-item-focus-state-layer-color:    rgba(0,0,0,0.06);
+  --mdc-list-list-item-hover-label-text-color:     #1e293b;
+
+  /* Icon buttons (menu, theme toggle, logout, view-mode, etc.) */
+  --mdc-icon-button-icon-color:              #64748b;
+  --mat-icon-button-state-layer-color:       rgba(0,0,0,0.06);
+
+  /* Outlined / stroked buttons (status filters) */
+  --mdc-outlined-button-label-text-color:    #334155;
+  --mdc-outlined-button-outline-color:       rgba(0,0,0,0.28);
+  --mdc-outlined-button-hover-label-text-color: #1e293b;
+  --mdc-outlined-button-hover-state-layer-color: rgba(0,0,0,0.04);
+
+  /* Cards */
+  --mdc-elevated-card-container-color:       #ffffff;
+  --mdc-outlined-card-container-color:       #ffffff;
+  --mat-card-subtitle-text-color:            #475569;
+
+  /* Progress bar */
+  --mdc-linear-progress-active-indicator-color: #7c3aed;
+  --mdc-linear-progress-track-color:         rgba(124,58,237,0.12);
+
+  /* Circular spinner */
+  --mdc-circular-progress-active-indicator-color: #7c3aed;
+
+  /* Outlined text field (search input) */
+  --mdc-outlined-text-field-outline-color:        rgba(0,0,0,0.28);
+  --mdc-outlined-text-field-hover-outline-color:  rgba(0,0,0,0.45);
+  --mdc-outlined-text-field-focus-outline-color:  #7c3aed;
+  --mdc-outlined-text-field-label-text-color:     #64748b;
+  --mdc-outlined-text-field-input-text-color:     #1e293b;
+  --mdc-outlined-text-field-caret-color:          #7c3aed;
+
+  /* Tooltip */
+  --mdc-plain-tooltip-container-color:       rgba(15,23,42,0.88);
+  --mdc-plain-tooltip-supporting-text-color: #f1f5f9;
+
+  /* Dialog */
+  --mdc-dialog-container-color:              #ffffff;
+  --mdc-dialog-headline-color:               #1e293b;
+  --mdc-dialog-supporting-text-color:        #475569;
+
+  /* Snackbar */
+  --mdc-snackbar-container-color:            #1e293b;
+  --mdc-snackbar-supporting-text-color:      #f1f5f9;
 }
 
 html, body {

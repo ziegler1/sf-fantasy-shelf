@@ -140,12 +140,18 @@ export class LibraryComponent implements OnInit, OnDestroy {
     });
   }
 
+  private normalizeAuthor(name: string): string {
+    // Collapse spaces after initials: "C. S. Lewis" → "C.S. Lewis"
+    return name.replace(/\b([A-Z])\.\s+(?=[A-Z]\.)/g, '$1.').trim();
+  }
+
   private buildAuthorGroups(): void {
     const map = new Map<string, BookWithDetails[]>();
     for (const book of this.books) {
-      const author = book.authors[0]?.name ?? 'Unknown Author';
-      if (!map.has(author)) map.set(author, []);
-      map.get(author)!.push(book);
+      const raw = book.authors[0]?.name ?? 'Unknown Author';
+      const key = this.normalizeAuthor(raw);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(book);
     }
     this._authorGroups = Array.from(map.entries())
       .map(([author, books]) => ({ author, books: this.sortForAuthorGroup(books), collapsed: false }))
