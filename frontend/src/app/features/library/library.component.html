@@ -213,7 +213,7 @@
 
     <!-- ── By Genre view ─────────────────────────────────────── -->
     @case ('genre') {
-      <div class="author-groups">
+      <div class="author-groups genre-groups">
         @for (group of genreGroups; track group.genre) {
           <div class="author-group">
             <button class="author-header" (click)="toggleGenreGroup(group)">
@@ -663,6 +663,31 @@
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
 }
+
+/* ── Genre colour palette (cycles every 7) ────────────── */
+.genre-groups .author-group:nth-child(7n+1) .author-header { background: rgba(96, 165, 250, 0.07); }
+.genre-groups .author-group:nth-child(7n+2) .author-header { background: rgba(168, 85, 247, 0.07); }
+.genre-groups .author-group:nth-child(7n+3) .author-header { background: rgba(34, 197, 94, 0.07); }
+.genre-groups .author-group:nth-child(7n+4) .author-header { background: rgba(251, 146, 60, 0.07); }
+.genre-groups .author-group:nth-child(7n+5) .author-header { background: rgba(248, 113, 113, 0.07); }
+.genre-groups .author-group:nth-child(7n+6) .author-header { background: rgba(45, 212, 191, 0.07); }
+.genre-groups .author-group:nth-child(7n+0) .author-header { background: rgba(250, 204, 21, 0.07); }
+
+.genre-groups .author-group:nth-child(7n+1) .author-header:hover { background: rgba(96, 165, 250, 0.14); }
+.genre-groups .author-group:nth-child(7n+2) .author-header:hover { background: rgba(168, 85, 247, 0.14); }
+.genre-groups .author-group:nth-child(7n+3) .author-header:hover { background: rgba(34, 197, 94, 0.14); }
+.genre-groups .author-group:nth-child(7n+4) .author-header:hover { background: rgba(251, 146, 60, 0.14); }
+.genre-groups .author-group:nth-child(7n+5) .author-header:hover { background: rgba(248, 113, 113, 0.14); }
+.genre-groups .author-group:nth-child(7n+6) .author-header:hover { background: rgba(45, 212, 191, 0.14); }
+.genre-groups .author-group:nth-child(7n+0) .author-header:hover { background: rgba(250, 204, 21, 0.14); }
+
+.genre-groups .author-group:nth-child(7n+1) .author-header-count { background: rgba(96, 165, 250, 0.18);  color: #60a5fa; }
+.genre-groups .author-group:nth-child(7n+2) .author-header-count { background: rgba(168, 85, 247, 0.18);  color: #c084fc; }
+.genre-groups .author-group:nth-child(7n+3) .author-header-count { background: rgba(34, 197, 94, 0.18);   color: #4ade80; }
+.genre-groups .author-group:nth-child(7n+4) .author-header-count { background: rgba(251, 146, 60, 0.18);  color: #fb923c; }
+.genre-groups .author-group:nth-child(7n+5) .author-header-count { background: rgba(248, 113, 113, 0.18); color: #f87171; }
+.genre-groups .author-group:nth-child(7n+6) .author-header-count { background: rgba(45, 212, 191, 0.18);  color: #2dd4bf; }
+.genre-groups .author-group:nth-child(7n+0) .author-header-count { background: rgba(250, 204, 21, 0.18);  color: #facc15; }
 
 .author-book-list {
   padding: 0 0 0.5rem 1.75rem;
