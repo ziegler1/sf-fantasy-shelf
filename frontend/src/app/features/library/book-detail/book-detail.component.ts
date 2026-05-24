@@ -170,7 +170,7 @@ export class BookDetailComponent implements OnInit {
       published_at: !isNaN(year) ? `${year}-01-01` : null,
       isbn13:       this.metaForm.isbn13 || null,
       isbn:         this.book.isbn,
-      cover_url:    this.metaForm.cover_url.trim() || null,
+      cover_url:    this.toImageUrl(this.metaForm.cover_url.trim() || null),
       language:     this.book.language,
     };
     const authorNames = this.editAuthors.split(',').map(a => a.trim()).filter(Boolean);
@@ -219,5 +219,13 @@ export class BookDetailComponent implements OnInit {
 
   close(): void {
     this.dialogRef.close(this.dirty ? this.book : undefined);
+  }
+
+  private toImageUrl(url: string | null): string | null {
+    if (!url) return null;
+    const s = url.replace(/^http:\/\//, 'https://');
+    const m = s.match(/books\.google\.com\/books\?[^"]*[?&]id=([^&\s"]+)/);
+    if (m) return `https://books.google.com/books/content?id=${m[1]}&printsec=frontcover&img=1&zoom=1`;
+    return s;
   }
 }

@@ -53,7 +53,12 @@ async function searchGoogleBooks(q: string, apiKey: string): Promise<BookSearchR
     const isbn13 = isbns.find(i => i.type === 'ISBN_13')?.identifier ?? null;
 
     const rawCover = v.imageLinks?.thumbnail ?? v.imageLinks?.smallThumbnail ?? null;
-    const cover_url = rawCover ? rawCover.replace('http://', 'https://') : null;
+    // When API omits imageLinks (sometimes happens for valid books), construct the URL directly.
+    // Same format the API normally returns — works if Google has the cover, returns a tiny
+    // placeholder image if not (acceptable tradeoff vs always showing no cover).
+    const cover_url = rawCover
+      ? rawCover.replace('http://', 'https://')
+      : `https://books.google.com/books/content?id=${item.id}&printsec=frontcover&img=1&zoom=1&source=gbs_api`;
 
     const { name: series_name, position: series_position } =
       extractSeries(v.title ?? '', v.subtitle, item.seriesInfo);

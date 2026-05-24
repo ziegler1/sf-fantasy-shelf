@@ -282,7 +282,7 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
       author_name: book.authors.join(', '),
       release_date: this.toDateInput(book.published_at),
       isbn: book.isbn13 || book.isbn || '',
-      cover_url: this.httpsUrl(book.cover_url) ?? '',
+      cover_url: this.toImageUrl(book.cover_url) ?? '',
       description: book.description || '',
       notes: '',
     };
@@ -306,7 +306,7 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
       author_name: this.form.author_name.trim() || null,
       release_date: this.form.release_date || null,
       isbn: this.form.isbn.trim() || null,
-      cover_url: this.httpsUrl(this.form.cover_url.trim() || null),
+      cover_url: this.toImageUrl(this.form.cover_url.trim() || null),
       description: this.form.description.trim() || null,
       notes: this.form.notes.trim() || null,
     }).subscribe({
@@ -328,7 +328,11 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
     return dt.slice(0, 10);
   }
 
-  private httpsUrl(url: string | null): string | null {
-    return url ? url.replace(/^http:\/\//, 'https://') : null;
+  private toImageUrl(url: string | null): string | null {
+    if (!url) return null;
+    const s = url.replace(/^http:\/\//, 'https://');
+    const m = s.match(/books\.google\.com\/books\?[^"]*[?&]id=([^&\s"]+)/);
+    if (m) return `https://books.google.com/books/content?id=${m[1]}&printsec=frontcover&img=1&zoom=1`;
+    return s;
   }
 }

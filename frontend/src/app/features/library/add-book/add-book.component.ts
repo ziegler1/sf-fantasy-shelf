@@ -165,7 +165,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
     const body: ImportBookBody = {
       title: this.manualForm.title.trim(),
       authors: this.manualForm.authors.split(',').map(a => a.trim()).filter(Boolean),
-      cover_url: this.manualForm.cover_url.trim() || null,
+      cover_url: this.toImageUrl(this.manualForm.cover_url.trim() || null),
       published_at: !isNaN(year) ? `${year}-01-01` : null,
       page_count: this.manualForm.page_count ? parseInt(this.manualForm.page_count, 10) : null,
       isbn: null,
@@ -197,7 +197,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
       author_name: this.selected.authors.join(', ') || null,
       release_date: this.toDateInput(this.selected.published_at),
       isbn: this.selected.isbn13 || this.selected.isbn || null,
-      cover_url: this.httpsUrl(this.selected.cover_url),
+      cover_url: this.toImageUrl(this.selected.cover_url),
       description: this.selected.description,
       notes: null,
     }).subscribe({
@@ -219,8 +219,12 @@ export class AddBookComponent implements OnInit, OnDestroy {
     return dt.slice(0, 10);
   }
 
-  private httpsUrl(url: string | null): string | null {
-    return url ? url.replace(/^http:\/\//, 'https://') : null;
+  private toImageUrl(url: string | null): string | null {
+    if (!url) return null;
+    const s = url.replace(/^http:\/\//, 'https://');
+    const m = s.match(/books\.google\.com\/books\?[^"]*[?&]id=([^&\s"]+)/);
+    if (m) return `https://books.google.com/books/content?id=${m[1]}&printsec=frontcover&img=1&zoom=1`;
+    return s;
   }
 
   authorLine(book: BookSearchResult): string {
