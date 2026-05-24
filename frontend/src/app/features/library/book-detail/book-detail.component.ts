@@ -44,6 +44,7 @@ export class BookDetailComponent implements OnInit {
   editMode = false;
   metaForm = { title: '', description: '', year: '', page_count: '', isbn13: '', cover_url: '' };
   editAuthors = '';
+  editTags = '';
   metaSaving = false;
 
   readonly statusOptions: { label: string; value: ReadingStatus | '' }[] = [
@@ -153,6 +154,7 @@ export class BookDetailComponent implements OnInit {
       cover_url:   this.book.cover_url ?? '',
     };
     this.editAuthors = this.book.authors.map(a => a.name).join(', ');
+    this.editTags    = this.book.tags.map(t => t.name).join(', ');
     this.editMode = true;
   }
 
@@ -174,19 +176,22 @@ export class BookDetailComponent implements OnInit {
       language:     this.book.language,
     };
     const authorNames = this.editAuthors.split(',').map(a => a.trim()).filter(Boolean);
+    const tagNames    = this.editTags.split(',').map(t => t.trim()).filter(Boolean);
 
     forkJoin({
       book:    this.bookService.updateBook(this.book.id, bookPayload),
       authors: this.bookService.updateBookAuthors(this.book.id, authorNames),
+      tags:    this.bookService.updateBookTags(this.book.id, tagNames),
     }).subscribe({
-      next: ({ book, authors }) => {
-        this.book.title       = book.title;
-        this.book.description = book.description;
-        this.book.page_count  = book.page_count;
+      next: ({ book, authors, tags }) => {
+        this.book.title        = book.title;
+        this.book.description  = book.description;
+        this.book.page_count   = book.page_count;
         this.book.published_at = book.published_at;
-        this.book.isbn13      = book.isbn13;
-        this.book.cover_url   = book.cover_url;
-        this.book.authors     = authors;
+        this.book.isbn13       = book.isbn13;
+        this.book.cover_url    = book.cover_url;
+        this.book.authors      = authors;
+        this.book.tags         = tags;
         this.dirty = true;
         this.editMode = false;
         this.metaSaving = false;

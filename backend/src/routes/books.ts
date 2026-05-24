@@ -64,6 +64,10 @@ const bookAuthorsSchema = z.object({
   authors: z.array(z.string().min(1).max(255)).max(20),
 });
 
+const bookTagsSchema = z.object({
+  tags: z.array(z.string().min(1).max(100)).max(30),
+});
+
 const router = Router();
 
 // All book routes require authentication
@@ -533,6 +537,47 @@ router.put('/:id/authors', validate(bookAuthorsSchema), asyncHandler(async (req,
        JOIN book_authors ba ON ba.author_id = a.id
        WHERE ba.book_id = $1
        ORDER BY a.name`,
+      [bookId],
+    );
+    res.json(rows);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}));
+
+// ── PUT /api/books/:id/tags ───────────────────────────────────────────────────
+
+router.put('/:id/tags', validate(bookTagsSchema), asyncHandler(async (req, res) => {
+  const { tags } = req.body as z.infer<typeof bookTagsSchema>;
+  const bookId = Number(req.params['id']);
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM book_tags WHERE book_id = $1', [bookId]);
+
+    for (const raw of tags) {
+      const name = raw.trim();
+      if (!name) continue;
+      const { rows: [tag] } = await client.query<{ id: number }>(
+        `INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
+        [name],
+      );
+      await client.query(
+        'INSERT INTO book_tags (book_id, tag_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+        [bookId, tag.id],
+      );
+    }
+
+    await client.query('COMMIT');
+
+    const { rows } = await pool.query(
+      `SELECT t.id, t.name, t.created_at FROM tags t
+       JOIN book_tags bt ON bt.tag_id = t.id
+       WHERE bt.book_id = $1 ORDER BY t.name`,
       [bookId],
     );
     res.json(rows);
