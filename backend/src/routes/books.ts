@@ -73,8 +73,10 @@ router.use(verifyToken);
 // PostgreSQL DATE requires YYYY-MM-DD. OpenLibrary only provides a year ("1965").
 function toDateValue(s: string | null | undefined): string | null {
   if (!s) return null;
-  if (/^\d{4}$/.test(s.trim())) return `${s.trim()}-01-01`;
-  return s;
+  const t = s.trim();
+  if (/^\d{4}$/.test(t))       return `${t}-01-01`;
+  if (/^\d{4}-\d{2}$/.test(t)) return `${t}-01`;
+  return t;
 }
 
 // ── Enriched query helper ─────────────────────────────────────────────────────

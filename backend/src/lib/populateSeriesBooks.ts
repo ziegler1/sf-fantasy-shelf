@@ -6,7 +6,10 @@ const MODEL = 'claude-sonnet-4-5';
 
 function toDate(s: string | undefined | null): string | null {
   if (!s) return null;
-  return /^\d{4}$/.test(s.trim()) ? `${s.trim()}-01-01` : s;
+  const t = s.trim();
+  if (/^\d{4}$/.test(t))       return `${t}-01-01`;
+  if (/^\d{4}-\d{2}$/.test(t)) return `${t}-01`;
+  return t;
 }
 
 // ── Google Books helpers ───────────────────────────────────────────────────────
