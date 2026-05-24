@@ -27,6 +27,17 @@ router.get('/', asyncHandler(async (req, res) => {
   }
 }));
 
+// ── DELETE /api/news/:id ──────────────────────────────────────────────────────
+
+router.delete('/:id', asyncHandler(async (req, res) => {
+  const result = await pool.query(
+    'DELETE FROM news_articles WHERE id = $1',
+    [req.params['id']],
+  );
+  if (!result.rowCount) return res.status(404).json({ error: 'Not found' });
+  res.status(204).send();
+}));
+
 // Manual refresh — triggers an immediate fetch and returns per-source results
 router.post('/refresh', asyncHandler(async (req, res) => {
   const results = await fetchNewsFeeds();

@@ -27,4 +27,8 @@ export class NewsService {
       '/api/news/refresh', {},
     );
   }
+
+  deleteArticle(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/news/${id}`);
+  }
 }

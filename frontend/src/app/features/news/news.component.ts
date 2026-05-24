@@ -91,6 +91,16 @@ interface RefreshResult { source: string; added: number; error?: string }
               }
             </div>
             <mat-icon class="article-arrow">open_in_new</mat-icon>
+            <button class="article-delete"
+                    (click)="deleteArticle(a.id, $event)"
+                    [disabled]="deleting.has(a.id)"
+                    matTooltip="Dismiss article">
+              @if (deleting.has(a.id)) {
+                <mat-spinner diameter="12" />
+              } @else {
+                <mat-icon>close</mat-icon>
+              }
+            </button>
           </a>
         }
       </div>
@@ -276,6 +286,38 @@ interface RefreshResult { source: string; added: number; error?: string }
     }
 
     .article-card:hover .article-arrow { opacity: 1; }
+
+    .article-delete {
+      position: absolute;
+      top: 0.4rem;
+      right: 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-disabled);
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s, background 0.15s;
+      padding: 0;
+    }
+
+    .article-card:hover .article-delete { opacity: 1; }
+
+    .article-delete:hover {
+      color: var(--error);
+      background: rgba(248, 113, 113, 0.12);
+    }
+
+    .article-delete mat-icon {
+      font-size: 0.9rem;
+      width: 0.9rem;
+      height: 0.9rem;
+    }
   `],
 })
 export class NewsComponent implements OnInit {
@@ -284,7 +326,8 @@ export class NewsComponent implements OnInit {
   refreshing = false;
   lastRefresh: RefreshResult[] = [];
   activeSource: string | null = null;
-  readonly imgErrors = new Set<number>();
+  readonly imgErrors  = new Set<number>();
+  readonly deleting   = new Set<number>();
 
   constructor(private newsService: NewsService) {}
 
@@ -325,6 +368,20 @@ export class NewsComponent implements OnInit {
       const da = new Date(a.published_at ?? a.created_at).getTime();
       const db = new Date(b.published_at ?? b.created_at).getTime();
       return db - da;
+    });
+  }
+
+  deleteArticle(id: number, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.deleting.has(id)) return;
+    this.deleting.add(id);
+    this.newsService.deleteArticle(id).subscribe({
+      next: () => {
+        this.articles = this.articles.filter(a => a.id !== id);
+        this.deleting.delete(id);
+      },
+      error: () => this.deleting.delete(id),
     });
   }
 
