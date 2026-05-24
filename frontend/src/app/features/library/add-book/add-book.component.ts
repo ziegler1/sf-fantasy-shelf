@@ -142,9 +142,16 @@ export class AddBookComponent implements OnInit, OnDestroy {
         this.saving = false;
         this.dialogRef.close(book);
       },
-      error: () => {
+      error: (err) => {
         this.saving = false;
-        this.error = 'Failed to add book. Please try again.';
+        const details = err?.error?.details;
+        if (details) {
+          const fields = Object.keys(details).join(', ');
+          this.error = `Validation failed on: ${fields}`;
+          console.error('Import 400 details:', details);
+        } else {
+          this.error = 'Failed to add book. Please try again.';
+        }
       },
     });
   }
