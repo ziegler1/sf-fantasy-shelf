@@ -65,7 +65,7 @@
                     (keydown.enter)="openDetail(book)">
             <div class="cover-wrap">
               @if (book.cover_url) {
-                <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy">
+                <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy" (error)="book.cover_url = null">
               } @else {
                 <div class="cover-placeholder"><mat-icon>menu_book</mat-icon></div>
               }
@@ -100,7 +100,7 @@
                     (keydown.enter)="openDetail(book)">
             <div class="shelf-cover">
               @if (book.cover_url) {
-                <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy">
+                <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy" (error)="book.cover_url = null">
               } @else {
                 <div class="cover-placeholder"><mat-icon>menu_book</mat-icon></div>
               }
@@ -134,7 +134,7 @@
                (keydown.enter)="openDetail(book)">
             <div class="list-cover">
               @if (book.cover_url) {
-                <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy">
+                <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy" (error)="book.cover_url = null">
               } @else {
                 <div class="cover-placeholder small-placeholder"><mat-icon>menu_book</mat-icon></div>
               }
@@ -179,7 +179,7 @@
                        (keydown.enter)="openDetail(book)">
                     <div class="author-book-cover">
                       @if (book.cover_url) {
-                        <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy">
+                        <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy" (error)="book.cover_url = null">
                       } @else {
                         <div class="cover-placeholder small-placeholder"><mat-icon>menu_book</mat-icon></div>
                       }
@@ -230,7 +230,7 @@
                        (keydown.enter)="openDetail(book)">
                     <div class="author-book-cover">
                       @if (book.cover_url) {
-                        <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy">
+                        <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy" (error)="book.cover_url = null">
                       } @else {
                         <div class="cover-placeholder small-placeholder"><mat-icon>menu_book</mat-icon></div>
                       }

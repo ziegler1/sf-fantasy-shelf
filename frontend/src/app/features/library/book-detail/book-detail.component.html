@@ -4,7 +4,7 @@
   <div class="detail-header">
     <div class="detail-cover">
       @if (book.cover_url) {
-        <img [src]="book.cover_url" [alt]="book.title" class="detail-cover-img">
+        <img [src]="book.cover_url" [alt]="book.title" class="detail-cover-img" (error)="book.cover_url = null">
       } @else {
         <div class="detail-cover-placeholder">
           <mat-icon>menu_book</mat-icon>

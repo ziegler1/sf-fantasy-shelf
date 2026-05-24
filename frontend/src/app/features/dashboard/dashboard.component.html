@@ -46,7 +46,7 @@
           <div class="now-row clickable" (click)="openBook(nowReading)" role="button" tabindex="0"
                (keydown.enter)="openBook(nowReading)">
             @if (nowReading.cover_url) {
-              <img class="now-cover" [src]="nowReading.cover_url" [alt]="nowReading.title">
+              <img class="now-cover" [src]="nowReading.cover_url" [alt]="nowReading.title" (error)="nowReading.cover_url = null">
             } @else {
               <div class="now-cover no-cover"><mat-icon>menu_book</mat-icon></div>
             }
@@ -71,7 +71,7 @@
             <div class="recent-row clickable" (click)="openBook(b)" role="button" tabindex="0"
                  (keydown.enter)="openBook(b)">
               @if (b.cover_url) {
-                <img class="recent-cover" [src]="b.cover_url" [alt]="b.title">
+                <img class="recent-cover" [src]="b.cover_url" [alt]="b.title" (error)="b.cover_url = null">
               } @else {
                 <div class="recent-cover no-cover"><mat-icon>menu_book</mat-icon></div>
               }
@@ -131,7 +131,7 @@
             <div class="recent-row clickable" (click)="openBook(b)" role="button" tabindex="0"
                  (keydown.enter)="openBook(b)">
               @if (b.cover_url) {
-                <img class="recent-cover" [src]="b.cover_url" [alt]="b.title">
+                <img class="recent-cover" [src]="b.cover_url" [alt]="b.title" (error)="b.cover_url = null">
               } @else {
                 <div class="recent-cover no-cover"><mat-icon>menu_book</mat-icon></div>
               }
@@ -189,7 +189,7 @@
           @for (r of upcomingReleases; track r.id) {
             <div class="recent-row">
               @if (r.cover_url) {
-                <img class="recent-cover" [src]="r.cover_url" [alt]="r.title">
+                <img class="recent-cover" [src]="r.cover_url" [alt]="r.title" (error)="r.cover_url = null">
               } @else {
                 <div class="recent-cover no-cover"><mat-icon>event_available</mat-icon></div>
               }
@@ -229,7 +229,7 @@
           @for (p of topPicks; track p.key) {
             <a class="pick-row" [href]="pickUrl(p)" target="_blank" rel="noopener noreferrer">
               @if (p.cover_url) {
-                <img class="pick-cover" [src]="p.cover_url" [alt]="p.title">
+                <img class="pick-cover" [src]="p.cover_url" [alt]="p.title" (error)="p.cover_url = null">
               } @else {
                 <div class="pick-cover no-cover"><mat-icon>menu_book</mat-icon></div>
               }
