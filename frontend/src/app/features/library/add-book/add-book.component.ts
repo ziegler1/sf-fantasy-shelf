@@ -131,6 +131,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
 
     const importBody = {
       ...this.selected,
+      description:     this.selected.description?.slice(0, 10000) ?? null,
       status:          this.status,
       series_name:     this.seriesName.trim() || null,
       series_position: this.seriesPosition || null,
