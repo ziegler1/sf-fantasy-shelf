@@ -19,6 +19,10 @@
   --accent-border-hover:rgba(167,139,250,0.35);
   --error:              #f87171;
   --star:               #f59e0b;
+
+  /* Make Material's sidenav shell transparent so the body background shows through */
+  --mat-sidenav-container-background-color: transparent;
+  --mat-sidenav-content-background-color:   transparent;
 }
 
 body.light-theme {
@@ -124,10 +128,6 @@ body.light-theme {
   background-image: none;
 }
 
-/* Allow body background to show through the sidenav shell */
-.mat-drawer-container {
-  background: transparent !important;
-}
 
 /* ── Page layout ─────────────────────────────────────────── */
 .page-header {
