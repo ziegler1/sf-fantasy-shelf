@@ -8,7 +8,7 @@ import { NewsService, NewsArticle } from '../../core/services/news.service';
 
 const SOURCE_COLORS: Record<string, string> = {
   'Reactor':             '#f97316',
-  'Locus Magazine':      '#a78bfa',
+  'Locus Magazine':      '#8b5cf6',
   'SFF World':           '#10b981',
   'The Wertzone':        '#06b6d4',
   'Fantasy Book Critic': '#ec4899',
