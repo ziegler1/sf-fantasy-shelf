@@ -115,13 +115,10 @@
 
 /* ── Main content ──────────────────────────────────────────── */
 .main {
-  background: rgba(15, 23, 42, 0.82) !important;
   display: flex;
   flex-direction: column;
-}
-
-:host-context(body.light-theme) .main {
-  background: rgba(221, 227, 235, 0.97) !important;
+  /* background intentionally omitted — handled globally in styles.css
+     so the dragon #app-bg shows through the transparent Material shell */
 }
 
 .mobile-bar {

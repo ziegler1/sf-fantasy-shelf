@@ -128,6 +128,12 @@ body.light-theme #app-bg {
   display: none;
 }
 
+/* Restore solid backgrounds for light mode (dark mode uses transparent to show #app-bg) */
+body.light-theme .mat-drawer-content,
+body.light-theme .mat-sidenav-content {
+  background-color: var(--bg-base) !important;
+}
+
 /* Force every Angular Material container to be transparent so #app-bg shows through */
 .mat-drawer-container,
 .mat-sidenav-container {
