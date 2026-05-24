@@ -220,7 +220,7 @@
 <aside class="sidebar">
   <div class="sidebar-logo">
     <h1>📚 SF Fantasy Shelf</h1>
-    <p>Developer Wiki · Phase 0</p>
+    <p>Developer Wiki · Phase 5</p>
   </div>
   <nav>
     <div class="nav-group">
@@ -264,7 +264,7 @@
     <p>A personal sci-fi and fantasy book tracking app — log your reading history, track series progress, and get AI-powered recommendations via Claude. Built as an Angular + Node monorepo deployed on Railway.</p>
     <div class="hero-meta">
       <span class="badge green">● Live on Railway</span>
-      <span class="badge purple">Phase 0 Complete</span>
+      <span class="badge purple">Phases 0–5 Complete</span>
       <span class="badge blue">Angular 17 · Node/Express</span>
       <span class="badge">PostgreSQL · Claude AI</span>
     </div>
@@ -419,15 +419,26 @@
   <section id="library">
     <p class="section-label">Features</p>
     <h2>My Library</h2>
-    <p>The core page. Displays all books on the user's shelf as a compact card grid. Filter by reading status; each card shows cover image (or placeholder), title, author, star rating, tags, and status badge.</p>
+    <p>The core page. Four switchable view modes (persisted to localStorage) with a debounced search bar and status filters. Covers display at their native proportions — no letterboxing, no cropping.</p>
+
+    <h3>View Modes</h3>
+    <table class="data-table">
+      <thead><tr><th>Mode</th><th>Icon</th><th>Layout</th></tr></thead>
+      <tbody>
+        <tr><td>Grid</td><td><code>grid_view</code></td><td>2-column compact covers on mobile; auto-fill on desktop. Status badge overlaid on cover.</td></tr>
+        <tr><td>Shelf</td><td><code>view_module</code></td><td>Medium tiles (170px min) — cover + title + author + status always visible.</td></tr>
+        <tr><td>List</td><td><code>view_list</code></td><td>Dense single rows — 40px thumbnail, title, author, status, chevron. Best for large libraries.</td></tr>
+        <tr><td>By Author</td><td><code>person</code></td><td>Collapsible author groups, books sorted by series position then title. Leading articles ("The", "A") stripped for sort. Author names normalised so "C. S. Lewis" and "C.S. Lewis" merge.</td></tr>
+      </tbody>
+    </table>
 
     <ul class="cap-list">
       <li>Status filters: All · Reading · Want to Read · Read · DNF</li>
-      <li>Cover images from Cloudflare R2 (upload) or Google Books / OpenLibrary URLs (Phase 2)</li>
-      <li>Star rating (1–5) displayed on card</li>
-      <li>Tag chips (up to 3 shown per card)</li>
-      <li>AI Summary button per card — calls <code>POST /api/claude/summary</code>, expands inline below the card</li>
-      <li>Reading status upsert via <code>PUT /api/books/:id/shelf</code></li>
+      <li>Debounced search (350 ms) — searches title AND author name</li>
+      <li>Paginated backend — <code>GET /api/books?limit=200&amp;offset=0</code> returns <code>{ books, total }</code></li>
+      <li>Dark / light mode toggle in sidebar footer — <code>ThemeService</code> + 19 CSS custom properties + Angular Material MDC overrides</li>
+      <li>Book detail dialog — inline status/rating, AI summary, metadata edit, author bios, series info</li>
+      <li>Star rating (1–5), AI Summary indicator, status badge per card</li>
     </ul>
   </section>
 
@@ -435,13 +446,15 @@
   <section id="series">
     <p class="section-label">Features</p>
     <h2>Series Tracker</h2>
-    <p>Shows all series with books ordered by position. Uses <code>forkJoin</code> to call <code>/api/series</code> and <code>/api/books</code> in parallel, then cross-references reading status to calculate progress.</p>
+    <p>Compact cards — one per series — showing reading progress. Uses <code>forkJoin</code> to call <code>/api/series</code> and <code>/api/books</code> in parallel, then cross-references reading status to calculate progress.</p>
 
     <ul class="cap-list">
-      <li>Progress bar per series (read count / total books)</li>
+      <li>Compact card layout — progress bar (3px), small thumbnail (22px), tight padding — mobile-first</li>
+      <li>Read count fraction (e.g. 2/5) inline with series name</li>
+      <li>Books ordered by series position; tap a book to open its detail dialog</li>
+      <li>Collapsible — shows first book by default, expand for full list</li>
+      <li>One-click "Add to Library" (want-to-read) on unowned series books</li>
       <li>Series position supports decimals — book 1.5, 2, etc.</li>
-      <li>Books ordered by <code>position NULLS LAST</code> then title</li>
-      <li>Series description shown if present</li>
     </ul>
   </section>
 
@@ -758,28 +771,32 @@ npm run install:all</code></pre>
 
     <div class="timeline">
       <div class="timeline-item done">
-        <div class="timeline-title">Phase 0 — Foundation</div>
-        <div class="timeline-desc">Angular 17 frontend, Node/Express TypeScript backend, full 12-table PostgreSQL schema, Angular Material UI, Claude AI integration, Railway production deployment. Live at sf-fantasy-shelf-production.up.railway.app</div>
+        <div class="timeline-title">Phase 0 — Foundation ✓</div>
+        <div class="timeline-desc">Angular 17 frontend, Node/Express TypeScript backend, full 12-table PostgreSQL schema, Angular Material UI, Claude AI integration, Railway production deployment.</div>
       </div>
-      <div class="timeline-item next">
-        <div class="timeline-title">Phase 1 — Auth</div>
-        <div class="timeline-desc">JWT login/register. Multi-user schema already in place (users table, user_id on user_books/author_follows). Deploy before wiring auth so app is accessible.</div>
+      <div class="timeline-item done">
+        <div class="timeline-title">Phase 1 — Auth ✓</div>
+        <div class="timeline-desc">JWT login/register/logout. bcrypt password hashing. <code>AuthGuard</code> on all routes. Profile &amp; password management page. 30-day tokens persisted in localStorage.</div>
       </div>
-      <div class="timeline-item">
-        <div class="timeline-title">Phase 2 — Book Management</div>
-        <div class="timeline-desc">Add Book dialog with Google Books search + cover auto-fill, series auto-detection, R2 cover upload, book detail/edit page, Claude summary caching in DB.</div>
+      <div class="timeline-item done">
+        <div class="timeline-title">Phase 2 — Book Management ✓</div>
+        <div class="timeline-desc">Google Books search + OpenLibrary fallback. Duplicate ISBN guard. Series auto-detection and auto-population of sibling books. R2 cover upload at import. Claude summary cached to DB. Full edit + manual entry forms.</div>
       </div>
-      <div class="timeline-item">
-        <div class="timeline-title">Phase 3 — Upcoming Releases</div>
-        <div class="timeline-desc">Upcoming Releases page — add/track/delete watchlist entries, link to books table once released.</div>
+      <div class="timeline-item done">
+        <div class="timeline-title">Phase 2.5 — Series Tracker ✓</div>
+        <div class="timeline-desc">Progress bar per series, per-book status badges, cover thumbnails, collapsible list, one-click "Add to Library" on unowned entries. Books ordered by series position.</div>
       </div>
-      <div class="timeline-item">
-        <div class="timeline-title">Phase 4 — News Feed</div>
-        <div class="timeline-desc">RSS fetch via node-cron inside the backend (no separate Railway service — Hobby plan). Article cards with source, summary, published date.</div>
+      <div class="timeline-item done">
+        <div class="timeline-title">Phase 3 — Upcoming Releases ✓</div>
+        <div class="timeline-desc">Timeline/list grouped by month. Add via Google Books search or manual entry (title, author, date, ISBN, cover, notes). Delete. Frontend and backend fully wired.</div>
       </div>
-      <div class="timeline-item">
-        <div class="timeline-title">Phase 5 — Polish</div>
-        <div class="timeline-desc">Loading skeletons, toast notifications, paginated book list, SSE streaming for Claude responses, rate limiting on AI routes, zod input validation, error monitoring.</div>
+      <div class="timeline-item done">
+        <div class="timeline-title">Phase 4 — News Feed ✓</div>
+        <div class="timeline-desc">RSS fetch via node-cron (every 4 hours + startup). 90-day rolling retention. Source filter chips. Active sources: Tor.com, Locus Magazine, SFF World, The Wertzone.</div>
+      </div>
+      <div class="timeline-item done">
+        <div class="timeline-title">Phase 5 — Polish ✓</div>
+        <div class="timeline-desc">Four library view modes (Grid, Shelf, List, By Author). Dark/light mode toggle with full MDC override coverage. Cover images at native proportions — no bands, no cropping. Paginated book list. Compact mobile-first Series Tracker. Author name normalisation. Rate limiting + zod input validation.</div>
       </div>
     </div>
 

@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.16.0] — 2026-05-23 — Mobile UX polish: covers, series tracker, light mode
+
+### Fixed
+
+- **Cover images — no more bands or cropping**: All cover containers now use `width: 100%; height: auto` (no forced aspect-ratio). Images display at their native proportions. Applies across every component: library (all 4 views), book-detail dialog, add-book search results, upcoming releases, add-upcoming dialog, series tracker thumbnails. Placeholders retain `aspect-ratio: 2/3` as fallback.
+- **By Author sort**: books within each author group now sort by series position when two books share the same series, then alphabetically by series name / standalone title. Leading articles ("The", "A", "An") are stripped for sort key only. Previously was pure alphabetical-by-title, which scattered series books across the list.
+- **Author name deduplication**: `normalizeAuthor()` collapses spaces after consecutive initials — "C. S. Friedman" and "C.S. Friedman" now merge into a single author group in the By Author view.
+- **Light mode — dialog panel**: `.mat-mdc-dialog-surface` now forces `color: #1e293b` so all text inside the book-detail dialog is readable (previously white text on light background).
+- **Light mode — mat-select dropdown**: The status picker ("Not on Shelf / Reading / Read / DNF") renders in a CDK overlay; now gets an explicit gray background and dark option text.
+- **Light mode — filter buttons + search field**: Added direct `.mdc-text-field__input`, `.mdc-button__label`, and `border-color` overrides with `!important` since CSS variable changes don't win against the prebuilt dark Material theme.
+- **Light mode — status badges**: Opacity raised to 0.20 and text colors deepened (forest green, navy, deep purple, dark red) for contrast on gray surfaces.
+- **Light mode — background**: `--bg-base` changed to `#dde3eb` and `--bg-surface` to `#edf1f7` — clearly gray instead of near-white.
+
+### Changed
+
+- **Series tracker panels** (further compacted): card padding `0.45rem`, progress bar `3px`, entry padding `0.1rem`, thumbnail shrunk to `22px` wide, "read" stat label removed. Each panel now takes roughly half the vertical space of the original.
+
+---
+
+## [0.15.0] — 2026-05-23 — Phase 5 UX: view modes, dark/light mode, pagination
+
+### Added
+
+- **Library view modes**: four selectable display modes with icons in a toggle group (persisted to localStorage):
+  - *Grid* — 2-column compact covers on mobile, auto-fill on desktop
+  - *Shelf* — medium tiles (170px min) showing cover + title + author + status
+  - *List* — single rows with 40px thumbnail, title, author, status badge, chevron
+  - *By Author* — collapsible author groups; books sorted by series position then title
+- **Dark/light mode toggle**: `ThemeService` with `signal<boolean>`, `localStorage` persistence, `body.light-theme` CSS class. Toggle button in sidebar footer. Comprehensive CSS custom property system (19 tokens) across all components plus Angular Material MDC overrides for nav items, toolbar, cards, dialogs, buttons, and text fields.
+- **Pagination**: `GET /api/books` now returns `{ books: BookWithDetails[]; total: number }` with `limit` / `offset` query params (max 200). `BookService.getBooks()` updated; library shows prev/next controls when `totalPages > 1`. PAGE_SIZE set to 200 to support By Author grouping on typical personal libraries.
+
+### Changed
+
+- `backend/src/routes/books.ts` — `booksQuery()` accepts optional `limit?` / `offset?`; handler runs book query and COUNT query in parallel with `Promise.all`
+- `frontend/src/app/core/services/book.service.ts` — `getBooks()` return type updated to `{ books; total }`
+- `frontend/src/app/features/series-tracker/series-tracker.component.ts` — updated to pass `{ limit: 200 }` and destructure the new response shape
+
+---
+
 ## [0.14.0] — 2026-05-23 — Zod input validation
 
 ### Added

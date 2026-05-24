@@ -111,7 +111,7 @@ The series tracker was a placeholder — now fully wired:
 
 ---
 
-## Phase 5 — Polish & Production
+## Phase 5 — Polish & Production ✅ LARGELY COMPLETE
 
 **Goal:** App feels complete and is hardened for daily use.
 
@@ -121,11 +121,13 @@ The series tracker was a placeholder — now fully wired:
 - [ ] Empty states with prompts (e.g. "Add a book to get started")
 - [x] Toast notifications — Snackbar wired for auth; extend to book add/delete actions
 - [x] Search bar in My Library (title + author)
-- [ ] Dark/light mode toggle
+- [x] Dark/light mode toggle — `ThemeService` + CSS custom property system + Angular Material MDC overrides; gray light mode with full contrast across nav, dialogs, selects, badges
+- [x] Library view modes — Grid, Shelf (medium tiles), List (rows), By Author (collapsible, series-position sort)
+- [x] Cover images display at native proportions — no bands, no cropping across all pages
 
 ### Performance
 
-- [ ] Paginate `GET /api/books` (currently returns all — fine for small libraries)
+- [x] Paginate `GET /api/books` — returns `{ books, total }` with `limit` / `offset`; library pagination controls shown when needed
 - [ ] Angular `OnPush` change detection on book card
 
 ### Security & ops
@@ -134,11 +136,11 @@ The series tracker was a placeholder — now fully wired:
 - [x] Input validation with `zod` on all POST/PUT body parsing
 - [ ] Error monitoring (Sentry or Railway logs)
 
-### Remaining Phase 2 items
+### Phase 2 items (completed)
 
-- [ ] Manual book entry (no-search fallback)
-- [ ] Edit cover image URL from detail dialog
-- [ ] Edit authors (add/remove/swap) from detail dialog
+- [x] Manual book entry (no-search fallback)
+- [x] Edit cover image URL from detail dialog
+- [x] Edit authors (add/remove/swap) from detail dialog
 
 ---
 
