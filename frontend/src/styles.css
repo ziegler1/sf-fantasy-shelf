@@ -23,80 +23,80 @@
 
 body.light-theme {
   /* ── App custom tokens ─────────────────────────── */
-  --bg-base:            #f1f5f9;
-  --bg-surface:         #ffffff;
+  --bg-base:            #dde3eb;
+  --bg-surface:         #edf1f7;
   --text-bright:        #0f172a;
   --text-primary:       #1e293b;
   --text-soft:          #334155;
   --text-secondary:     #475569;
   --text-muted:         #64748b;
   --text-faint:         #94a3b8;
-  --text-disabled:      #cbd5e1;
-  --border:             rgba(0,0,0,0.10);
-  --border-subtle:      rgba(0,0,0,0.06);
-  --border-hover:       rgba(0,0,0,0.18);
-  --accent:             #7c3aed;
-  --accent-bg:          rgba(124,58,237,0.12);
-  --accent-bg-soft:     rgba(124,58,237,0.08);
-  --accent-border:      rgba(124,58,237,0.30);
-  --accent-border-hover:rgba(124,58,237,0.40);
+  --text-disabled:      #b8c4d0;
+  --border:             rgba(0,0,0,0.14);
+  --border-subtle:      rgba(0,0,0,0.08);
+  --border-hover:       rgba(0,0,0,0.22);
+  --accent:             #6d28d9;
+  --accent-bg:          rgba(109,40,217,0.12);
+  --accent-bg-soft:     rgba(109,40,217,0.08);
+  --accent-border:      rgba(109,40,217,0.35);
+  --accent-border-hover:rgba(109,40,217,0.50);
   --error:              #dc2626;
-  --star:               #d97706;
+  --star:               #b45309;
 
   /* ── Angular Material MDC overrides ───────────── */
   /* Sidenav shell */
-  --mat-sidenav-container-background-color:  #ffffff;
-  --mat-sidenav-content-background-color:    #f1f5f9;
-  --mat-sidenav-container-divider-color:     rgba(0,0,0,0.12);
+  --mat-sidenav-container-background-color:  #edf1f7;
+  --mat-sidenav-content-background-color:    #dde3eb;
+  --mat-sidenav-container-divider-color:     rgba(0,0,0,0.14);
   --mat-sidenav-container-text-color:        #1e293b;
 
   /* Mobile toolbar */
-  --mat-toolbar-container-background-color:  #ffffff;
+  --mat-toolbar-container-background-color:  #edf1f7;
   --mat-toolbar-container-text-color:        #1e293b;
 
   /* Nav list items */
   --mdc-list-list-item-label-text-color:          #334155;
   --mdc-list-list-item-leading-icon-color:         #64748b;
-  --mdc-list-list-item-hover-state-layer-color:    rgba(0,0,0,0.04);
-  --mdc-list-list-item-focus-state-layer-color:    rgba(0,0,0,0.06);
+  --mdc-list-list-item-hover-state-layer-color:    rgba(0,0,0,0.05);
+  --mdc-list-list-item-focus-state-layer-color:    rgba(0,0,0,0.07);
   --mdc-list-list-item-hover-label-text-color:     #1e293b;
 
-  /* Icon buttons (menu, theme toggle, logout, view-mode, etc.) */
-  --mdc-icon-button-icon-color:              #64748b;
+  /* Icon buttons */
+  --mdc-icon-button-icon-color:              #475569;
   --mat-icon-button-state-layer-color:       rgba(0,0,0,0.06);
 
   /* Outlined / stroked buttons (status filters) */
   --mdc-outlined-button-label-text-color:    #334155;
-  --mdc-outlined-button-outline-color:       rgba(0,0,0,0.28);
+  --mdc-outlined-button-outline-color:       #94a3b8;
   --mdc-outlined-button-hover-label-text-color: #1e293b;
-  --mdc-outlined-button-hover-state-layer-color: rgba(0,0,0,0.04);
+  --mdc-outlined-button-hover-state-layer-color: rgba(0,0,0,0.05);
 
   /* Cards */
-  --mdc-elevated-card-container-color:       #ffffff;
-  --mdc-outlined-card-container-color:       #ffffff;
+  --mdc-elevated-card-container-color:       #edf1f7;
+  --mdc-outlined-card-container-color:       #edf1f7;
   --mat-card-subtitle-text-color:            #475569;
 
   /* Progress bar */
-  --mdc-linear-progress-active-indicator-color: #7c3aed;
-  --mdc-linear-progress-track-color:         rgba(124,58,237,0.12);
+  --mdc-linear-progress-active-indicator-color: #6d28d9;
+  --mdc-linear-progress-track-color:         rgba(109,40,217,0.15);
 
   /* Circular spinner */
-  --mdc-circular-progress-active-indicator-color: #7c3aed;
+  --mdc-circular-progress-active-indicator-color: #6d28d9;
 
   /* Outlined text field (search input) */
-  --mdc-outlined-text-field-outline-color:        rgba(0,0,0,0.28);
-  --mdc-outlined-text-field-hover-outline-color:  rgba(0,0,0,0.45);
-  --mdc-outlined-text-field-focus-outline-color:  #7c3aed;
+  --mdc-outlined-text-field-outline-color:        #94a3b8;
+  --mdc-outlined-text-field-hover-outline-color:  #64748b;
+  --mdc-outlined-text-field-focus-outline-color:  #6d28d9;
   --mdc-outlined-text-field-label-text-color:     #64748b;
   --mdc-outlined-text-field-input-text-color:     #1e293b;
-  --mdc-outlined-text-field-caret-color:          #7c3aed;
+  --mdc-outlined-text-field-caret-color:          #6d28d9;
 
   /* Tooltip */
   --mdc-plain-tooltip-container-color:       rgba(15,23,42,0.88);
   --mdc-plain-tooltip-supporting-text-color: #f1f5f9;
 
   /* Dialog */
-  --mdc-dialog-container-color:              #ffffff;
+  --mdc-dialog-container-color:              #edf1f7;
   --mdc-dialog-headline-color:               #1e293b;
   --mdc-dialog-supporting-text-color:        #475569;
 
@@ -167,6 +167,13 @@ html, body {
 .status-read        { background: rgba(168,85,247,.15); color: #c084fc; }
 .status-dnf         { background: rgba(239,68,68,.15);  color: var(--error); }
 .status-none        { background: rgba(100,116,139,.15);color: var(--text-muted); }
+
+/* Light mode: use darker badge text for contrast on gray backgrounds */
+body.light-theme .status-reading     { background: rgba(22,163,74,.12);  color: #15803d; }
+body.light-theme .status-want-to-read{ background: rgba(37,99,235,.12);  color: #1d4ed8; }
+body.light-theme .status-read        { background: rgba(109,40,217,.12); color: #6d28d9; }
+body.light-theme .status-dnf         { background: rgba(220,38,38,.12);  color: #b91c1c; }
+body.light-theme .status-none        { background: rgba(71,85,105,.10);  color: #475569; }
 
 /* ── Snackbar toasts ─────────────────────────────────────── */
 .snack-success .mdc-snackbar__surface {
