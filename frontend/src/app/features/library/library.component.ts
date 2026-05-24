@@ -17,9 +17,17 @@ import { BookDetailComponent } from './book-detail/book-detail.component';
 import { AddBookComponent } from './add-book/add-book.component';
 import type { BookWithDetails, ReadingStatus } from '../../types/schema.types';
 
+export type ViewMode = 'grid' | 'shelf' | 'list' | 'author';
+
 interface StatusFilter {
   label: string;
   value: ReadingStatus | '';
+}
+
+interface AuthorGroup {
+  author: string;
+  books: BookWithDetails[];
+  collapsed: boolean;
 }
 
 @Component({
@@ -38,8 +46,9 @@ export class LibraryComponent implements OnInit, OnDestroy {
   loading = true;
   activeStatus: ReadingStatus | '' = '';
   searchQuery = '';
+  viewMode: ViewMode = 'grid';
 
-  readonly PAGE_SIZE = 48;
+  readonly PAGE_SIZE = 200;
   page = 0;
   total = 0;
 
@@ -51,6 +60,14 @@ export class LibraryComponent implements OnInit, OnDestroy {
     { label: 'DNF',           value: 'dnf'         },
   ];
 
+  readonly viewModes: { mode: ViewMode; icon: string; tip: string }[] = [
+    { mode: 'grid',   icon: 'grid_view',   tip: 'Grid'       },
+    { mode: 'shelf',  icon: 'view_module', tip: 'Shelf'      },
+    { mode: 'list',   icon: 'view_list',   tip: 'List'       },
+    { mode: 'author', icon: 'person',      tip: 'By Author'  },
+  ];
+
+  private _authorGroups: AuthorGroup[] = [];
   private search$ = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -60,6 +77,11 @@ export class LibraryComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const saved = localStorage.getItem('library-view-mode') as ViewMode | null;
+    if (saved && ['grid', 'shelf', 'list', 'author'].includes(saved)) {
+      this.viewMode = saved;
+    }
+
     this.load();
 
     this.search$.pipe(
@@ -72,6 +94,11 @@ export class LibraryComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  setViewMode(mode: ViewMode): void {
+    this.viewMode = mode;
+    localStorage.setItem('library-view-mode', mode);
   }
 
   onSearchChange(q: string): void {
@@ -103,9 +130,32 @@ export class LibraryComponent implements OnInit, OnDestroy {
     if (this.searchQuery.trim()) filters.search = this.searchQuery.trim();
 
     this.bookService.getBooks(filters).subscribe({
-      next: ({ books, total }) => { this.books = books; this.total = total; this.loading = false; },
+      next: ({ books, total }) => {
+        this.books = books;
+        this.total = total;
+        this.loading = false;
+        this.buildAuthorGroups();
+      },
       error: () => { this.loading = false; },
     });
+  }
+
+  private buildAuthorGroups(): void {
+    const map = new Map<string, BookWithDetails[]>();
+    for (const book of this.books) {
+      const author = book.authors[0]?.name ?? 'Unknown Author';
+      if (!map.has(author)) map.set(author, []);
+      map.get(author)!.push(book);
+    }
+    this._authorGroups = Array.from(map.entries())
+      .map(([author, books]) => ({ author, books, collapsed: false }))
+      .sort((a, b) => a.author.localeCompare(b.author));
+  }
+
+  get authorGroups(): AuthorGroup[] { return this._authorGroups; }
+
+  toggleAuthorGroup(group: AuthorGroup): void {
+    group.collapsed = !group.collapsed;
   }
 
   get totalPages(): number { return Math.ceil(this.total / this.PAGE_SIZE); }
@@ -128,9 +178,13 @@ export class LibraryComponent implements OnInit, OnDestroy {
       if (!result) return;
       if ('deleted' in result) {
         this.books = this.books.filter(b => b.id !== result.id);
+        this.buildAuthorGroups();
       } else {
         const idx = this.books.findIndex(b => b.id === result.id);
-        if (idx !== -1) this.books[idx] = result;
+        if (idx !== -1) {
+          this.books[idx] = result;
+          this.buildAuthorGroups();
+        }
       }
     });
   }
@@ -157,7 +211,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     const map: Record<ReadingStatus, string> = {
       'reading': 'Reading', 'want-to-read': 'Want to Read', 'read': 'Read', 'dnf': 'DNF',
     };
-    return book.user_book ? map[book.user_book.status] : 'Not on shelf';
+    return book.user_book ? map[book.user_book.status] : '';
   }
 
   stars(book: BookWithDetails): number[] {
