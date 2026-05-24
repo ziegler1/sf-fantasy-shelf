@@ -187,6 +187,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
       series_name: this.seriesName.trim() || null,
       series_position: this.seriesPosition || null,
       status: this.status,
+      categories: [],
     };
     this.searchService.importBook(body).subscribe({
       next: (book: BookWithDetails) => {

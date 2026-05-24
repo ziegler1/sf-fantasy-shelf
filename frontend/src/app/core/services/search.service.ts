@@ -16,6 +16,7 @@ export interface BookSearchResult {
   language: string;
   series_name: string | null;
   series_position: number | null;
+  categories: string[];
 }
 
 export interface ImportBookBody extends Omit<BookSearchResult, 'google_id'> {

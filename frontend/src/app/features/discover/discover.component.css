@@ -89,20 +89,18 @@
 
 .dismiss-btn {
   flex-shrink: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 22px;
   height: 22px;
-  background: none;
-  border: none;
   border-radius: 4px;
   cursor: pointer;
   color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1;
   transition: color 0.15s, background 0.15s;
-  padding: 0;
+  user-select: none;
 }
 
 .dismiss-btn:hover {

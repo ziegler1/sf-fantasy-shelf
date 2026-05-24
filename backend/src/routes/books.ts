@@ -23,6 +23,7 @@ const importSchema = z.object({
   series_name:     nullableStr(500),
   series_position: z.number().nullable().optional(),
   google_id:       nullableStr(100),
+  categories:      z.array(z.string()).optional().default([]),
 });
 
 const bookCreateSchema = z.object({
@@ -148,7 +149,7 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
   const {
     title, authors: authorNames, cover_url, published_at,
     page_count, isbn, isbn13, description, language,
-    status, series_name, series_position, google_id,
+    status, series_name, series_position, google_id, categories,
   } = req.body as z.infer<typeof importSchema>;
 
   const client = await pool.connect();
@@ -279,6 +280,20 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
         `INSERT INTO book_series (book_id, series_id, position)
          VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
         [book.id, seriesId, series_position ?? null],
+      );
+    }
+
+    // Auto-assign tags from Google Books categories
+    for (const raw of categories) {
+      const name = raw.trim().slice(0, 100);
+      if (!name) continue;
+      const { rows: [tag] } = await client.query<{ id: number }>(
+        `INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
+        [name],
+      );
+      await client.query(
+        'INSERT INTO book_tags (book_id, tag_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+        [book.id, tag.id],
       );
     }
 

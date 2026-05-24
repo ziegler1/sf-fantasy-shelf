@@ -17,6 +17,7 @@ export interface BookSearchResult {
   language: string;
   series_name: string | null;
   series_position: number | null;
+  categories: string[];
 }
 
 // ── GET /api/search?q=... ─────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ async function searchGoogleBooks(q: string, apiKey: string): Promise<BookSearchR
       language:        v.language ?? 'en',
       series_name,
       series_position,
+      categories:      v.categories ?? [],
     };
   });
 }
@@ -119,6 +121,7 @@ async function searchOpenLibrary(q: string): Promise<BookSearchResult[]> {
       language:        normaliseLanguage(doc.language),
       series_name,
       series_position,
+      categories:      [],
     };
   });
 }
@@ -146,6 +149,7 @@ interface GBVolume {
     description?: string;
     pageCount?: number;
     language?: string;
+    categories?: string[];
     imageLinks?: { thumbnail?: string; smallThumbnail?: string };
     industryIdentifiers?: { type: string; identifier: string }[];
   };
