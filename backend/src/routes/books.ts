@@ -228,13 +228,18 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
        google_id ?? null],
     );
 
-    // Lookup-or-create each author
+    // Lookup-or-create each author — normalise by stripping all non-alphanumeric
+    // chars so "C.S. Friedman" and "C. S. Friedman" resolve to the same record.
     for (const name of authorNames) {
       const trimmed = name.trim();
       if (!trimmed) continue;
       let authorId: number;
       const found = await client.query<{ id: number }>(
-        'SELECT id FROM authors WHERE LOWER(name) = LOWER($1) LIMIT 1', [trimmed],
+        `SELECT id FROM authors
+         WHERE LOWER(REGEXP_REPLACE(name, '[^a-zA-Z0-9]', '', 'g'))
+             = LOWER(REGEXP_REPLACE($1,   '[^a-zA-Z0-9]', '', 'g'))
+         LIMIT 1`,
+        [trimmed],
       );
       if (found.rows.length) {
         authorId = found.rows[0].id;
@@ -484,7 +489,11 @@ router.put('/:id/authors', validate(bookAuthorsSchema), asyncHandler(async (req,
       const trimmed = name.trim();
       if (!trimmed) continue;
       const found = await client.query<{ id: number }>(
-        'SELECT id FROM authors WHERE LOWER(name) = LOWER($1) LIMIT 1', [trimmed],
+        `SELECT id FROM authors
+         WHERE LOWER(REGEXP_REPLACE(name, '[^a-zA-Z0-9]', '', 'g'))
+             = LOWER(REGEXP_REPLACE($1,   '[^a-zA-Z0-9]', '', 'g'))
+         LIMIT 1`,
+        [trimmed],
       );
       let authorId: number;
       if (found.rows.length) {

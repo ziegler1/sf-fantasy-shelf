@@ -29,6 +29,7 @@ interface StoredRecs {
     MatProgressSpinnerModule, MatSelectModule, MatFormFieldModule, MatTooltipModule,
   ],
   templateUrl: './discover.component.html',
+  styleUrl: './discover.component.css',
 })
 
 export class DiscoverComponent implements OnInit {
