@@ -220,7 +220,7 @@
 <aside class="sidebar">
   <div class="sidebar-logo">
     <h1>📚 SF Fantasy Shelf</h1>
-    <p>Developer Wiki · Phase 5</p>
+    <p>Developer Wiki · Phase 6</p>
   </div>
   <nav>
     <div class="nav-group">
@@ -264,7 +264,7 @@
     <p>A personal sci-fi and fantasy book tracking app — log your reading history, track series progress, and get AI-powered recommendations via Claude. Built as an Angular + Node monorepo deployed on Railway.</p>
     <div class="hero-meta">
       <span class="badge green">● Live on Railway</span>
-      <span class="badge purple">Phases 0–5 Complete</span>
+      <span class="badge purple">Phases 0–6 Complete</span>
       <span class="badge blue">Angular 17 · Node/Express</span>
       <span class="badge">PostgreSQL · Claude AI</span>
     </div>
@@ -792,11 +792,15 @@ npm run install:all</code></pre>
       </div>
       <div class="timeline-item done">
         <div class="timeline-title">Phase 4 — News Feed ✓</div>
-        <div class="timeline-desc">RSS fetch via node-cron (every 4 hours + startup). 90-day rolling retention. Source filter chips. Active sources: Tor.com, Locus Magazine, SFF World, The Wertzone.</div>
+        <div class="timeline-desc">RSS fetch via node-cron (every 4 hours + startup). 90-day rolling retention. Per-article delete. Source filter chips. Active sources: Reactor (fmr. Tor.com), Locus Magazine, SFF World, The Wertzone, Fantasy Book Critic, Fantasy Faction, io9.</div>
       </div>
       <div class="timeline-item done">
         <div class="timeline-title">Phase 5 — Polish ✓</div>
         <div class="timeline-desc">Four library view modes (Grid, Shelf, List, By Author). Dark/light mode toggle with full MDC override coverage. Cover images at native proportions — no bands, no cropping. Paginated book list. Compact mobile-first Series Tracker. Author name normalisation. Rate limiting + zod input validation.</div>
+      </div>
+      <div class="timeline-item done">
+        <div class="timeline-title">Phase 6 — Analytics &amp; Discovery ✓</div>
+        <div class="timeline-desc">Analytics dashboard: stat cards (books, pages, authors, series), status breakdown bars, finished-by-year chart, publication era bars, top tags. Series Tracker: re-populate button, remove-from-series, add book with pre-filled series name. Discover: author suggestion dismiss. Dragon background with frosted-glass sidenav.</div>
       </div>
     </div>
 
@@ -805,7 +809,7 @@ npm run install:all</code></pre>
       <li>Password reset flow (useful if family uses the app)</li>
       <li>Barcode scanner — mobile camera → ISBN → auto-add book</li>
       <li>Goodreads CSV import</li>
-      <li>Reading statistics — books per year, pages per month, genre breakdown</li>
+      <li>Reading statistics — books per year, pages per month, genre breakdown ✓ (Phase 6 Analytics)</li>
       <li>Author follow notifications — email/push when new release</li>
       <li>Mobile app — Capacitor wrapper for iOS/Android</li>
     </ul>
