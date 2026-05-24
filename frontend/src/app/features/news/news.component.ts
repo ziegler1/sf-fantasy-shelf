@@ -318,9 +318,14 @@ export class NewsComponent implements OnInit {
   }
 
   get filtered(): NewsArticle[] {
-    return this.activeSource
+    const base = this.activeSource
       ? this.articles.filter(a => a.source_name === this.activeSource)
       : this.articles;
+    return [...base].sort((a, b) => {
+      const da = new Date(a.published_at ?? a.created_at).getTime();
+      const db = new Date(b.published_at ?? b.created_at).getTime();
+      return db - da;
+    });
   }
 
   sourceColor(name: string): string {
