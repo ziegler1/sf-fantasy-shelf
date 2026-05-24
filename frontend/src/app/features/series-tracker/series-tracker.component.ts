@@ -17,6 +17,8 @@ import { MatButtonModule } from '@angular/material/button';
 interface EnrichedSeries extends SeriesWithBooks {
   readCount: number;
   progress: number;
+  statusLabel: string;
+  statusClass: string;
 }
 
 @Component({
@@ -64,13 +66,30 @@ export class SeriesTrackerComponent implements OnInit {
 
         this.seriesList = series.map(s => {
           const readCount = s.books.filter(b => readSet.has(b.id)).length;
+          const total     = s.books.length;
+          const isReading = s.books.some(b => this.bookMap.get(b.id)?.user_book?.status === 'reading');
+
+          let statusLabel: string;
+          let statusClass: string;
+          if (total > 0 && readCount === total) {
+            statusLabel = 'Complete';     statusClass = 'series-badge-complete';
+          } else if (isReading) {
+            statusLabel = 'Reading';      statusClass = 'series-badge-reading';
+          } else if (readCount > 0) {
+            statusLabel = 'In Progress';  statusClass = 'series-badge-inprogress';
+          } else if (s.books.some(b => this.bookMap.get(b.id)?.user_book?.status === 'want-to-read')) {
+            statusLabel = 'Want to Read'; statusClass = 'series-badge-want';
+          } else {
+            statusLabel = 'Not Started';  statusClass = 'series-badge-none';
+          }
+
           return {
             ...s,
             books: [...s.books].sort((a, b) => (a.position ?? 999) - (b.position ?? 999)),
             readCount,
-            progress: s.books.length
-              ? Math.round((readCount / s.books.length) * 100)
-              : 0,
+            progress: total ? Math.round((readCount / total) * 100) : 0,
+            statusLabel,
+            statusClass,
           };
         });
 
@@ -192,13 +211,30 @@ export class SeriesTrackerComponent implements OnInit {
           books.filter(b => b.user_book?.status === 'read').map(b => b.id),
         );
         const readCount = series.books.filter(b => readSet.has(b.id)).length;
+        const total     = series.books.length;
+        const isReading = series.books.some(b => this.bookMap.get(b.id)?.user_book?.status === 'reading');
+
+        let statusLabel: string;
+        let statusClass: string;
+        if (total > 0 && readCount === total) {
+          statusLabel = 'Complete';     statusClass = 'series-badge-complete';
+        } else if (isReading) {
+          statusLabel = 'Reading';      statusClass = 'series-badge-reading';
+        } else if (readCount > 0) {
+          statusLabel = 'In Progress';  statusClass = 'series-badge-inprogress';
+        } else if (series.books.some(b => this.bookMap.get(b.id)?.user_book?.status === 'want-to-read')) {
+          statusLabel = 'Want to Read'; statusClass = 'series-badge-want';
+        } else {
+          statusLabel = 'Not Started';  statusClass = 'series-badge-none';
+        }
+
         const enriched: EnrichedSeries = {
           ...series,
           books: [...series.books].sort((a, b) => (a.position ?? 999) - (b.position ?? 999)),
           readCount,
-          progress: series.books.length
-            ? Math.round((readCount / series.books.length) * 100)
-            : 0,
+          progress: total ? Math.round((readCount / total) * 100) : 0,
+          statusLabel,
+          statusClass,
         };
         this.seriesList = this.seriesList.map(s => s.id === seriesId ? enriched : s);
       },
