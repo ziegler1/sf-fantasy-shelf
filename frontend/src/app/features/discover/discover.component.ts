@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ClaudeService, BookRecommendation, AuthorSuggestion } from '../../core/services/claude.service';
 import { AuthorService } from '../../core/services/author.service';
 import type { Author } from '../../types/schema.types';
@@ -25,7 +26,7 @@ interface StoredRecs {
   imports: [
     CommonModule, FormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, MatSelectModule, MatFormFieldModule,
+    MatProgressSpinnerModule, MatSelectModule, MatFormFieldModule, MatTooltipModule,
   ],
   templateUrl: './discover.component.html',
 })
@@ -95,6 +96,10 @@ export class DiscoverComponent implements OnInit {
         this.recsLoading = false;
       },
     });
+  }
+
+  dismissSuggestion(name: string): void {
+    this.suggestions = this.suggestions.filter(s => s.name !== name);
   }
 
   loadSimilarAuthors(): void {
