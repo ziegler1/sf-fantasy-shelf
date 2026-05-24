@@ -36,6 +36,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   readonly navItems: NavItem[] = [
+    { label: 'Dashboard',         icon: 'dashboard',       route: '/dashboard'  },
     { label: 'My Library',        icon: 'menu_book',       route: '/library'    },
     { label: 'Series Tracker',    icon: 'auto_stories',    route: '/series'     },
     { label: 'Discover',          icon: 'explore',         route: '/discover'   },

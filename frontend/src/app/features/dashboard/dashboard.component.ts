@@ -1,0 +1,139 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { forkJoin } from 'rxjs';
+import { BookService } from '../../core/services/book.service';
+import { SeriesService } from '../../core/services/series.service';
+import { AuthService } from '../../core/services/auth.service';
+import type { BookWithDetails, SeriesWithBooks } from '../../types/schema.types';
+
+interface DashSeries {
+  id: number;
+  name: string;
+  subline: string;
+  statusLabel: string;
+  statusClass: string;
+}
+
+interface GenreBar {
+  label: string;
+  count: number;
+  pct: number;
+}
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterLink, MatIconModule, MatProgressSpinnerModule],
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.css',
+})
+export class DashboardComponent implements OnInit {
+  loading = true;
+  readonly today = new Date();
+
+  totalBooks   = 0;
+  readCount    = 0;
+  readingCount = 0;
+  seriesCount  = 0;
+
+  nowReading:   BookWithDetails | null = null;
+  seriesList:   DashSeries[]          = [];
+  recentlyRead: BookWithDetails[]     = [];
+  genreBars:    GenreBar[]            = [];
+
+  constructor(
+    private bookService:   BookService,
+    private seriesService: SeriesService,
+    public  auth:          AuthService,
+  ) {}
+
+  ngOnInit(): void {
+    forkJoin({
+      booksResp: this.bookService.getBooks({ limit: 1000 }),
+      series:    this.seriesService.getSeries(),
+    }).subscribe({
+      next: ({ booksResp: { books }, series }) => {
+        this.compute(books, series);
+        this.loading = false;
+      },
+      error: () => { this.loading = false; },
+    });
+  }
+
+  private compute(books: BookWithDetails[], series: SeriesWithBooks[]): void {
+    this.totalBooks   = books.length;
+    this.readCount    = books.filter(b => b.user_book?.status === 'read').length;
+    this.readingCount = books.filter(b => b.user_book?.status === 'reading').length;
+    this.seriesCount  = series.length;
+
+    this.nowReading = books.find(b => b.user_book?.status === 'reading') ?? null;
+
+    this.recentlyRead = books
+      .filter(b => b.user_book?.status === 'read')
+      .sort((a, b) => {
+        const da = a.user_book?.finished_at ?? a.user_book?.updated_at ?? '';
+        const db = b.user_book?.finished_at ?? b.user_book?.updated_at ?? '';
+        return db.localeCompare(da);
+      })
+      .slice(0, 5);
+
+    const bookMap = new Map(books.map(b => [b.id, b]));
+    this.seriesList = series.map(s => {
+      const userBooks  = s.books.map(b => bookMap.get(b.id));
+      const readCount  = userBooks.filter(b => b?.user_book?.status === 'read').length;
+      const total      = s.books.length;
+      const authorName = userBooks.find(b => b?.authors.length)?.authors[0]?.name ?? '';
+
+      const subParts = [authorName];
+      if (total) subParts.push(`Book ${readCount} of ${total}`);
+      const subline = subParts.filter(Boolean).join(' · ');
+
+      let statusLabel: string;
+      let statusClass: string;
+      if (total > 0 && readCount === total) {
+        statusLabel = 'Complete';
+        statusClass = 'badge-complete';
+      } else if (readCount > 0 || userBooks.some(b => b?.user_book?.status === 'reading')) {
+        statusLabel = 'In Progress';
+        statusClass = 'badge-inprogress';
+      } else {
+        statusLabel = 'Want to Read';
+        statusClass = 'badge-want';
+      }
+
+      return { id: s.id, name: s.name, subline, statusLabel, statusClass };
+    });
+
+    const tagMap: Record<string, number> = {};
+    books.forEach(b => b.tags.forEach(t => { tagMap[t.name] = (tagMap[t.name] ?? 0) + 1; }));
+    const sorted = Object.entries(tagMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const max = sorted[0]?.[1] ?? 1;
+    this.genreBars = sorted.map(([label, count]) => ({
+      label, count, pct: Math.round((count / max) * 100),
+    }));
+  }
+
+  authorNames(book: BookWithDetails): string {
+    return book.authors.map(a => a.name).join(', ');
+  }
+
+  stars(rating: number | null | undefined): string {
+    if (!rating) return '';
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  }
+
+  get dayLabel(): string {
+    return this.today.toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric',
+    }).toUpperCase();
+  }
+
+  get nowSummary(): string {
+    if (!this.nowReading) return '';
+    const text = this.nowReading.ai_summary || this.nowReading.description || '';
+    return text.length > 300 ? text.slice(0, 300) + '…' : text;
+  }
+}

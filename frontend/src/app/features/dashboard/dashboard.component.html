@@ -1,0 +1,145 @@
+<div class="dashboard">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <span class="date-chip">{{ dayLabel }}</span>
+    @if (auth.currentUser()) {
+      <h1 class="welcome">Welcome back, {{ auth.currentUser()!.name }}</h1>
+    }
+  </div>
+
+  @if (loading) {
+    <div class="spinner-row">
+      <mat-spinner diameter="32" />
+    </div>
+  } @else {
+
+    <!-- Stat row -->
+    <div class="stat-row">
+      <div class="stat-card">
+        <span class="stat-value">{{ totalBooks }}</span>
+        <span class="stat-label">TOTAL BOOKS</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ readCount }}</span>
+        <span class="stat-label">READ</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ readingCount }}</span>
+        <span class="stat-label">READING</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ seriesCount }}</span>
+        <span class="stat-label">SERIES TRACKED</span>
+      </div>
+    </div>
+
+    <!-- Row 1: Now Reading + Series Tracker -->
+    <div class="main-grid">
+
+      <div class="panel">
+        <div class="panel-label">NOW READING</div>
+        @if (nowReading) {
+          <div class="now-row">
+            @if (nowReading.cover_url) {
+              <img class="now-cover" [src]="nowReading.cover_url" [alt]="nowReading.title">
+            } @else {
+              <div class="now-cover no-cover"><mat-icon>menu_book</mat-icon></div>
+            }
+            <div class="now-info">
+              <p class="now-title">{{ nowReading.title }}</p>
+              <p class="now-author">{{ authorNames(nowReading) }}</p>
+              <p class="now-summary">{{ nowSummary }}</p>
+              <div class="now-footer">
+                <span class="badge badge-reading">READING</span>
+                @if (nowReading.user_book?.rating) {
+                  <span class="stars">{{ stars(nowReading.user_book!.rating) }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="panel-empty">
+            <mat-icon>menu_book</mat-icon>
+            <p>No book currently in progress.</p>
+            <a routerLink="/library">Go to Library</a>
+          </div>
+        }
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">SERIES TRACKER</div>
+        @if (seriesList.length) {
+          @for (s of seriesList; track s.id) {
+            <div class="series-row">
+              <div class="series-text">
+                <p class="series-name">{{ s.name }}</p>
+                <p class="series-sub">{{ s.subline }}</p>
+              </div>
+              <span class="badge" [ngClass]="s.statusClass">{{ s.statusLabel }}</span>
+            </div>
+          }
+        } @else {
+          <div class="panel-empty">
+            <mat-icon>auto_stories</mat-icon>
+            <p>No series tracked yet.</p>
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <!-- Row 2: Recently Read + Genre breakdown -->
+    <div class="main-grid">
+
+      <div class="panel">
+        <div class="panel-label">RECENTLY READ</div>
+        @if (recentlyRead.length) {
+          @for (b of recentlyRead; track b.id) {
+            <div class="recent-row">
+              @if (b.cover_url) {
+                <img class="recent-cover" [src]="b.cover_url" [alt]="b.title">
+              } @else {
+                <div class="recent-cover no-cover"><mat-icon>menu_book</mat-icon></div>
+              }
+              <div class="recent-info">
+                <p class="recent-title">{{ b.title }}</p>
+                <p class="recent-author">{{ authorNames(b) }}</p>
+                @if (b.user_book?.rating) {
+                  <span class="stars">{{ stars(b.user_book!.rating) }}</span>
+                }
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="panel-empty">
+            <mat-icon>done_all</mat-icon>
+            <p>No books marked as read yet.</p>
+          </div>
+        }
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">LIBRARY BY GENRE</div>
+        @if (genreBars.length) {
+          @for (g of genreBars; track g.label) {
+            <div class="genre-row">
+              <span class="genre-label">{{ g.label }}</span>
+              <div class="genre-track">
+                <div class="genre-fill" [style.width.%]="g.pct"></div>
+              </div>
+              <span class="genre-count">{{ g.count }}</span>
+            </div>
+          }
+        } @else {
+          <div class="panel-empty">
+            <mat-icon>label</mat-icon>
+            <p>Tag your books to see genre breakdown.</p>
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+
+</div>
