@@ -148,8 +148,29 @@ export class LibraryComponent implements OnInit, OnDestroy {
       map.get(author)!.push(book);
     }
     this._authorGroups = Array.from(map.entries())
-      .map(([author, books]) => ({ author, books, collapsed: false }))
+      .map(([author, books]) => ({ author, books: this.sortForAuthorGroup(books), collapsed: false }))
       .sort((a, b) => a.author.localeCompare(b.author));
+  }
+
+  private sortForAuthorGroup(books: BookWithDetails[]): BookWithDetails[] {
+    return [...books].sort((a, b) => {
+      const as = a.series[0] ?? null;
+      const bs = b.series[0] ?? null;
+      // Series books before standalone
+      if (as && !bs) return -1;
+      if (!as && bs) return  1;
+      if (as && bs) {
+        // Different series: sort series names alphabetically
+        const nameCompare = as.name.localeCompare(bs.name);
+        if (nameCompare !== 0) return nameCompare;
+        // Same series: sort by position number
+        const aPos = as.position ?? 9999;
+        const bPos = bs.position ?? 9999;
+        if (aPos !== bPos) return aPos - bPos;
+      }
+      // Fallback: title alphabetically
+      return a.title.localeCompare(b.title);
+    });
   }
 
   get authorGroups(): AuthorGroup[] { return this._authorGroups; }
