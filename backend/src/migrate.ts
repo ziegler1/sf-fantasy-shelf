@@ -15,7 +15,7 @@ async function run() {
       )
     `);
 
-    const migrations = ['001_init.sql', '002_full_schema.sql', '003_add_users.sql', '004_add_ai_summary.sql', '005_upcoming_user_id.sql', '006_upcoming_description.sql', '007_google_books_id.sql', '008_news_articles.sql', '009_news_patch.sql', '010_news_columns.sql', '011_featured_book.sql'];
+    const migrations = ['001_init.sql', '002_full_schema.sql', '003_add_users.sql', '004_add_ai_summary.sql', '005_upcoming_user_id.sql', '006_upcoming_description.sql', '007_google_books_id.sql', '008_news_articles.sql', '009_news_patch.sql', '010_news_columns.sql', '011_featured_book.sql', '012_news_dismissed.sql'];
 
     for (const name of migrations) {
       const { rows } = await client.query(

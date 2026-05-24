@@ -16,6 +16,7 @@ router.get('/', asyncHandler(async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, source_name, title, url, description, image_url, published_at, created_at
        FROM news_articles
+       WHERE dismissed = false
        ORDER BY published_at DESC NULLS LAST, created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset],
@@ -31,7 +32,7 @@ router.get('/', asyncHandler(async (req, res) => {
 
 router.delete('/:id', asyncHandler(async (req, res) => {
   const result = await pool.query(
-    'DELETE FROM news_articles WHERE id = $1',
+    'UPDATE news_articles SET dismissed = true WHERE id = $1',
     [req.params['id']],
   );
   if (!result.rowCount) return res.status(404).json({ error: 'Not found' });

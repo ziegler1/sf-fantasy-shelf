@@ -52,7 +52,8 @@ export async function fetchNewsFeeds(): Promise<{ source: string; added: number;
   // Prune articles older than 90 days before fetching new ones
   await pool.query(
     `DELETE FROM news_articles
-     WHERE COALESCE(published_at, created_at) < NOW() - INTERVAL '90 days'`,
+     WHERE dismissed = false
+       AND COALESCE(published_at, created_at) < NOW() - INTERVAL '90 days'`,
   );
 
   const results: { source: string; added: number; error?: string }[] = [];
