@@ -7,10 +7,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NewsService, NewsArticle } from '../../core/services/news.service';
 
 const SOURCE_COLORS: Record<string, string> = {
-  'Tor.com':        '#f97316',
-  'Locus Magazine': '#a78bfa',
-  'SFF World':      '#10b981',
-  'The Wertzone':   '#06b6d4',
+  'Reactor':             '#f97316',
+  'Locus Magazine':      '#a78bfa',
+  'SFF World':           '#10b981',
+  'The Wertzone':        '#06b6d4',
+  'Fantasy Book Critic': '#ec4899',
+  'Fantasy Faction':     '#f59e0b',
+  'io9':                 '#3b82f6',
 };
 
 interface RefreshResult { source: string; added: number; error?: string }
