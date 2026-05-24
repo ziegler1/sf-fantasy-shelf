@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { forkJoin } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { BookService } from '../../core/services/book.service';
@@ -41,7 +42,7 @@ interface TopPick {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterLink, MatDialogModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, DatePipe, RouterLink, MatDialogModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -55,6 +56,7 @@ export class DashboardComponent implements OnInit {
   seriesCount  = 0;
 
   nowReading:       BookWithDetails | null = null;
+  otherReading:     BookWithDetails[]     = [];
   seriesList:       DashSeries[]          = [];
   recentlyRead:     BookWithDetails[]     = [];
   genreBars:        GenreBar[]            = [];
@@ -105,7 +107,9 @@ export class DashboardComponent implements OnInit {
     this.readingCount = books.filter(b => b.user_book?.status === 'reading').length;
     this.seriesCount  = series.length;
 
-    this.nowReading = books.find(b => b.user_book?.status === 'reading') ?? null;
+    const reading = books.filter(b => b.user_book?.status === 'reading');
+    this.nowReading   = reading.find(b => b.user_book?.featured) ?? reading[0] ?? null;
+    this.otherReading = reading.filter(b => b !== this.nowReading);
 
     this.recentlyRead = books
       .filter(b => b.user_book?.status === 'read')
@@ -158,6 +162,11 @@ export class DashboardComponent implements OnInit {
     ref.afterClosed().subscribe((result: BookWithDetails | { deleted: true; id: number } | undefined) => {
       if (result) this.loadData();
     });
+  }
+
+  pinBook(event: Event, book: BookWithDetails): void {
+    event.stopPropagation();
+    this.bookService.setFeaturedBook(book.id).subscribe(() => this.loadData());
   }
 
   pickUrl(pick: TopPick): string {

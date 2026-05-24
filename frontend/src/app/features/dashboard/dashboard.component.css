@@ -143,6 +143,32 @@
   letter-spacing: 0.05em;
 }
 
+/* ── Pin button ──────────────────────────────────────────── */
+.pin-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-faint);
+  transition: color 0.15s, background 0.15s;
+  padding: 0;
+}
+
+.pin-btn mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.pin-btn:hover { color: var(--accent); background: var(--accent-bg); }
+.pin-btn.pin-active { color: var(--accent); }
+
 /* ── Clickable rows ──────────────────────────────────────── */
 .clickable {
   cursor: pointer;

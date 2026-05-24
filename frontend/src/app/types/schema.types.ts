@@ -85,6 +85,7 @@ export interface UserBook {
   notes: string | null;
   started_at: string | null;   // ISO date string
   finished_at: string | null;  // ISO date string
+  featured: boolean;
   created_at: string;
   updated_at: string;
 }

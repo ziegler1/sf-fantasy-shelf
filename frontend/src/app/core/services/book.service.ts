@@ -57,4 +57,8 @@ export class BookService {
   updateBookTags(id: number, tags: string[]): Observable<Tag[]> {
     return this.http.put<Tag[]>(`${this.base}/${id}/tags`, { tags });
   }
+
+  setFeaturedBook(id: number): Observable<{ featured: boolean }> {
+    return this.http.put<{ featured: boolean }>(`${this.base}/${id}/feature`, {});
+  }
 }

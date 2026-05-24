@@ -129,6 +129,7 @@ function booksQuery(userId: number, where = '', extraValues: unknown[] = [], lim
           'id', ub.id, 'book_id', ub.book_id, 'status', ub.status,
           'rating', ub.rating, 'review', ub.review, 'notes', ub.notes,
           'started_at', ub.started_at, 'finished_at', ub.finished_at,
+          'featured', ub.featured,
           'created_at', ub.created_at, 'updated_at', ub.updated_at
         ) ELSE NULL END AS user_book
       FROM books b
@@ -581,6 +582,43 @@ router.put('/:id/tags', validate(bookTagsSchema), asyncHandler(async (req, res) 
       [bookId],
     );
     res.json(rows);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}));
+
+// ── PUT /api/books/:id/feature ───────────────────────────────────────────────
+// Pins this book as the featured "now reading" book; unpins all others for the user.
+// Calling again on the already-featured book unpins it.
+
+router.put('/:id/feature', asyncHandler(async (req, res) => {
+  const bookId = Number(req.params['id']);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ featured: boolean }>(
+      'SELECT featured FROM user_books WHERE user_id = $1 AND book_id = $2',
+      [req.userId, bookId],
+    );
+    const alreadyFeatured = rows[0]?.featured ?? false;
+
+    // Unfeature all books for this user first
+    await client.query(
+      'UPDATE user_books SET featured = false WHERE user_id = $1',
+      [req.userId],
+    );
+    // If it wasn't already featured, feature it now (toggle off if it was)
+    if (!alreadyFeatured) {
+      await client.query(
+        'UPDATE user_books SET featured = true WHERE user_id = $1 AND book_id = $2',
+        [req.userId, bookId],
+      );
+    }
+    await client.query('COMMIT');
+    res.json({ featured: !alreadyFeatured });
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

@@ -56,12 +56,34 @@
               <p class="now-summary">{{ nowSummary }}</p>
               <div class="now-footer">
                 <span class="badge badge-reading">READING</span>
+                @if (nowReading.user_book?.featured) {
+                  <button class="pin-btn pin-active" (click)="pinBook($event, nowReading)" matTooltip="Unpin spotlight">
+                    <mat-icon>push_pin</mat-icon>
+                  </button>
+                }
                 @if (nowReading.user_book?.rating) {
                   <span class="stars">{{ stars(nowReading.user_book!.rating) }}</span>
                 }
               </div>
             </div>
           </div>
+          @for (b of otherReading; track b.id) {
+            <div class="recent-row clickable" (click)="openBook(b)" role="button" tabindex="0"
+                 (keydown.enter)="openBook(b)">
+              @if (b.cover_url) {
+                <img class="recent-cover" [src]="b.cover_url" [alt]="b.title">
+              } @else {
+                <div class="recent-cover no-cover"><mat-icon>menu_book</mat-icon></div>
+              }
+              <div class="recent-info">
+                <p class="recent-title">{{ b.title }}</p>
+                <p class="recent-author">{{ authorNames(b) }}</p>
+              </div>
+              <button class="pin-btn" (click)="pinBook($event, b)" matTooltip="Pin to spotlight">
+                <mat-icon>push_pin</mat-icon>
+              </button>
+            </div>
+          }
         } @else {
           <div class="panel-empty">
             <mat-icon>menu_book</mat-icon>
