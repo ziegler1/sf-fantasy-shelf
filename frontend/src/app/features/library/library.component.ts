@@ -154,7 +154,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
       map.get(key)!.push(book);
     }
     this._authorGroups = Array.from(map.entries())
-      .map(([author, books]) => ({ author, books: this.sortForAuthorGroup(books), collapsed: false }))
+      .map(([author, books]) => ({ author, books: this.sortForAuthorGroup(books), collapsed: true }))
       .sort((a, b) => a.author.localeCompare(b.author));
   }
 

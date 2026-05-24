@@ -36,12 +36,13 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   readonly navItems: NavItem[] = [
-    { label: 'My Library',        icon: 'menu_book',       route: '/library'  },
-    { label: 'Series Tracker',    icon: 'auto_stories',    route: '/series'   },
-    { label: 'Discover',          icon: 'explore',         route: '/discover' },
-    { label: 'Upcoming Releases', icon: 'event_available', route: '/upcoming' },
-    { label: 'News Feed',         icon: 'rss_feed',        route: '/news'     },
-    { label: 'Account',           icon: 'manage_accounts', route: '/account'  },
+    { label: 'My Library',        icon: 'menu_book',       route: '/library'    },
+    { label: 'Series Tracker',    icon: 'auto_stories',    route: '/series'     },
+    { label: 'Discover',          icon: 'explore',         route: '/discover'   },
+    { label: 'Upcoming Releases', icon: 'event_available', route: '/upcoming'   },
+    { label: 'News Feed',         icon: 'rss_feed',        route: '/news'       },
+    { label: 'Analytics',         icon: 'bar_chart',       route: '/analytics'  },
+    { label: 'Account',           icon: 'manage_accounts', route: '/account'    },
   ];
 
   constructor(

@@ -1,0 +1,283 @@
+<div class="page-header">
+  <h1 class="page-title">Reading Analytics</h1>
+</div>
+
+@if (loading) {
+  <div class="empty-state"><mat-spinner diameter="40" /></div>
+} @else {
+
+  <!-- ── Stat cards ─────────────────────────────────────────── -->
+  <div class="stat-grid">
+    @for (card of statCards; track card.label) {
+      <div class="stat-card">
+        <mat-icon class="stat-icon">{{ card.icon }}</mat-icon>
+        <div class="stat-body">
+          <div class="stat-value">{{ card.value }}</div>
+          <div class="stat-label">{{ card.label }}</div>
+          @if (card.sub) { <div class="stat-sub">{{ card.sub }}</div> }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ── Reading status ─────────────────────────────────────── -->
+  <div class="section-grid">
+
+    <div class="panel">
+      <h3 class="panel-title">Reading Status</h3>
+      <div class="bar-list">
+        @for (bar of statusBars; track bar.label) {
+          <div class="bar-row">
+            <span class="bar-label">{{ bar.label }}</span>
+            <div class="bar-track">
+              <div class="bar-fill {{ bar.cls }}" [style.width.%]="bar.pct"></div>
+            </div>
+            <span class="bar-count">{{ bar.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Longest book read ─────────────────────────────────── -->
+    @if (longestRead) {
+      <div class="panel">
+        <h3 class="panel-title">Longest Book Read</h3>
+        <div class="longest-wrap">
+          @if (longestRead.cover_url) {
+            <img [src]="longestRead.cover_url" [alt]="longestRead.title" class="longest-cover">
+          }
+          <div class="longest-info">
+            <div class="longest-title">{{ longestRead.title }}</div>
+            <div class="longest-author">{{ longestRead.authors[0]?.name }}</div>
+            <div class="longest-pages">{{ longestPages.toLocaleString() }} pages</div>
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+
+  <!-- ── Finished by year ───────────────────────────────────── -->
+  @if (finishedByYear.length) {
+    <div class="panel panel-wide">
+      <h3 class="panel-title">Books Finished by Year</h3>
+      <div class="bar-list bar-list-col">
+        @for (bar of finishedByYear; track bar.label) {
+          <div class="bar-row">
+            <span class="bar-label">{{ bar.label }}</span>
+            <div class="bar-track">
+              <div class="bar-fill fill-accent" [style.width.%]="bar.pct"></div>
+            </div>
+            <span class="bar-count">{{ bar.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Publication era + tags ─────────────────────────────── -->
+  <div class="section-grid">
+
+    @if (pubDecade.length) {
+      <div class="panel">
+        <h3 class="panel-title">Books Read by Publication Era</h3>
+        <div class="bar-list">
+          @for (bar of pubDecade; track bar.label) {
+            <div class="bar-row">
+              <span class="bar-label">{{ bar.label }}</span>
+              <div class="bar-track">
+                <div class="bar-fill fill-blue" [style.width.%]="bar.pct"></div>
+              </div>
+              <span class="bar-count">{{ bar.count }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (tagBars.length) {
+      <div class="panel">
+        <h3 class="panel-title">Top Genres / Tags</h3>
+        <div class="bar-list">
+          @for (bar of tagBars; track bar.label) {
+            <div class="bar-row">
+              <span class="bar-label">{{ bar.label }}</span>
+              <div class="bar-track">
+                <div class="bar-fill fill-accent" [style.width.%]="bar.pct"></div>
+              </div>
+              <span class="bar-count">{{ bar.count }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+
+}
+
+<style>
+/* ── Stat cards ─── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.stat-icon {
+  color: var(--accent);
+  font-size: 1.4rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.stat-body { min-width: 0; }
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-sub {
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  margin-top: 0.1rem;
+}
+
+/* ── Sections ─── */
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.panel-wide {
+  margin-bottom: 1.25rem;
+}
+
+.panel-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.85rem;
+}
+
+/* ── Bar chart ─── */
+.bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bar-label {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.bar-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 2rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Fill colours */
+.fill-read    { background: rgba(168, 85,247, 0.7); }
+.fill-reading { background: rgba(34, 197, 94, 0.7); }
+.fill-want    { background: rgba(59, 130,246, 0.7); }
+.fill-dnf     { background: rgba(239, 68, 68, 0.7); }
+.fill-accent  { background: var(--accent); opacity: 0.8; }
+.fill-blue    { background: #6366f1; opacity: 0.8; }
+
+/* ── Longest book ─── */
+.longest-wrap {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.longest-cover {
+  width: 54px;
+  height: auto;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.longest-info { min-width: 0; }
+
+.longest-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.longest-author {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+}
+
+.longest-pages {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 0.4rem;
+}
+</style>
