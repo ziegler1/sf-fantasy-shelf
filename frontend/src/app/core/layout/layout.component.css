@@ -1,12 +1,22 @@
 .shell {
   height: 100vh;
+  background: transparent !important;
 }
 
 /* ── Sidenav ───────────────────────────────────────────────── */
 .sidenav {
   width: 240px;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border);
+  background: rgba(30, 41, 59, 0.88) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-right: 1px solid rgba(255, 255, 255, 0.09) !important;
+}
+
+:host-context(body.light-theme) .sidenav {
+  background: rgba(237, 241, 247, 0.97) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.14) !important;
 }
 
 .sidenav-header {
@@ -106,9 +116,13 @@
 
 /* ── Main content ──────────────────────────────────────────── */
 .main {
-  background: var(--bg-base);
+  background: rgba(15, 23, 42, 0.82) !important;
   display: flex;
   flex-direction: column;
+}
+
+:host-context(body.light-theme) .main {
+  background: rgba(221, 227, 235, 0.97) !important;
 }
 
 .mobile-bar {

@@ -109,8 +109,24 @@ html, body {
   height: 100%;
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
-  background: var(--bg-base);
+  background-color: var(--bg-base);
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.86)),
+    url('/assets/bg-dragon.jpg');
+  background-size: cover;
+  background-position: center 35%;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--text-primary);
+}
+
+body.light-theme {
+  background-image: none;
+}
+
+/* Allow body background to show through the sidenav shell */
+.mat-drawer-container {
+  background: transparent !important;
 }
 
 /* ── Page layout ─────────────────────────────────────────── */
