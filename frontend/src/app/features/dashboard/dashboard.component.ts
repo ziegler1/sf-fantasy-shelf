@@ -142,7 +142,9 @@ export class DashboardComponent implements OnInit {
       }
 
       return { id: s.id, name: s.name, subline, statusLabel, statusClass };
-    });
+    })
+    .filter(s => s.statusLabel !== 'Complete')
+    .slice(0, 10);
 
     const tagMap: Record<string, number> = {};
     books.forEach(b => b.tags.forEach(t => { tagMap[t.name] = (tagMap[t.name] ?? 0) + 1; }));
