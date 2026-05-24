@@ -28,6 +28,8 @@ interface GenreBar {
   pct: number;
 }
 
+const GENRE_COLORS = ['#60a5fa','#c084fc','#4ade80','#fb923c','#f87171','#2dd4bf','#facc15'];
+
 interface TopPick {
   key:       string;
   title:     string;
@@ -178,6 +180,10 @@ export class DashboardComponent implements OnInit {
     return this.today.toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric',
     }).toUpperCase();
+  }
+
+  genreColor(index: number): string {
+    return GENRE_COLORS[index % GENRE_COLORS.length];
   }
 
   get nowSummary(): string {

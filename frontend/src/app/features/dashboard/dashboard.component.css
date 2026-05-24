@@ -292,7 +292,6 @@
 
 .genre-fill {
   height: 100%;
-  background: var(--accent);
   border-radius: 3px;
   transition: width 0.4s ease;
 }

@@ -136,11 +136,11 @@
           <a class="panel-link" routerLink="/library">My Library →</a>
         </div>
         @if (genreBars.length) {
-          @for (g of genreBars; track g.label) {
+          @for (g of genreBars; track g.label; let i = $index) {
             <div class="genre-row">
-              <span class="genre-label">{{ g.label }}</span>
+              <span class="genre-label" [style.color]="genreColor(i)">{{ g.label }}</span>
               <div class="genre-track">
-                <div class="genre-fill" [style.width.%]="g.pct"></div>
+                <div class="genre-fill" [style.width.%]="g.pct" [style.background]="genreColor(i)"></div>
               </div>
               <span class="genre-count">{{ g.count }}</span>
             </div>
