@@ -308,6 +308,10 @@ interface RefreshResult { source: string; added: number; error?: string }
 
     .article-card:hover .article-delete { opacity: 1; }
 
+    @media (hover: none) {
+      .article-delete { opacity: 1; }
+    }
+
     .article-delete:hover {
       color: var(--error);
       background: rgba(248, 113, 113, 0.12);
