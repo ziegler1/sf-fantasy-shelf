@@ -176,6 +176,49 @@ body.light-theme .status-dnf         { background: rgba(220,38,38,.20);  color: 
 body.light-theme .status-none        { background: rgba(71,85,105,.15);  color: #334155 !important; }
 
 /* Light mode: direct element overrides — MDC variables lose to the prebuilt dark theme */
+
+/* Dialog surface — cascade dark text to all children */
+body.light-theme .mat-mdc-dialog-surface {
+  color: #1e293b !important;
+  background: var(--bg-surface) !important;
+}
+
+/* mat-select trigger (the closed select box) */
+body.light-theme .mat-mdc-select-value-text,
+body.light-theme .mat-mdc-select-placeholder {
+  color: #1e293b !important;
+}
+body.light-theme .mat-mdc-select-arrow {
+  color: #64748b !important;
+}
+
+/* mat-select dropdown panel — renders in CDK overlay, outside dialog DOM */
+body.light-theme .mat-mdc-select-panel {
+  background: #edf1f7 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18) !important;
+}
+body.light-theme .mat-mdc-option {
+  color: #1e293b !important;
+}
+body.light-theme .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+  background: rgba(0,0,0,0.06) !important;
+}
+body.light-theme .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  background: rgba(109,40,217,0.14) !important;
+}
+body.light-theme .mat-mdc-option.mdc-list-item--selected .mdc-list-item__primary-text {
+  color: #4c1d95 !important;
+}
+
+/* mat-form-field labels */
+body.light-theme .mdc-floating-label {
+  color: #64748b !important;
+}
+body.light-theme .mat-mdc-form-field.mat-focused .mdc-floating-label {
+  color: #6d28d9 !important;
+}
+
+/* Text inputs */
 body.light-theme .mdc-text-field__input {
   color: #1e293b !important;
 }
@@ -183,9 +226,13 @@ body.light-theme .mdc-text-field__input::placeholder {
   color: #94a3b8 !important;
   opacity: 1;
 }
+
+/* Icons inside form fields */
 body.light-theme .mat-mdc-form-field .mat-icon {
   color: #64748b !important;
 }
+
+/* Outlined / stroked buttons (status filters) */
 body.light-theme .mat-mdc-outlined-button .mdc-button__label {
   color: #334155 !important;
 }
