@@ -549,6 +549,26 @@ router.put('/:id/authors', validate(bookAuthorsSchema), asyncHandler(async (req,
   }
 }));
 
+// ── POST /api/books/:id/retry-cover ──────────────────────────────────────────
+
+router.post('/:id/retry-cover', asyncHandler(async (req, res) => {
+  const bookId = Number(req.params['id']);
+  const { rows } = await pool.query<{ cover_url: string | null }>(
+    'SELECT cover_url FROM books WHERE id = $1', [bookId],
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Not found' });
+
+  const coverUrl = rows[0].cover_url;
+  if (!coverUrl) return res.status(400).json({ error: 'No cover URL on this book' });
+
+  await downloadAndStoreCover(bookId, coverUrl);
+
+  const { rows: updated } = await pool.query<{ cover_url: string | null }>(
+    'SELECT cover_url FROM books WHERE id = $1', [bookId],
+  );
+  res.json({ cover_url: updated[0].cover_url });
+}));
+
 // ── PUT /api/books/:id/tags ───────────────────────────────────────────────────
 
 router.put('/:id/tags', validate(bookTagsSchema), asyncHandler(async (req, res) => {

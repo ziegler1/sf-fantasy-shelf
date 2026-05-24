@@ -8,7 +8,9 @@ export async function fetchAndUploadCover(coverUrl: string): Promise<string | nu
   if (coverUrl.startsWith(process.env['R2_PUBLIC_URL'])) return coverUrl;
 
   try {
-    const response = await fetch(coverUrl);
+    const response = await fetch(coverUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SFFantasyShelf/1.0)' },
+    });
     if (!response.ok) return null;
     const buffer = Buffer.from(await response.arrayBuffer());
     const contentType = response.headers.get('content-type') ?? 'image/jpeg';

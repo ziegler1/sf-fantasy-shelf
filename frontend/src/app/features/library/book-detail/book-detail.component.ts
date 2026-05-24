@@ -46,6 +46,7 @@ export class BookDetailComponent implements OnInit {
   editAuthors = '';
   editTags = '';
   metaSaving = false;
+  coverRetrying = false;
 
   readonly statusOptions: { label: string; value: ReadingStatus | '' }[] = [
     { label: 'Not on shelf',  value: '' },
@@ -160,6 +161,18 @@ export class BookDetailComponent implements OnInit {
 
   cancelEdit(): void {
     this.editMode = false;
+  }
+
+  retryCover(): void {
+    if (this.coverRetrying) return;
+    this.coverRetrying = true;
+    this.bookService.retryCover(this.book.id).subscribe({
+      next: ({ cover_url }) => {
+        if (cover_url) { this.book.cover_url = cover_url; this.dirty = true; }
+        this.coverRetrying = false;
+      },
+      error: () => { this.coverRetrying = false; },
+    });
   }
 
   saveMetadata(): void {

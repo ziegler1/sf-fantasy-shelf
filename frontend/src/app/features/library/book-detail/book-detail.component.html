@@ -96,11 +96,22 @@
             <input matInput [(ngModel)]="metaForm.isbn13">
           </mat-form-field>
         </div>
-        <mat-form-field appearance="outline" class="edit-title-field">
-          <mat-label>Cover image URL</mat-label>
-          <input matInput [(ngModel)]="metaForm.cover_url" placeholder="https://…">
-          <mat-icon matSuffix>image</mat-icon>
-        </mat-form-field>
+        <div class="cover-url-row">
+          <mat-form-field appearance="outline" class="edit-title-field">
+            <mat-label>Cover image URL</mat-label>
+            <input matInput [(ngModel)]="metaForm.cover_url" placeholder="https://…">
+            <mat-icon matSuffix>image</mat-icon>
+          </mat-form-field>
+          <button mat-stroked-button class="retry-cover-btn"
+                  (click)="retryCover()" [disabled]="coverRetrying"
+                  matTooltip="Re-fetch cover from source">
+            @if (coverRetrying) {
+              <mat-spinner diameter="14" />
+            } @else {
+              <mat-icon>refresh</mat-icon>
+            }
+          </button>
+        </div>
         <div class="edit-actions-row">
           <button mat-flat-button color="primary" (click)="saveMetadata()" [disabled]="metaSaving">
             @if (metaSaving) { Saving… } @else { Save }
@@ -434,6 +445,22 @@
 }
 
 .edit-description-field { width: 100%; }
+
+.cover-url-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  width: calc(100% - 2rem);
+}
+
+.cover-url-row .edit-title-field { flex: 1; width: auto; }
+
+.retry-cover-btn {
+  flex-shrink: 0;
+  height: 56px;
+  color: var(--text-muted) !important;
+  border-color: var(--border-hover) !important;
+}
 
 .shelf-edit-row {
   display: flex;

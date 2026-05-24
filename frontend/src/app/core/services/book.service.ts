@@ -61,4 +61,8 @@ export class BookService {
   setFeaturedBook(id: number): Observable<{ featured: boolean }> {
     return this.http.put<{ featured: boolean }>(`${this.base}/${id}/feature`, {});
   }
+
+  retryCover(id: number): Observable<{ cover_url: string | null }> {
+    return this.http.post<{ cover_url: string | null }>(`${this.base}/${id}/retry-cover`, {});
+  }
 }
