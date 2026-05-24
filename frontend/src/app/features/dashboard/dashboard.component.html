@@ -38,9 +38,13 @@
     <div class="main-grid">
 
       <div class="panel">
-        <div class="panel-label">NOW READING</div>
+        <div class="panel-header">
+          <span class="panel-label">NOW READING</span>
+          <a class="panel-link" routerLink="/library">My Library →</a>
+        </div>
         @if (nowReading) {
-          <div class="now-row">
+          <div class="now-row clickable" (click)="openBook(nowReading)" role="button" tabindex="0"
+               (keydown.enter)="openBook(nowReading)">
             @if (nowReading.cover_url) {
               <img class="now-cover" [src]="nowReading.cover_url" [alt]="nowReading.title">
             } @else {
@@ -68,16 +72,19 @@
       </div>
 
       <div class="panel">
-        <div class="panel-label">SERIES TRACKER</div>
+        <div class="panel-header">
+          <span class="panel-label">SERIES TRACKER</span>
+          <a class="panel-link" routerLink="/series">View all →</a>
+        </div>
         @if (seriesList.length) {
           @for (s of seriesList; track s.id) {
-            <div class="series-row">
+            <a class="series-row" routerLink="/series">
               <div class="series-text">
                 <p class="series-name">{{ s.name }}</p>
                 <p class="series-sub">{{ s.subline }}</p>
               </div>
               <span class="badge" [ngClass]="s.statusClass">{{ s.statusLabel }}</span>
-            </div>
+            </a>
           }
         } @else {
           <div class="panel-empty">
@@ -93,10 +100,14 @@
     <div class="main-grid">
 
       <div class="panel">
-        <div class="panel-label">RECENTLY READ</div>
+        <div class="panel-header">
+          <span class="panel-label">RECENTLY READ</span>
+          <a class="panel-link" routerLink="/library">My Library →</a>
+        </div>
         @if (recentlyRead.length) {
           @for (b of recentlyRead; track b.id) {
-            <div class="recent-row">
+            <div class="recent-row clickable" (click)="openBook(b)" role="button" tabindex="0"
+                 (keydown.enter)="openBook(b)">
               @if (b.cover_url) {
                 <img class="recent-cover" [src]="b.cover_url" [alt]="b.title">
               } @else {
@@ -120,7 +131,10 @@
       </div>
 
       <div class="panel">
-        <div class="panel-label">LIBRARY BY GENRE</div>
+        <div class="panel-header">
+          <span class="panel-label">LIBRARY BY GENRE</span>
+          <a class="panel-link" routerLink="/library">My Library →</a>
+        </div>
         @if (genreBars.length) {
           @for (g of genreBars; track g.label) {
             <div class="genre-row">
@@ -140,11 +154,15 @@
       </div>
 
     </div>
+
     <!-- Row 3: Upcoming Releases + Top Picks -->
     <div class="main-grid">
 
       <div class="panel">
-        <div class="panel-label">UPCOMING RELEASES</div>
+        <div class="panel-header">
+          <span class="panel-label">UPCOMING RELEASES</span>
+          <a class="panel-link" routerLink="/upcoming">View all →</a>
+        </div>
         @if (upcomingReleases.length) {
           @for (r of upcomingReleases; track r.id) {
             <div class="recent-row">
@@ -167,7 +185,6 @@
               </div>
             </div>
           }
-          <a class="panel-link" routerLink="/upcoming">View all releases →</a>
         } @else {
           <div class="panel-empty">
             <mat-icon>event_available</mat-icon>
@@ -178,14 +195,17 @@
       </div>
 
       <div class="panel">
-        <div class="panel-label">TOP SF/FANTASY READS</div>
+        <div class="panel-header">
+          <span class="panel-label">TOP SF/FANTASY READS</span>
+          <a class="panel-link" routerLink="/discover">Discover →</a>
+        </div>
         @if (topPicksLoading) {
           <div class="panel-empty">
             <mat-spinner diameter="24" />
           </div>
         } @else if (topPicks.length) {
           @for (p of topPicks; track p.key) {
-            <div class="pick-row">
+            <a class="pick-row" [href]="pickUrl(p)" target="_blank" rel="noopener noreferrer">
               @if (p.cover_url) {
                 <img class="pick-cover" [src]="p.cover_url" [alt]="p.title">
               } @else {
@@ -198,7 +218,7 @@
               <span class="badge" [ngClass]="p.genre === 'Sci-Fi' ? 'badge-scifi' : 'badge-fantasy'">
                 {{ p.genre }}
               </span>
-            </div>
+            </a>
           }
         } @else {
           <div class="panel-empty">

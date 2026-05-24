@@ -3,12 +3,15 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { forkJoin } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { BookService } from '../../core/services/book.service';
 import { SeriesService } from '../../core/services/series.service';
 import { UpcomingService } from '../../core/services/upcoming.service';
 import { AuthService } from '../../core/services/auth.service';
+import { BookDetailComponent } from '../library/book-detail/book-detail.component';
 import type { BookWithDetails, SeriesWithBooks, UpcomingRelease } from '../../types/schema.types';
 
 interface DashSeries {
@@ -36,7 +39,7 @@ interface TopPick {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterLink, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, DatePipe, RouterLink, MatDialogModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -49,23 +52,33 @@ export class DashboardComponent implements OnInit {
   readingCount = 0;
   seriesCount  = 0;
 
-  nowReading:      BookWithDetails | null = null;
-  seriesList:      DashSeries[]          = [];
-  recentlyRead:    BookWithDetails[]     = [];
-  genreBars:       GenreBar[]            = [];
-  upcomingReleases: UpcomingRelease[]    = [];
-  topPicks:        TopPick[]            = [];
-  topPicksLoading  = true;
+  nowReading:       BookWithDetails | null = null;
+  seriesList:       DashSeries[]          = [];
+  recentlyRead:     BookWithDetails[]     = [];
+  genreBars:        GenreBar[]            = [];
+  upcomingReleases: UpcomingRelease[]     = [];
+  topPicks:         TopPick[]            = [];
+  topPicksLoading   = true;
 
   constructor(
-    private bookService:    BookService,
-    private seriesService:  SeriesService,
+    private bookService:     BookService,
+    private seriesService:   SeriesService,
     private upcomingService: UpcomingService,
-    private http:           HttpClient,
-    public  auth:           AuthService,
+    private http:            HttpClient,
+    private dialog:          MatDialog,
+    public  auth:            AuthService,
   ) {}
 
   ngOnInit(): void {
+    this.loadData();
+
+    this.http.get<TopPick[]>('/api/toppicks').subscribe({
+      next:  picks => { this.topPicks = picks; this.topPicksLoading = false; },
+      error: ()    => { this.topPicksLoading = false; },
+    });
+  }
+
+  private loadData(): void {
     forkJoin({
       booksResp: this.bookService.getBooks({ limit: 1000 }),
       series:    this.seriesService.getSeries(),
@@ -81,11 +94,6 @@ export class DashboardComponent implements OnInit {
         this.loading = false;
       },
       error: () => { this.loading = false; },
-    });
-
-    this.http.get<TopPick[]>('/api/toppicks').subscribe({
-      next:  picks => { this.topPicks = picks; this.topPicksLoading = false; },
-      error: ()    => { this.topPicksLoading = false; },
     });
   }
 
@@ -120,14 +128,11 @@ export class DashboardComponent implements OnInit {
       let statusLabel: string;
       let statusClass: string;
       if (total > 0 && readCount === total) {
-        statusLabel = 'Complete';
-        statusClass = 'badge-complete';
+        statusLabel = 'Complete'; statusClass = 'badge-complete';
       } else if (readCount > 0 || userBooks.some(b => b?.user_book?.status === 'reading')) {
-        statusLabel = 'In Progress';
-        statusClass = 'badge-inprogress';
+        statusLabel = 'In Progress'; statusClass = 'badge-inprogress';
       } else {
-        statusLabel = 'Want to Read';
-        statusClass = 'badge-want';
+        statusLabel = 'Want to Read'; statusClass = 'badge-want';
       }
 
       return { id: s.id, name: s.name, subline, statusLabel, statusClass };
@@ -140,6 +145,24 @@ export class DashboardComponent implements OnInit {
     this.genreBars = sorted.map(([label, count]) => ({
       label, count, pct: Math.round((count / max) * 100),
     }));
+  }
+
+  openBook(book: BookWithDetails): void {
+    const ref = this.dialog.open(BookDetailComponent, {
+      data: book,
+      panelClass: 'book-detail-panel',
+      maxWidth: '100vw',
+    });
+    ref.afterClosed().subscribe((result: BookWithDetails | { deleted: true; id: number } | undefined) => {
+      if (result) this.loadData();
+    });
+  }
+
+  pickUrl(pick: TopPick): string {
+    if (pick.key.startsWith('/works/')) {
+      return `https://openlibrary.org${pick.key}`;
+    }
+    return `https://openlibrary.org/search?q=${encodeURIComponent(pick.title + ' ' + pick.author)}`;
   }
 
   authorNames(book: BookWithDetails): string {

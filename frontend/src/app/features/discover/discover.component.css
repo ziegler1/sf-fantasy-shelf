@@ -99,20 +99,15 @@
   border-radius: 4px;
   cursor: pointer;
   color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1;
   transition: color 0.15s, background 0.15s;
   padding: 0;
-  margin-top: -1px;
 }
 
 .dismiss-btn:hover {
   color: var(--error);
   background: rgba(248, 113, 113, 0.12);
-}
-
-.dismiss-btn mat-icon {
-  font-size: 0.9rem;
-  width: 0.9rem;
-  height: 0.9rem;
 }
 
 .rec-title {

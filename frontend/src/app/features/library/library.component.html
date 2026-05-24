@@ -211,6 +211,53 @@
       </div>
     }
 
+    <!-- ── By Genre view ─────────────────────────────────────── -->
+    @case ('genre') {
+      <div class="author-groups">
+        @for (group of genreGroups; track group.genre) {
+          <div class="author-group">
+            <button class="author-header" (click)="toggleGenreGroup(group)">
+              <mat-icon class="author-toggle-icon">
+                {{ group.collapsed ? 'expand_more' : 'expand_less' }}
+              </mat-icon>
+              <span class="author-header-name">{{ group.genre }}</span>
+              <span class="author-header-count">{{ group.books.length }}</span>
+            </button>
+            @if (!group.collapsed) {
+              <div class="author-book-list">
+                @for (book of group.books; track book.id) {
+                  <div class="author-book-row" (click)="openDetail(book)" role="button" tabindex="0"
+                       (keydown.enter)="openDetail(book)">
+                    <div class="author-book-cover">
+                      @if (book.cover_url) {
+                        <img [src]="book.cover_url" [alt]="book.title" class="cover-img" loading="lazy">
+                      } @else {
+                        <div class="cover-placeholder small-placeholder"><mat-icon>menu_book</mat-icon></div>
+                      }
+                    </div>
+                    <div class="author-book-info">
+                      <p class="author-book-title">{{ book.title }}</p>
+                      <p class="author-book-series">{{ authorNames(book) }}</p>
+                    </div>
+                    @if (book.user_book) {
+                      <span class="status-badge" [ngClass]="statusClass(book)">{{ statusLabel(book) }}</span>
+                    }
+                    @if (stars(book).length) {
+                      <div class="stars">
+                        @for (s of stars(book); track $index) {
+                          <mat-icon class="star star-sm">star</mat-icon>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
   }
 
   @if (totalPages > 1) {

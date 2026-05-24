@@ -17,7 +17,7 @@ import { BookDetailComponent } from './book-detail/book-detail.component';
 import { AddBookComponent } from './add-book/add-book.component';
 import type { BookWithDetails, ReadingStatus } from '../../types/schema.types';
 
-export type ViewMode = 'grid' | 'shelf' | 'list' | 'author';
+export type ViewMode = 'grid' | 'shelf' | 'list' | 'author' | 'genre';
 
 interface StatusFilter {
   label: string;
@@ -26,6 +26,12 @@ interface StatusFilter {
 
 interface AuthorGroup {
   author: string;
+  books: BookWithDetails[];
+  collapsed: boolean;
+}
+
+interface GenreGroup {
+  genre: string;
   books: BookWithDetails[];
   collapsed: boolean;
 }
@@ -65,9 +71,11 @@ export class LibraryComponent implements OnInit, OnDestroy {
     { mode: 'shelf',  icon: 'view_module', tip: 'Shelf'      },
     { mode: 'list',   icon: 'view_list',   tip: 'List'       },
     { mode: 'author', icon: 'person',      tip: 'By Author'  },
+    { mode: 'genre',  icon: 'category',    tip: 'By Genre'   },
   ];
 
   private _authorGroups: AuthorGroup[] = [];
+  private _genreGroups:  GenreGroup[]  = [];
   private search$ = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -135,6 +143,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
         this.total = total;
         this.loading = false;
         this.buildAuthorGroups();
+        this.buildGenreGroups();
       },
       error: () => { this.loading = false; },
     });
@@ -178,9 +187,32 @@ export class LibraryComponent implements OnInit, OnDestroy {
   }
 
   get authorGroups(): AuthorGroup[] { return this._authorGroups; }
+  get genreGroups():  GenreGroup[]  { return this._genreGroups;  }
 
-  toggleAuthorGroup(group: AuthorGroup): void {
-    group.collapsed = !group.collapsed;
+  toggleAuthorGroup(group: AuthorGroup): void { group.collapsed = !group.collapsed; }
+  toggleGenreGroup(group: GenreGroup):   void { group.collapsed = !group.collapsed; }
+
+  private buildGenreGroups(): void {
+    const map = new Map<string, BookWithDetails[]>();
+    for (const book of this.books) {
+      const tags = book.tags;
+      if (!tags.length) {
+        if (!map.has('Untagged')) map.set('Untagged', []);
+        map.get('Untagged')!.push(book);
+      } else {
+        for (const tag of tags) {
+          if (!map.has(tag.name)) map.set(tag.name, []);
+          map.get(tag.name)!.push(book);
+        }
+      }
+    }
+    const sorted = [...map.keys()].filter(g => g !== 'Untagged').sort();
+    if (map.has('Untagged')) sorted.push('Untagged');
+    this._genreGroups = sorted.map(genre => ({
+      genre,
+      books: [...map.get(genre)!].sort((a, b) => a.title.localeCompare(b.title)),
+      collapsed: true,
+    }));
   }
 
   get totalPages(): number { return Math.ceil(this.total / this.PAGE_SIZE); }
@@ -209,6 +241,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
         if (idx !== -1) {
           this.books[idx] = result;
           this.buildAuthorGroups();
+          this.buildGenreGroups();
         }
       }
     });

@@ -104,9 +104,7 @@
           <mat-card-content>
             <div class="rec-header">
               <p class="rec-title">{{ s.name }}</p>
-              <button class="dismiss-btn" (click)="dismissSuggestion(s.name)" matTooltip="Remove">
-                <mat-icon>close</mat-icon>
-              </button>
+              <button class="dismiss-btn" (click)="dismissSuggestion(s.name)" matTooltip="Remove">&#x2715;</button>
             </div>
             <p class="rec-author">{{ s.known_for }}</p>
             <p class="rec-reason">{{ s.reason }}</p>
