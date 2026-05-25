@@ -487,16 +487,12 @@ router.put('/:id', validate(bookUpdateSchema), asyncHandler(async (req, res) => 
 
   // If a new external cover URL was saved, upload it to R2 in the background
   const savedBook = rows[0] as { id: number; cover_url: string | null };
-  console.log(`[cover] PUT book ${savedBook.id}: cover_url=${cover_url ?? 'null'}, R2_PUBLIC_URL=${process.env['R2_PUBLIC_URL'] ?? 'not set'}`);
   if (cover_url && !cover_url.startsWith(process.env['R2_PUBLIC_URL'] ?? '\x00')) {
-    console.log(`[cover] scheduling R2 upload for book ${savedBook.id}`);
     setImmediate(() => {
       downloadAndStoreCover(savedBook.id, cover_url).catch(err =>
         console.error(`[cover] upload failed for book ${savedBook.id}:`, err),
       );
     });
-  } else {
-    console.log(`[cover] skipping upload: cover_url is null/empty or already R2`);
   }
 }));
 

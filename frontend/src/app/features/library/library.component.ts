@@ -193,26 +193,30 @@ export class LibraryComponent implements OnInit, OnDestroy {
   toggleGenreGroup(group: GenreGroup):   void { group.collapsed = !group.collapsed; }
 
   private buildGenreGroups(): void {
-    const map = new Map<string, BookWithDetails[]>();
+    const map = new Map<string, { display: string; books: BookWithDetails[] }>();
     for (const book of this.books) {
       const tags = book.tags;
       if (!tags.length) {
-        if (!map.has('Untagged')) map.set('Untagged', []);
-        map.get('Untagged')!.push(book);
+        if (!map.has('__untagged__')) map.set('__untagged__', { display: 'Untagged', books: [] });
+        map.get('__untagged__')!.books.push(book);
       } else {
         for (const tag of tags) {
-          if (!map.has(tag.name)) map.set(tag.name, []);
-          map.get(tag.name)!.push(book);
+          const key = tag.name.trim().toLowerCase();
+          if (!map.has(key)) map.set(key, { display: tag.name.trim(), books: [] });
+          map.get(key)!.books.push(book);
         }
       }
     }
-    const sorted = [...map.keys()].filter(g => g !== 'Untagged').sort();
-    if (map.has('Untagged')) sorted.push('Untagged');
-    this._genreGroups = sorted.map(genre => ({
-      genre,
-      books: [...map.get(genre)!].sort((a, b) => a.title.localeCompare(b.title)),
-      collapsed: true,
-    }));
+    const sorted = [...map.keys()].filter(k => k !== '__untagged__').sort();
+    if (map.has('__untagged__')) sorted.push('__untagged__');
+    this._genreGroups = sorted.map(key => {
+      const { display, books } = map.get(key)!;
+      return {
+        genre: display,
+        books: [...books].sort((a, b) => a.title.localeCompare(b.title)),
+        collapsed: true,
+      };
+    });
   }
 
   get totalPages(): number { return Math.ceil(this.total / this.PAGE_SIZE); }

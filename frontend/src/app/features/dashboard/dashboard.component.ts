@@ -146,12 +146,17 @@ export class DashboardComponent implements OnInit {
     .filter(s => s.statusLabel !== 'Complete')
     .slice(0, 10);
 
-    const tagMap: Record<string, number> = {};
-    books.forEach(b => b.tags.forEach(t => { tagMap[t.name] = (tagMap[t.name] ?? 0) + 1; }));
-    const sorted = Object.entries(tagMap).sort((a, b) => b[1] - a[1]);
-    const max = sorted[0]?.[1] ?? 1;
-    this.genreBars = sorted.map(([label, count]) => ({
-      label, count, pct: Math.round((count / max) * 100),
+    const tagMap = new Map<string, { display: string; count: number }>();
+    books.forEach(b => b.tags.forEach(t => {
+      const key = t.name.trim().toLowerCase();
+      const entry = tagMap.get(key);
+      if (entry) entry.count++;
+      else tagMap.set(key, { display: t.name.trim(), count: 1 });
+    }));
+    const sorted = [...tagMap.values()].sort((a, b) => b.count - a.count);
+    const max = sorted[0]?.count ?? 1;
+    this.genreBars = sorted.map(({ display, count }) => ({
+      label: display, count, pct: Math.round((count / max) * 100),
     }));
   }
 
