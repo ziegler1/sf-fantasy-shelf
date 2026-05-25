@@ -148,7 +148,7 @@ export class DashboardComponent implements OnInit {
 
     const tagMap: Record<string, number> = {};
     books.forEach(b => b.tags.forEach(t => { tagMap[t.name] = (tagMap[t.name] ?? 0) + 1; }));
-    const sorted = Object.entries(tagMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const sorted = Object.entries(tagMap).sort((a, b) => b[1] - a[1]);
     const max = sorted[0]?.[1] ?? 1;
     this.genreBars = sorted.map(([label, count]) => ({
       label, count, pct: Math.round((count / max) * 100),
