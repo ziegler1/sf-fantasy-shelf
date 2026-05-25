@@ -1,7 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#0f172a"/>
-  <path d="M9 7h5.5v18H9a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="#60a5fa"/>
-  <path d="M23 7h-5.5v18H23a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z" fill="#60a5fa" opacity="0.65"/>
-  <rect x="13.5" y="7" width="2" height="18" fill="#0f172a" opacity="0.6"/>
-  <rect x="15.5" y="7" width="1" height="18" fill="#60a5fa" opacity="0.3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="90" fill="#161230"/>
+  <g transform="translate(8, 4) scale(1.08)">
+    <path d="M 148,108 C 140,90 128,72 110,62 C 92,52 72,54 62,68 C 50,84 56,106 72,118 C 88,130 112,128 124,114 C 136,100 130,80 114,72 C 100,65 84,70 80,84 C 76,96 84,110 96,112 C 120,106 155,98 185,96 C 230,92 268,90 298,88 C 316,87 330,88 338,96" fill="none" stroke="#CECBF6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 338,96 C 350,101 356,114 348,124 C 342,132 330,134 322,126 C 310,114 326,126 326,126" fill="none" stroke="#CECBF6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 326,126 C 290,168 230,230 170,290 C 148,312 126,330 104,344" fill="none" stroke="#EEEDFE" stroke-width="34" stroke-linecap="round"/>
+    <path d="M 62,244 C 92,234 138,228 182,230 C 224,232 264,238 296,235 C 314,234 328,228 334,218" fill="none" stroke="#CECBF6" stroke-width="6" stroke-linecap="round"/>
+    <ellipse cx="56" cy="245" rx="7" ry="9" fill="#CECBF6" opacity="0.8" transform="rotate(-12 56 245)"/>
+    <path d="M 104,344 C 82,354 58,352 50,336 C 40,318 52,298 70,294 C 88,290 106,302 104,318 C 103,330 94,338 84,334" fill="none" stroke="#CECBF6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+    <path d="M 104,344 C 142,336 192,332 242,332 C 276,332 308,337 328,346 C 342,352 350,364 344,374" fill="none" stroke="#CECBF6" stroke-width="8" stroke-linecap="round"/>
+    <path d="M 344,374 C 352,388 348,406 332,414 C 314,422 292,410 292,394 C 292,378 310,366 324,372 C 334,377 336,390 328,396 C 320,402 308,398 308,390 C 300,398 294,412 300,424 C 306,436 322,434 330,424 C 338,414 334,400 324,398" fill="none" stroke="#CECBF6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+    <path d="M 344,374 C 362,368 382,366 394,372 C 408,380 410,396 396,406 C 382,416 364,408 364,396" fill="none" stroke="#CECBF6" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
+  </g>
 </svg>
