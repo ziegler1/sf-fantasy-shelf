@@ -22,6 +22,8 @@ export interface BookSearchResult {
 export interface ImportBookBody extends Omit<BookSearchResult, 'google_id'> {
   google_id?: string;
   status?: ReadingStatus;
+  tags?: string[];
+  rating?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })

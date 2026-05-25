@@ -34,11 +34,15 @@ export class AddBookComponent implements OnInit, OnDestroy {
   searchError = false;
   selected: BookSearchResult | null = null;
   status: ReadingStatus = 'want-to-read';
+  tags = '';
+  rating: 0 | 1 | 2 | 3 | 4 | 5 = 0;
   seriesName = '';
   seriesPosition: number | null = null;
   detectingSeries = false;
   saving = false;
   error: string | null = null;
+
+  readonly ratingStars = [1, 2, 3, 4, 5] as const;
 
   manualForm = { title: '', authors: '', year: '', page_count: '', isbn13: '', description: '', cover_url: '' };
 
@@ -96,10 +100,16 @@ export class AddBookComponent implements OnInit, OnDestroy {
     this.search$.next(q);
   }
 
+  setRating(star: number): void {
+    this.rating = (this.rating === star ? 0 : star) as 0 | 1 | 2 | 3 | 4 | 5;
+  }
+
   pick(book: BookSearchResult): void {
     this.selected = book;
     this.seriesName = book.series_name ?? '';
     this.seriesPosition = book.series_position ?? null;
+    this.tags = '';
+    this.rating = 0;
     this.step = 'confirm';
     this.error = null;
 
@@ -139,6 +149,8 @@ export class AddBookComponent implements OnInit, OnDestroy {
       status:          this.status,
       series_name:     this.seriesName.trim() || null,
       series_position: this.seriesPosition || null,
+      tags:            this.tags.split(',').map(t => t.trim()).filter(Boolean),
+      rating:          this.rating || null,
     };
 
     this.searchService.importBook(importBody).subscribe({
@@ -165,6 +177,8 @@ export class AddBookComponent implements OnInit, OnDestroy {
     this.seriesName = '';
     this.seriesPosition = null;
     this.status = 'want-to-read';
+    this.tags = '';
+    this.rating = 0;
     this.error = null;
     this.step = 'manual';
   }
@@ -188,6 +202,8 @@ export class AddBookComponent implements OnInit, OnDestroy {
       series_position: this.seriesPosition || null,
       status: this.status,
       categories: [],
+      tags: this.tags.split(',').map(t => t.trim()).filter(Boolean),
+      rating: this.rating || null,
     };
     this.searchService.importBook(body).subscribe({
       next: (book: BookWithDetails) => {

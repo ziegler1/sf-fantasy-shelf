@@ -24,6 +24,8 @@ const importSchema = z.object({
   series_position: z.number().nullable().optional(),
   google_id:       nullableStr(100),
   categories:      z.array(z.string()).optional().default([]),
+  tags:            z.array(z.string()).optional().default([]),
+  rating:          z.number().min(1).max(5).nullable().optional(),
 });
 
 const bookCreateSchema = z.object({
@@ -154,7 +156,7 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
   const {
     title, authors: authorNames, cover_url, published_at,
     page_count, isbn, isbn13, description, language,
-    status, series_name, series_position, google_id, categories,
+    status, series_name, series_position, google_id, categories, tags, rating,
   } = req.body as z.infer<typeof importSchema>;
 
   const client = await pool.connect();
@@ -194,10 +196,23 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
         }
 
         await client.query(
-          `INSERT INTO user_books (user_id, book_id, status) VALUES ($1,$2,$3)
-           ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, updated_at = NOW()`,
-          [req.userId, existingId, status || 'want-to-read'],
+          `INSERT INTO user_books (user_id, book_id, status, rating) VALUES ($1,$2,$3,$4)
+           ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, rating = COALESCE(EXCLUDED.rating, user_books.rating), updated_at = NOW()`,
+          [req.userId, existingId, status || 'want-to-read', rating ?? null],
         );
+
+        for (const raw of tags) {
+          const name = raw.trim().slice(0, 100);
+          if (!name) continue;
+          const { rows: [tag] } = await client.query<{ id: number }>(
+            `INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
+            [name],
+          );
+          await client.query(
+            'INSERT INTO book_tags (book_id, tag_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+            [existingId, tag.id],
+          );
+        }
 
         await client.query('COMMIT');
 
@@ -302,11 +317,25 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
       );
     }
 
+    // Apply user-specified tags (in addition to categories from Google Books)
+    for (const raw of tags) {
+      const name = raw.trim().slice(0, 100);
+      if (!name) continue;
+      const { rows: [tag] } = await client.query<{ id: number }>(
+        `INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
+        [name],
+      );
+      await client.query(
+        'INSERT INTO book_tags (book_id, tag_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+        [book.id, tag.id],
+      );
+    }
+
     // Always add to the user's shelf — default want-to-read if no status chosen
     await client.query(
-      `INSERT INTO user_books (user_id, book_id, status) VALUES ($1, $2, $3)
-       ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, updated_at = NOW()`,
-      [req.userId, book.id, status || 'want-to-read'],
+      `INSERT INTO user_books (user_id, book_id, status, rating) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (user_id, book_id) DO UPDATE SET status = EXCLUDED.status, rating = COALESCE(EXCLUDED.rating, user_books.rating), updated_at = NOW()`,
+      [req.userId, book.id, status || 'want-to-read', rating ?? null],
     );
 
     await client.query('COMMIT');

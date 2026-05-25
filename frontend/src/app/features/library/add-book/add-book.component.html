@@ -136,6 +136,25 @@
       </mat-select>
     </mat-form-field>
 
+    <div class="rating-row">
+      <span class="rating-label">Rating</span>
+      <span class="stars">
+        @for (star of ratingStars; track star) {
+          <mat-icon class="star-icon" [class.star-filled]="rating >= star" (click)="setRating(star)">
+            {{ rating >= star ? 'star' : 'star_border' }}
+          </mat-icon>
+        }
+      </span>
+      @if (rating) { <span class="rating-value">{{ rating }}/5</span> }
+    </div>
+
+    <mat-form-field appearance="outline" class="full-field">
+      <mat-label>Tags</mat-label>
+      <input matInput [(ngModel)]="tags" placeholder="e.g. fantasy, magic, epic">
+      <mat-icon matSuffix>label</mat-icon>
+      <mat-hint>Separate tags with commas</mat-hint>
+    </mat-form-field>
+
     @if (error) {
       <p class="error-msg">{{ error }}</p>
     }
@@ -217,6 +236,25 @@
           <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
         }
       </mat-select>
+    </mat-form-field>
+
+    <div class="rating-row">
+      <span class="rating-label">Rating</span>
+      <span class="stars">
+        @for (star of ratingStars; track star) {
+          <mat-icon class="star-icon" [class.star-filled]="rating >= star" (click)="setRating(star)">
+            {{ rating >= star ? 'star' : 'star_border' }}
+          </mat-icon>
+        }
+      </span>
+      @if (rating) { <span class="rating-value">{{ rating }}/5</span> }
+    </div>
+
+    <mat-form-field appearance="outline" class="full-field">
+      <mat-label>Tags</mat-label>
+      <input matInput [(ngModel)]="tags" placeholder="e.g. fantasy, magic, epic">
+      <mat-icon matSuffix>label</mat-icon>
+      <mat-hint>Separate tags with commas</mat-hint>
     </mat-form-field>
 
     @if (error) {
@@ -558,5 +596,46 @@
   color: var(--accent) !important;
   border-color: var(--accent-border) !important;
   font-size: 0.82rem;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.rating-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.stars {
+  display: flex;
+  gap: 0.1rem;
+}
+
+.star-icon {
+  font-size: 1.4rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--text-disabled);
+  cursor: pointer;
+  transition: color 0.1s, transform 0.1s;
+}
+
+.star-icon:hover,
+.star-icon.star-filled {
+  color: #facc15;
+}
+
+.star-icon:hover {
+  transform: scale(1.15);
+}
+
+.rating-value {
+  font-size: 0.75rem;
+  color: var(--text-faint);
 }
 </style>
