@@ -295,12 +295,24 @@
 <style>
 .add-book-dialog {
   width: min(520px, 90vw);
+  max-height: 90vh;
   background: var(--bg-surface);
   color: var(--text-primary);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 480px) {
+  .add-book-dialog {
+    width: 100vw;
+    max-height: 92vh;
+    padding: 1rem 0.9rem;
+    border-radius: 0;
+  }
 }
 
 .dialog-title {
@@ -536,6 +548,14 @@
   color: var(--text-muted);
   line-height: 1.55;
   margin: 0 0 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (min-width: 481px) {
+  .confirm-description { -webkit-line-clamp: 6; }
 }
 
 .series-row {
@@ -629,6 +649,12 @@
   gap: 0.5rem;
   align-items: center;
   flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-surface);
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+  z-index: 1;
 }
 
 .track-btn {
