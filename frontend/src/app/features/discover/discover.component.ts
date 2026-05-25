@@ -49,6 +49,16 @@ export class DiscoverComponent implements OnInit {
   suggestionsError = false;
   suggestionsAuthorName = '';
 
+  // Swipe-to-dismiss state for suggestion cards
+  readonly swipeX      = new Map<string, number>();
+  readonly swipingIds  = new Set<string>();
+  readonly flyingOut   = new Set<string>();
+  private readonly swipeMoved    = new Set<string>();
+  private readonly pointerStates = new Map<number, {
+    name: string; startX: number; startY: number; locked: boolean;
+  }>();
+  private static readonly SWIPE_THRESHOLD = 80;
+
   constructor(
     private claude: ClaudeService,
     private authorService: AuthorService,
@@ -99,8 +109,76 @@ export class DiscoverComponent implements OnInit {
     });
   }
 
+  // Deduplicate authors by normalising spacing around initials ("C. S." → "C.S.")
+  get deduplicatedAuthors(): Author[] {
+    const seen = new Map<string, Author>();
+    for (const a of this.authors) {
+      const key = a.name.replace(/\.\s+(?=[A-Za-z])/g, '.').toLowerCase().trim();
+      if (!seen.has(key)) seen.set(key, a);
+    }
+    return [...seen.values()];
+  }
+
+  removeAuthor(id: number, event: Event): void {
+    event.stopPropagation();
+    this.authorService.deleteAuthor(id).subscribe({
+      next: () => {
+        this.authors = this.authors.filter(a => a.id !== id);
+        if (this.selectedAuthorId === id) this.selectedAuthorId = null;
+      },
+    });
+  }
+
   dismissSuggestion(name: string): void {
     this.suggestions = this.suggestions.filter(s => s.name !== name);
+    this.flyingOut.delete(name);
+    this.swipeMoved.delete(name);
+  }
+
+  onSwipeStart(name: string, event: PointerEvent): void {
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    this.pointerStates.set(event.pointerId, {
+      name, startX: event.clientX, startY: event.clientY, locked: false,
+    });
+  }
+
+  onSwipeMove(name: string, event: PointerEvent): void {
+    const state = this.pointerStates.get(event.pointerId);
+    if (!state) return;
+    const dx = event.clientX - state.startX;
+    const dy = event.clientY - state.startY;
+    if (!state.locked) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      if (Math.abs(dy) > Math.abs(dx)) { this.pointerStates.delete(event.pointerId); return; }
+      state.locked = true;
+      this.swipingIds.add(name);
+    }
+    event.preventDefault();
+    this.swipeX.set(name, Math.min(0, dx));
+  }
+
+  onSwipeEnd(name: string, event: PointerEvent): void {
+    const state = this.pointerStates.get(event.pointerId);
+    this.pointerStates.delete(event.pointerId);
+    this.swipingIds.delete(name);
+    if (!state?.locked) return;
+    const dx = event.clientX - state.startX;
+    this.swipeMoved.add(name);
+    if (dx < -DiscoverComponent.SWIPE_THRESHOLD) {
+      this.flyingOut.add(name);
+      this.swipeX.delete(name);
+      setTimeout(() => this.dismissSuggestion(name), 300);
+    } else {
+      this.swipeX.set(name, 0);
+      setTimeout(() => { this.swipeX.delete(name); this.swipeMoved.delete(name); }, 250);
+    }
+  }
+
+  onSwipeCancel(name: string, event: PointerEvent): void {
+    this.pointerStates.delete(event.pointerId);
+    this.swipingIds.delete(name);
+    this.swipeX.set(name, 0);
+    setTimeout(() => this.swipeX.delete(name), 250);
   }
 
   loadSimilarAuthors(): void {

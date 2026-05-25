@@ -70,8 +70,17 @@
     <mat-form-field appearance="outline" class="author-field">
       <mat-label>Select an author from your library</mat-label>
       <mat-select [(ngModel)]="selectedAuthorId">
-        @for (author of authors; track author.id) {
-          <mat-option [value]="author.id">{{ author.name }}</mat-option>
+        @for (author of deduplicatedAuthors; track author.id) {
+          <mat-option [value]="author.id">
+            <span class="author-option">
+              <span>{{ author.name }}</span>
+              <span class="author-remove-btn" role="button"
+                    (click)="removeAuthor(author.id, $event)"
+                    matTooltip="Remove from list">
+                <mat-icon>close</mat-icon>
+              </span>
+            </span>
+          </mat-option>
         }
       </mat-select>
     </mat-form-field>
@@ -100,19 +109,29 @@
     <p class="results-label">Authors similar to <strong>{{ suggestionsAuthorName }}</strong></p>
     <div class="rec-grid">
       @for (s of suggestions; track s.name) {
-        <mat-card class="rec-card">
-          <mat-card-content>
-            <div class="rec-header">
-              <p class="rec-title">{{ s.name }}</p>
-              <span class="dismiss-btn" role="button" tabindex="0"
-                    (click)="dismissSuggestion(s.name)"
-                    (keydown.enter)="dismissSuggestion(s.name)"
-                    matTooltip="Remove">✕</span>
-            </div>
-            <p class="rec-author">{{ s.known_for }}</p>
-            <p class="rec-reason">{{ s.reason }}</p>
-          </mat-card-content>
-        </mat-card>
+        <div class="suggestion-wrap">
+          <div class="swipe-hint"><mat-icon>delete_sweep</mat-icon></div>
+          <mat-card class="rec-card"
+            [class.is-swiping]="swipingIds.has(s.name)"
+            [class.flying-out]="flyingOut.has(s.name)"
+            [style.transform]="swipeX.has(s.name) ? 'translateX(' + swipeX.get(s.name) + 'px)' : null"
+            (pointerdown)="onSwipeStart(s.name, $event)"
+            (pointermove)="onSwipeMove(s.name, $event)"
+            (pointerup)="onSwipeEnd(s.name, $event)"
+            (pointercancel)="onSwipeCancel(s.name, $event)">
+            <mat-card-content>
+              <div class="rec-header">
+                <p class="rec-title">{{ s.name }}</p>
+                <span class="dismiss-btn" role="button" tabindex="0"
+                      (click)="dismissSuggestion(s.name)"
+                      (keydown.enter)="dismissSuggestion(s.name)"
+                      matTooltip="Remove">✕</span>
+              </div>
+              <p class="rec-author">{{ s.known_for }}</p>
+              <p class="rec-reason">{{ s.reason }}</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
       }
     </div>
   }
