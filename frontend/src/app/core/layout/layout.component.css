@@ -4,7 +4,7 @@
 
 /* ── Sidenav ───────────────────────────────────────────────── */
 .sidenav {
-  width: 256px;
+  width: 300px;
   background: rgba(30, 41, 59, 0.88) !important;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -26,7 +26,8 @@
 }
 
 .brand-logo {
-  width: 205px;
+  width: calc(100% - 16px);
+  max-width: 275px;
   height: auto;
   display: block;
 }

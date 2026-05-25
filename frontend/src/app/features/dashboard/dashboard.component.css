@@ -47,6 +47,11 @@
   gap: 0.3rem;
 }
 
+:host-context(body.light-theme) .stat-card {
+  background: #ffffff;
+  border-color: var(--border);
+}
+
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
@@ -76,6 +81,11 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1.25rem;
+}
+
+:host-context(body.light-theme) .panel {
+  background: #ffffff;
+  border-color: var(--border);
 }
 
 .panel-header {
@@ -177,6 +187,8 @@
 }
 
 .clickable:hover { background: rgba(255,255,255,0.04); }
+
+:host-context(body.light-theme) .clickable:hover { background: rgba(0,0,0,0.04); }
 
 /* ── Now Reading ─────────────────────────────────────────── */
 .now-row {
