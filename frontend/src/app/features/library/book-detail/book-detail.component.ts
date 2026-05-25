@@ -29,6 +29,7 @@ import type { AuthorWithBooks, Book, BookWithDetails, ReadingStatus, SeriesBook,
   templateUrl: './book-detail.component.html',
 })
 export class BookDetailComponent implements OnInit {
+  book!: BookWithDetails;
   authorDetails: AuthorWithBooks[] = [];
   seriesData: SeriesWithBooks | null = null;
   seriesExpanded = false;
@@ -64,15 +65,20 @@ export class BookDetailComponent implements OnInit {
     'reading': 'Reading', 'want-to-read': 'Want to Read', 'read': 'Read', 'dnf': 'DNF',
   };
 
+  depth = 0;
+
   constructor(
-    @Inject(MAT_DIALOG_DATA) public book: BookWithDetails,
+    @Inject(MAT_DIALOG_DATA) data: BookWithDetails & { _depth?: number },
     private dialogRef: MatDialogRef<BookDetailComponent>,
     private authorService: AuthorService,
     private claude: ClaudeService,
     private bookService: BookService,
     private seriesService: SeriesService,
     private dialog: MatDialog,
-  ) {}
+  ) {
+    this.book  = data;
+    this.depth = data._depth ?? 0;
+  }
 
   ngOnInit(): void {
     // Pre-load author details for "other books" section
@@ -252,9 +258,10 @@ export class BookDetailComponent implements OnInit {
     this.bookService.getBook(sb.id).subscribe({
       next: fullBook => {
         this.siblingLoading.delete(sb.id);
+        const nextDepth = Math.min(this.depth + 1, 4);
         const ref = this.dialog.open(BookDetailComponent, {
-          data: fullBook,
-          panelClass: 'book-detail-panel',
+          data: { ...fullBook, _depth: nextDepth },
+          panelClass: ['book-detail-panel', `book-detail-depth-${nextDepth}`],
           maxWidth: '100vw',
         });
         ref.afterClosed().subscribe((result: BookWithDetails | { deleted: true; id: number } | undefined) => {
