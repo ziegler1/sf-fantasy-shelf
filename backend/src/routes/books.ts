@@ -484,6 +484,16 @@ router.put('/:id', validate(bookUpdateSchema), asyncHandler(async (req, res) => 
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   res.json(rows[0]);
+
+  // If a new external cover URL was saved, upload it to R2 in the background
+  const savedBook = rows[0] as { id: number; cover_url: string | null };
+  if (cover_url && !cover_url.startsWith(process.env['R2_PUBLIC_URL'] ?? '\x00')) {
+    setImmediate(() => {
+      downloadAndStoreCover(savedBook.id, cover_url).catch(err =>
+        console.error(`Cover upload failed for book ${savedBook.id}:`, err),
+      );
+    });
+  }
 }));
 
 // ── DELETE /api/books/:id ─────────────────────────────────────────────────────
