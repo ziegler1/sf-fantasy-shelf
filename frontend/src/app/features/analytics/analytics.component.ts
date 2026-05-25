@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { BookService } from '../../core/services/book.service';
 import { SeriesService } from '../../core/services/series.service';
 import type { BookWithDetails } from '../../types/schema.types';
@@ -47,7 +48,7 @@ export class AnalyticsComponent implements OnInit {
 
   ngOnInit(): void {
     forkJoin({
-      booksResp: this.bookService.getBooks({ limit: 1000 }),
+      booksResp: this.bookService.getAllBooks().pipe(map(books => ({ books }))),
       series:    this.seriesService.getSeries(),
     }).subscribe({
       next: ({ booksResp: { books }, series }) => {

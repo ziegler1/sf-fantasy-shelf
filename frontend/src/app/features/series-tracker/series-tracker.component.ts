@@ -12,6 +12,7 @@ import { BookDetailComponent } from '../library/book-detail/book-detail.componen
 import { AddBookComponent } from '../library/add-book/add-book.component';
 import type { SeriesWithBooks, BookWithDetails, ReadingStatus } from '../../types/schema.types';
 import { forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 
 interface EnrichedSeries extends SeriesWithBooks {
@@ -55,9 +56,9 @@ export class SeriesTrackerComponent implements OnInit {
   ngOnInit(): void {
     forkJoin({
       series: this.seriesService.getSeries(),
-      books:  this.bookService.getBooks({ limit: 200 }),
+      books:  this.bookService.getAllBooks(),
     }).subscribe({
-      next: ({ series, books: { books } }) => {
+      next: ({ series, books }) => {
         this.bookMap = new Map(books.map(b => [b.id, b]));
 
         const readSet = new Set(
@@ -203,9 +204,9 @@ export class SeriesTrackerComponent implements OnInit {
   private reloadSeries(seriesId: number): void {
     forkJoin({
       series: this.seriesService.getSeriesById(seriesId),
-      books:  this.bookService.getBooks({ limit: 1000 }),
+      books:  this.bookService.getAllBooks(),
     }).subscribe({
-      next: ({ series, books: { books } }) => {
+      next: ({ series, books }) => {
         books.forEach(b => this.bookMap.set(b.id, b));
         const readSet = new Set(
           books.filter(b => b.user_book?.status === 'read').map(b => b.id),
