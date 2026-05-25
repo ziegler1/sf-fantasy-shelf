@@ -260,7 +260,7 @@
 
   }
 
-  @if (totalPages > 1) {
+  @if (totalPages > 1 && viewMode !== 'genre' && viewMode !== 'author') {
     <div class="pagination-row">
       <button mat-icon-button [disabled]="page === 0" (click)="prevPage()" matTooltip="Previous page">
         <mat-icon>chevron_left</mat-icon>

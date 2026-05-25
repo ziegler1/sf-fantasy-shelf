@@ -84,11 +84,11 @@ export class DashboardComponent implements OnInit {
 
   private loadData(): void {
     forkJoin({
-      booksResp: this.bookService.getBooks({ limit: 1000 }),
-      series:    this.seriesService.getSeries(),
-      upcoming:  this.upcomingService.getAll(),
+      books:    this.bookService.getAllBooks(),
+      series:   this.seriesService.getSeries(),
+      upcoming: this.upcomingService.getAll(),
     }).subscribe({
-      next: ({ booksResp: { books }, series, upcoming }) => {
+      next: ({ books, series, upcoming }) => {
         this.compute(books, series);
         const now = new Date().toISOString().slice(0, 10);
         this.upcomingReleases = upcoming
