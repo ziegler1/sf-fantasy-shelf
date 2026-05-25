@@ -4,21 +4,31 @@ import { uploadCover } from './r2';
 // Downloads a cover URL and uploads it to R2. Returns the R2 URL, or null if
 // R2 is not configured or the download fails.
 export async function fetchAndUploadCover(coverUrl: string, force = false): Promise<string | null> {
-  if (!process.env['R2_ACCOUNT_ID'] || !process.env['R2_ACCESS_KEY_ID'] || !process.env['R2_PUBLIC_URL']) return null;
+  if (!process.env['R2_ACCOUNT_ID'] || !process.env['R2_ACCESS_KEY_ID'] || !process.env['R2_PUBLIC_URL']) {
+    console.warn('[cover] R2 env vars not configured — skipping upload');
+    return null;
+  }
   if (!force && coverUrl.startsWith(process.env['R2_PUBLIC_URL'])) return coverUrl;
 
   try {
     const response = await fetch(coverUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SFFantasyShelf/1.0)' },
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`[cover] fetch failed: HTTP ${response.status} for ${coverUrl}`);
+      return null;
+    }
     const buffer = Buffer.from(await response.arrayBuffer());
-    // Reject placeholder images (Google's "no cover" stub is ~1.5 KB)
-    if (buffer.length < 3000) return null;
+    if (buffer.length < 3000) {
+      console.warn(`[cover] image too small (${buffer.length} bytes), skipping: ${coverUrl}`);
+      return null;
+    }
     const contentType = response.headers.get('content-type') ?? 'image/jpeg';
     const { url } = await uploadCover(buffer, 'cover.jpg', contentType);
+    console.log(`[cover] uploaded to R2: ${url}`);
     return url;
-  } catch {
+  } catch (err) {
+    console.error(`[cover] upload error for ${coverUrl}:`, err);
     return null;
   }
 }
