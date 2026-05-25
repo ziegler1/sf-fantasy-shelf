@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import type { Author, AuthorRole, Book, BookWithDetails, Tag, UserBook, ReadingStatus } from '../../types/schema.types';
 
 type CreateBookBody = Partial<Book> & {
@@ -24,6 +25,14 @@ export class BookService {
     if (filters?.limit  != null) params = params.set('limit',  String(filters.limit));
     if (filters?.offset != null) params = params.set('offset', String(filters.offset));
     return this.http.get<{ books: BookWithDetails[]; total: number }>(this.base, { params });
+  }
+
+  getAllBooks(filters?: { status?: ReadingStatus; search?: string }): Observable<BookWithDetails[]> {
+    let params = new HttpParams().set('limit', 'all');
+    if (filters?.status) params = params.set('status', filters.status);
+    if (filters?.search) params = params.set('search', filters.search);
+    return this.http.get<{ books: BookWithDetails[]; total: number }>(this.base, { params })
+      .pipe(map(r => r.books));
   }
 
   getBook(id: number): Observable<BookWithDetails> {

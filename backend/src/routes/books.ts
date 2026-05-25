@@ -379,7 +379,9 @@ router.get('/', asyncHandler(async (req, res) => {
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  const limit  = Math.min(Math.max(parseInt(String(req.query['limit']  || '50'),  10), 1), 200);
+  const limit  = req.query['limit'] === 'all'
+    ? undefined
+    : Math.min(Math.max(parseInt(String(req.query['limit'] || '50'), 10), 1), 200);
   const offset = Math.max(parseInt(String(req.query['offset'] || '0'), 10), 0);
 
   const [booksResult, countResult] = await Promise.all([

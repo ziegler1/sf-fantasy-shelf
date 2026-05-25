@@ -49,6 +49,7 @@ interface GenreGroup {
 })
 export class LibraryComponent implements OnInit, OnDestroy {
   books: BookWithDetails[] = [];
+  private allBooks: BookWithDetails[] = [];  // unpaginated, used for genre/author grouping
   loading = true;
   activeStatus: ReadingStatus | '' = '';
   searchQuery = '';
@@ -130,22 +131,27 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   load(): void {
     this.loading = true;
-    const filters: { status?: ReadingStatus; search?: string; limit: number; offset: number } = {
-      limit: this.PAGE_SIZE,
-      offset: this.page * this.PAGE_SIZE,
+    const groupFilters = {
+      status:  this.activeStatus  ? this.activeStatus as ReadingStatus : undefined,
+      search:  this.searchQuery.trim() || undefined,
     };
-    if (this.activeStatus) filters.status = this.activeStatus as ReadingStatus;
-    if (this.searchQuery.trim()) filters.search = this.searchQuery.trim();
+    const pageFilters = { ...groupFilters, limit: this.PAGE_SIZE, offset: this.page * this.PAGE_SIZE };
 
-    this.bookService.getBooks(filters).subscribe({
+    this.bookService.getBooks(pageFilters).subscribe({
       next: ({ books, total }) => {
         this.books = books;
         this.total = total;
         this.loading = false;
+      },
+      error: () => { this.loading = false; },
+    });
+
+    this.bookService.getAllBooks(groupFilters).subscribe({
+      next: books => {
+        this.allBooks = books;
         this.buildAuthorGroups();
         this.buildGenreGroups();
       },
-      error: () => { this.loading = false; },
     });
   }
 
@@ -156,7 +162,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   private buildAuthorGroups(): void {
     const map = new Map<string, BookWithDetails[]>();
-    for (const book of this.books) {
+    for (const book of this.allBooks) {
       const raw = book.authors[0]?.name ?? 'Unknown Author';
       const key = this.normalizeAuthor(raw);
       if (!map.has(key)) map.set(key, []);
@@ -194,7 +200,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   private buildGenreGroups(): void {
     const map = new Map<string, { display: string; books: BookWithDetails[] }>();
-    for (const book of this.books) {
+    for (const book of this.allBooks) {
       const tags = book.tags;
       if (!tags.length) {
         if (!map.has('__untagged__')) map.set('__untagged__', { display: 'Untagged', books: [] });
@@ -238,15 +244,17 @@ export class LibraryComponent implements OnInit, OnDestroy {
     ref.afterClosed().subscribe((result: BookWithDetails | { deleted: true; id: number } | undefined) => {
       if (!result) return;
       if ('deleted' in result) {
-        this.books = this.books.filter(b => b.id !== result.id);
+        this.books    = this.books.filter(b => b.id !== result.id);
+        this.allBooks = this.allBooks.filter(b => b.id !== result.id);
         this.buildAuthorGroups();
+        this.buildGenreGroups();
       } else {
-        const idx = this.books.findIndex(b => b.id === result.id);
-        if (idx !== -1) {
-          this.books[idx] = result;
-          this.buildAuthorGroups();
-          this.buildGenreGroups();
-        }
+        const idx    = this.books.findIndex(b => b.id === result.id);
+        const allIdx = this.allBooks.findIndex(b => b.id === result.id);
+        if (idx    !== -1) this.books[idx]       = result;
+        if (allIdx !== -1) this.allBooks[allIdx] = result;
+        this.buildAuthorGroups();
+        this.buildGenreGroups();
       }
     });
   }
