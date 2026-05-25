@@ -67,44 +67,58 @@ interface RefreshResult { source: string; added: number; error?: string }
     } @else {
       <div class="articles-grid">
         @for (a of filtered; track a.id) {
-          <a class="article-card" [href]="a.url" target="_blank" rel="noopener noreferrer">
-            <div class="article-image">
-              @if (a.image_url && !imgErrors.has(a.id)) {
-                <img [src]="a.image_url" [alt]="a.title"
-                     (error)="imgErrors.add(a.id)" loading="lazy">
-              } @else {
-                <div class="img-placeholder">
-                  <mat-icon>article</mat-icon>
-                </div>
-              }
+          <div class="article-wrap">
+            <div class="swipe-hint">
+              <mat-icon>delete_sweep</mat-icon>
             </div>
-            <div class="article-body">
-              <div class="article-meta">
-                <span class="source-badge"
-                      [style.background]="sourceColor(a.source_name)">
-                  {{ a.source_name }}
-                </span>
-                <span class="article-date">
-                  {{ (a.published_at ?? a.created_at) | date:'MMM d' }}
-                </span>
+            <a class="article-card"
+               [class.is-swiping]="swipingIds.has(a.id)"
+               [class.flying-out]="flyingOut.has(a.id)"
+               [style.transform]="swipeX.has(a.id) ? 'translateX(' + swipeX.get(a.id) + 'px)' : null"
+               [href]="a.url" target="_blank" rel="noopener noreferrer"
+               (pointerdown)="onSwipeStart(a.id, $event)"
+               (pointermove)="onSwipeMove(a.id, $event)"
+               (pointerup)="onSwipeEnd(a.id, $event)"
+               (pointercancel)="onSwipeCancel(a.id, $event)"
+               (click)="onCardClick(a.id, $event)">
+              <div class="article-image">
+                @if (a.image_url && !imgErrors.has(a.id)) {
+                  <img [src]="a.image_url" [alt]="a.title"
+                       (error)="imgErrors.add(a.id)" loading="lazy">
+                } @else {
+                  <div class="img-placeholder">
+                    <mat-icon>article</mat-icon>
+                  </div>
+                }
               </div>
-              <p class="article-title">{{ a.title }}</p>
-              @if (a.description) {
-                <p class="article-desc">{{ a.description }}</p>
-              }
-            </div>
-            <mat-icon class="article-arrow">open_in_new</mat-icon>
-            <button class="article-delete"
-                    (click)="deleteArticle(a.id, $event)"
-                    [disabled]="deleting.has(a.id)"
-                    matTooltip="Dismiss article">
-              @if (deleting.has(a.id)) {
-                <mat-spinner diameter="12" />
-              } @else {
-                <mat-icon>close</mat-icon>
-              }
-            </button>
-          </a>
+              <div class="article-body">
+                <div class="article-meta">
+                  <span class="source-badge"
+                        [style.background]="sourceColor(a.source_name)">
+                    {{ a.source_name }}
+                  </span>
+                  <span class="article-date">
+                    {{ (a.published_at ?? a.created_at) | date:'MMM d' }}
+                  </span>
+                </div>
+                <p class="article-title">{{ a.title }}</p>
+                @if (a.description) {
+                  <p class="article-desc">{{ a.description }}</p>
+                }
+              </div>
+              <mat-icon class="article-arrow">open_in_new</mat-icon>
+              <button class="article-delete"
+                      (click)="deleteArticle(a.id, $event)"
+                      [disabled]="deleting.has(a.id)"
+                      matTooltip="Dismiss article">
+                @if (deleting.has(a.id)) {
+                  <mat-spinner diameter="12" />
+                } @else {
+                  <mat-icon>close</mat-icon>
+                }
+              </button>
+            </a>
+          </div>
         }
       </div>
     }
@@ -176,6 +190,30 @@ interface RefreshResult { source: string; added: number; error?: string }
       gap: 0.875rem;
     }
 
+    .article-wrap {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .swipe-hint {
+      position: absolute;
+      inset: 0;
+      background: var(--error, #ef4444);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 1.25rem;
+      border-radius: 10px;
+    }
+
+    .swipe-hint mat-icon {
+      color: #fff;
+      font-size: 1.75rem;
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+
     .article-card {
       display: flex;
       flex-direction: column;
@@ -185,11 +223,24 @@ interface RefreshResult { source: string; added: number; error?: string }
       overflow: hidden;
       text-decoration: none;
       color: inherit;
-      transition: border-color 0.15s, transform 0.15s;
+      transition: border-color 0.15s, transform 0.25s ease;
       position: relative;
+      z-index: 1;
+      touch-action: pan-y;
+      user-select: none;
     }
 
-    .article-card:hover {
+    .article-card.is-swiping {
+      transition: none;
+    }
+
+    .article-card.flying-out {
+      transform: translateX(-110%) !important;
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.2s ease !important;
+    }
+
+    .article-card:not(.is-swiping):hover {
       border-color: var(--accent-border-hover);
       transform: translateY(-2px);
     }
@@ -336,6 +387,16 @@ export class NewsComponent implements OnInit {
   readonly imgErrors  = new Set<number>();
   readonly deleting   = new Set<number>();
 
+  readonly swipeX      = new Map<number, number>();
+  readonly swipingIds  = new Set<number>();
+  readonly flyingOut   = new Set<number>();
+  private readonly swipeMoved    = new Set<number>();
+  private readonly pointerStates = new Map<number, {
+    articleId: number; startX: number; startY: number; locked: boolean;
+  }>();
+
+  private static readonly SWIPE_THRESHOLD = 80;
+
   constructor(private newsService: NewsService) {}
 
   ngOnInit(): void {
@@ -378,17 +439,85 @@ export class NewsComponent implements OnInit {
     });
   }
 
+  onSwipeStart(articleId: number, event: PointerEvent): void {
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    this.pointerStates.set(event.pointerId, {
+      articleId, startX: event.clientX, startY: event.clientY, locked: false,
+    });
+  }
+
+  onSwipeMove(articleId: number, event: PointerEvent): void {
+    const state = this.pointerStates.get(event.pointerId);
+    if (!state) return;
+    const dx = event.clientX - state.startX;
+    const dy = event.clientY - state.startY;
+    if (!state.locked) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        this.pointerStates.delete(event.pointerId);
+        return;
+      }
+      state.locked = true;
+      this.swipingIds.add(articleId);
+    }
+    event.preventDefault();
+    this.swipeX.set(articleId, Math.min(0, dx));
+  }
+
+  onSwipeEnd(articleId: number, event: PointerEvent): void {
+    const state = this.pointerStates.get(event.pointerId);
+    this.pointerStates.delete(event.pointerId);
+    this.swipingIds.delete(articleId);
+    if (!state?.locked) return;
+
+    const dx = event.clientX - state.startX;
+    this.swipeMoved.add(articleId);
+
+    if (dx < -NewsComponent.SWIPE_THRESHOLD) {
+      this.flyingOut.add(articleId);
+      this.swipeX.delete(articleId);
+      setTimeout(() => this.dismissArticle(articleId), 300);
+    } else {
+      this.swipeX.set(articleId, 0);
+      setTimeout(() => {
+        this.swipeX.delete(articleId);
+        this.swipeMoved.delete(articleId);
+      }, 250);
+    }
+  }
+
+  onSwipeCancel(articleId: number, event: PointerEvent): void {
+    this.pointerStates.delete(event.pointerId);
+    this.swipingIds.delete(articleId);
+    this.swipeX.set(articleId, 0);
+    setTimeout(() => this.swipeX.delete(articleId), 250);
+  }
+
+  onCardClick(articleId: number, event: MouseEvent): void {
+    if (this.swipeMoved.has(articleId)) {
+      event.preventDefault();
+    }
+  }
+
   deleteArticle(id: number, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
+    this.dismissArticle(id);
+  }
+
+  private dismissArticle(id: number): void {
     if (this.deleting.has(id)) return;
     this.deleting.add(id);
     this.newsService.deleteArticle(id).subscribe({
       next: () => {
         this.articles = this.articles.filter(a => a.id !== id);
         this.deleting.delete(id);
+        this.flyingOut.delete(id);
       },
-      error: () => this.deleting.delete(id),
+      error: () => {
+        this.deleting.delete(id);
+        this.flyingOut.delete(id);
+      },
     });
   }
 

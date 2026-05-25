@@ -27,9 +27,16 @@ router.get('/', asyncHandler(async (req, res) => {
   if (!q) return res.json([]);
 
   const apiKey = process.env['GOOGLE_BOOKS_API_KEY'];
-  const results = apiKey
-    ? await searchGoogleBooks(q, apiKey)
-    : await searchOpenLibrary(q);
+  let results: BookSearchResult[];
+  if (apiKey) {
+    try {
+      results = await searchGoogleBooks(q, apiKey);
+    } catch {
+      results = await searchOpenLibrary(q);
+    }
+  } else {
+    results = await searchOpenLibrary(q);
+  }
 
   res.json(results);
 }));
