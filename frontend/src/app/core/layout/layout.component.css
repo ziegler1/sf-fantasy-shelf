@@ -21,23 +21,26 @@
 .sidenav-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 1rem 1.25rem 1.25rem;
+  padding: 1rem 1rem 1rem 1.25rem;
   border-bottom: 1px solid var(--border);
 }
 
-.brand-icon {
-  color: var(--accent);
-  font-size: 1.6rem;
-  width: 1.6rem;
-  height: 1.6rem;
+.brand-logo {
+  width: 172px;
+  height: auto;
+  display: block;
 }
 
-.brand-name {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.01em;
+/* Logo uses light purples designed for dark bg — darken on light theme */
+:host-context(body.light-theme) .brand-logo,
+:host-context(body.light-theme) .brand-logo-mobile {
+  filter: brightness(0.55) saturate(1.8);
+}
+
+.brand-logo-mobile {
+  height: 36px;
+  width: auto;
+  display: block;
 }
 
 .nav-list {
