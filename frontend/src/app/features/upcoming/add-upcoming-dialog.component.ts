@@ -252,15 +252,15 @@ export class AddUpcomingDialogComponent implements OnInit, OnDestroy {
       switchMap(q => {
         if (q.trim().length < 2) {
           this.results = [];
-          return of([] as BookSearchResult[]);
+          return of({ results: [] as BookSearchResult[], source: 'google' as const });
         }
         this.searching = true;
         return this.searchService.searchBooks(q).pipe(
-          catchError(() => of([] as BookSearchResult[])),
+          catchError(() => of({ results: [] as BookSearchResult[], source: 'openlibrary-fallback' as const })),
         );
       }),
       takeUntil(this.destroy$),
-    ).subscribe(results => {
+    ).subscribe(({ results }) => {
       this.results = results;
       this.searching = false;
     });

@@ -73,8 +73,9 @@ export class AddBookComponent implements OnInit, OnDestroy {
       switchMap(q => {
         if (q.trim().length < 2) {
           this.results = [];
+          this.searchSource = null;
           this.searchError = false;
-          return of([] as BookSearchResult[]);
+          return of({ results: [] as BookSearchResult[], source: 'google' as const });
         }
         this.searching = true;
         this.searchError = false;
