@@ -30,6 +30,7 @@ export class AddBookComponent implements OnInit, OnDestroy {
   step: 'search' | 'confirm' | 'manual' = 'search';
   query = '';
   results: BookSearchResult[] = [];
+  searchSource: 'google' | 'openlibrary' | 'openlibrary-fallback' | null = null;
   searching = false;
   searchError = false;
   selected: BookSearchResult | null = null;
@@ -80,13 +81,14 @@ export class AddBookComponent implements OnInit, OnDestroy {
         return this.searchService.searchBooks(q).pipe(
           catchError(() => {
             this.searchError = true;
-            return of([] as BookSearchResult[]);
+            return of({ results: [] as BookSearchResult[], source: 'openlibrary-fallback' as const });
           }),
         );
       }),
       takeUntil(this.destroy$),
-    ).subscribe(results => {
+    ).subscribe(({ results, source }) => {
       this.results = results;
+      this.searchSource = source;
       this.searching = false;
     });
   }

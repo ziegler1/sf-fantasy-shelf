@@ -24,21 +24,26 @@ export interface BookSearchResult {
 
 router.get('/', asyncHandler(async (req, res) => {
   const q = String(req.query['q'] ?? '').trim();
-  if (!q) return res.json([]);
+  if (!q) return res.json({ results: [], source: 'google' });
 
   const apiKey = process.env['GOOGLE_BOOKS_API_KEY'];
   let results: BookSearchResult[];
+  let source: 'google' | 'openlibrary' | 'openlibrary-fallback';
+
   if (apiKey) {
     try {
       results = await searchGoogleBooks(q, apiKey);
-    } catch {
+      source = 'google';
+    } catch (err) {
       results = await searchOpenLibrary(q);
+      source = 'openlibrary-fallback';
     }
   } else {
     results = await searchOpenLibrary(q);
+    source = 'openlibrary';
   }
 
-  res.json(results);
+  res.json({ results, source });
 }));
 
 // ── Google Books ──────────────────────────────────────────────────────────────
@@ -47,8 +52,12 @@ async function searchGoogleBooks(q: string, apiKey: string): Promise<BookSearchR
   const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=15&langRestrict=en&key=${apiKey}`;
   const response = await fetch(url);
   if (!response.ok) {
-    console.error(`Google Books error ${response.status} for q="${q}"`);
-    throw new Error('Book search unavailable');
+    if (response.status === 429 || response.status === 403) {
+      console.warn(`[quota] Google Books API quota exceeded (HTTP ${response.status}) — falling back to OpenLibrary`);
+    } else {
+      console.error(`[search] Google Books error ${response.status} for q="${q}"`);
+    }
+    throw new Error('Google Books unavailable');
   }
 
   const data = await response.json() as { items?: GBVolume[] };

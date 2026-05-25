@@ -30,9 +30,9 @@ export interface ImportBookBody extends Omit<BookSearchResult, 'google_id'> {
 export class SearchService {
   constructor(private http: HttpClient) {}
 
-  searchBooks(q: string): Observable<BookSearchResult[]> {
+  searchBooks(q: string): Observable<{ results: BookSearchResult[]; source: 'google' | 'openlibrary' | 'openlibrary-fallback' }> {
     const params = new HttpParams().set('q', q);
-    return this.http.get<BookSearchResult[]>('/api/search', { params });
+    return this.http.get<{ results: BookSearchResult[]; source: 'google' | 'openlibrary' | 'openlibrary-fallback' }>('/api/search', { params });
   }
 
   importBook(body: ImportBookBody): Observable<BookWithDetails> {
