@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -14,7 +14,8 @@ import { catchError } from 'rxjs/operators';
 import { AuthorService } from '../../../core/services/author.service';
 import { ClaudeService } from '../../../core/services/claude.service';
 import { BookService } from '../../../core/services/book.service';
-import type { AuthorWithBooks, Book, BookWithDetails, ReadingStatus, UserBook } from '../../../types/schema.types';
+import { SeriesService } from '../../../core/services/series.service';
+import type { AuthorWithBooks, Book, BookWithDetails, ReadingStatus, SeriesBook, SeriesWithBooks, UserBook } from '../../../types/schema.types';
 
 @Component({
   selector: 'app-book-detail',
@@ -29,6 +30,9 @@ import type { AuthorWithBooks, Book, BookWithDetails, ReadingStatus, UserBook } 
 })
 export class BookDetailComponent implements OnInit {
   authorDetails: AuthorWithBooks[] = [];
+  seriesData: SeriesWithBooks | null = null;
+  seriesExpanded = false;
+  siblingLoading = new Set<number>();
   summaryText: string | null = null;
   summaryLoading = false;
 
@@ -66,6 +70,8 @@ export class BookDetailComponent implements OnInit {
     private authorService: AuthorService,
     private claude: ClaudeService,
     private bookService: BookService,
+    private seriesService: SeriesService,
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -84,6 +90,14 @@ export class BookDetailComponent implements OnInit {
     // Seed edit state from current user_book
     this.editStatus = (this.book.user_book?.status ?? '') as ReadingStatus | '';
     this.editRating = (this.book.user_book?.rating ?? 0) as 0 | 1 | 2 | 3 | 4 | 5;
+
+    // Load full series data if this book belongs to one
+    if (this.book.series.length) {
+      this.seriesService.getSeriesById(this.book.series[0].id).subscribe({
+        next: s => { this.seriesData = s; },
+        error: () => {},
+      });
+    }
   }
 
   generateSummary(): void {
@@ -215,6 +229,46 @@ export class BookDetailComponent implements OnInit {
 
   otherBooks(author: AuthorWithBooks) {
     return author.books.filter(b => b.id !== this.book.id);
+  }
+
+  seriesStatusIcon(sb: SeriesBook): string {
+    switch (sb.user_book?.status) {
+      case 'read':         return 'done_all';
+      case 'reading':      return 'auto_stories';
+      case 'want-to-read': return 'bookmark_added';
+      case 'dnf':          return 'close';
+      default:             return '';
+    }
+  }
+
+  seriesStatusClass(sb: SeriesBook): string {
+    return sb.user_book ? `sbook-${sb.user_book.status}` : 'sbook-none';
+  }
+
+  openSiblingBook(sb: SeriesBook): void {
+    if (sb.id === this.book.id || this.siblingLoading.has(sb.id)) return;
+    this.siblingLoading.add(sb.id);
+
+    this.bookService.getBook(sb.id).subscribe({
+      next: fullBook => {
+        this.siblingLoading.delete(sb.id);
+        const ref = this.dialog.open(BookDetailComponent, {
+          data: fullBook,
+          panelClass: 'book-detail-panel',
+          maxWidth: '100vw',
+        });
+        ref.afterClosed().subscribe((result: BookWithDetails | { deleted: true; id: number } | undefined) => {
+          if (!result || !this.seriesData) return;
+          // Refresh series panel so status changes show immediately
+          this.seriesService.getSeriesById(this.seriesData.id).subscribe({
+            next: s => { this.seriesData = s; },
+            error: () => {},
+          });
+          this.dirty = true;
+        });
+      },
+      error: () => { this.siblingLoading.delete(sb.id); },
+    });
   }
 
   starRange = [1, 2, 3, 4, 5] as const;

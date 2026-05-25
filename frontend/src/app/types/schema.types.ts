@@ -136,6 +136,11 @@ export interface AuthorWithBooks extends Author {
   followed: boolean;
 }
 
+export interface SeriesBook extends Book {
+  position: number | null;
+  user_book: { id: number; status: ReadingStatus; rating: number | null } | null;
+}
+
 export interface SeriesWithBooks extends Series {
-  books: (Book & { position: number | null })[];
+  books: SeriesBook[];
 }

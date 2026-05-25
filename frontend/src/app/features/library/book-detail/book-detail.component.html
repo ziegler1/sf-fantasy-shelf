@@ -216,6 +216,65 @@
     </div>
   }
 
+  <!-- ── Series ───────────────────────────────────────────────── -->
+  @if (seriesData) {
+    <div class="detail-section series-section">
+      <div class="series-section-header" (click)="seriesExpanded = !seriesExpanded" role="button">
+        <h3 class="section-heading series-heading">
+          <mat-icon>auto_stories</mat-icon>
+          {{ seriesData.name }}
+          <span class="series-book-count">{{ seriesData.books.length }} book{{ seriesData.books.length !== 1 ? 's' : '' }}</span>
+        </h3>
+        <mat-icon class="series-chevron" [class.series-chevron-open]="seriesExpanded">
+          expand_more
+        </mat-icon>
+      </div>
+
+      @if (seriesExpanded) {
+        <div class="series-book-list">
+          @for (sb of seriesData.books; track sb.id) {
+            <div class="series-book-row"
+                 [class.series-book-current]="sb.id === book.id"
+                 [class.series-book-clickable]="sb.id !== book.id"
+                 (click)="openSiblingBook(sb)"
+                 [attr.role]="sb.id !== book.id ? 'button' : null">
+              <div class="series-pos">
+                @if (sb.position != null) { {{ sb.position }} }
+                @else { — }
+              </div>
+              <div class="series-book-cover">
+                @if (sb.cover_url) {
+                  <img [src]="sb.cover_url" [alt]="sb.title" class="series-cover-img">
+                } @else {
+                  <div class="series-cover-placeholder"><mat-icon>menu_book</mat-icon></div>
+                }
+              </div>
+              <div class="series-book-info">
+                <span class="series-book-title" [class.series-book-this]="sb.id === book.id">
+                  {{ sb.title }}
+                  @if (sb.id === book.id) { <span class="series-this-badge">this book</span> }
+                </span>
+                @if (sb.published_at) {
+                  <span class="series-book-year">{{ sb.published_at | slice:0:4 }}</span>
+                }
+              </div>
+              @if (siblingLoading.has(sb.id)) {
+                <mat-spinner diameter="16" class="sibling-spinner" />
+              } @else {
+                <div class="series-book-status" [ngClass]="seriesStatusClass(sb)">
+                  @if (seriesStatusIcon(sb)) {
+                    <mat-icon>{{ seriesStatusIcon(sb) }}</mat-icon>
+                  }
+                  <span>{{ sb.user_book?.status === 'want-to-read' ? 'Want' : (sb.user_book?.status ?? 'Not on shelf') | titlecase }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
   <!-- ── Authors ────────────────────────────────────────────── -->
   @for (author of authorDetails; track author.id) {
     <div class="detail-section author-section">
@@ -728,4 +787,166 @@
   -webkit-box-orient: vertical;
   width: 100%;
 }
+
+/* ── Series panel ─── */
+.series-section { padding-bottom: 0.5rem; }
+
+.series-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0;
+}
+
+.series-section-header:hover .series-heading { color: var(--accent); }
+
+.series-heading {
+  margin: 0 !important;
+  transition: color 0.15s;
+  gap: 0.4rem;
+}
+
+.series-book-count {
+  font-weight: 400;
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  margin-left: 0.1rem;
+}
+
+.series-chevron {
+  color: var(--text-faint);
+  transition: transform 0.2s;
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.series-chevron-open { transform: rotate(180deg); }
+
+.series-book-list {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.series-book-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.series-book-clickable { cursor: pointer; }
+.series-book-clickable:hover { background: var(--border-subtle); }
+.series-book-clickable:hover .series-book-title { color: var(--accent); }
+
+.series-book-current {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.sibling-spinner { flex-shrink: 0; margin-left: auto; }
+
+.series-pos {
+  width: 20px;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.series-book-cover {
+  flex-shrink: 0;
+  width: 34px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+.series-cover-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.series-cover-placeholder {
+  width: 34px;
+  aspect-ratio: 2/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.series-cover-placeholder mat-icon {
+  font-size: 0.9rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--text-disabled);
+}
+
+.series-book-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.series-book-title {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.series-book-this { color: var(--text-bright); font-weight: 600; }
+
+.series-this-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 500;
+  background: var(--accent);
+  color: #000;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.series-book-year {
+  font-size: 0.68rem;
+  color: var(--text-faint);
+}
+
+.series-book-status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-disabled);
+}
+
+.series-book-status mat-icon {
+  font-size: 0.75rem;
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.sbook-read         { color: #4ade80; }
+.sbook-reading      { color: var(--accent); }
+.sbook-want-to-read { color: #60a5fa; }
+.sbook-dnf          { color: var(--text-faint); }
+.sbook-none         { color: var(--text-disabled); font-style: italic; }
 </style>

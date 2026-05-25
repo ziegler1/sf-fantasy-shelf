@@ -33,17 +33,21 @@ function seriesQuery(userId: number, extraWhere = '', extraValues: unknown[] = [
               'published_at', b.published_at, 'description', b.description,
               'isbn', b.isbn, 'isbn13', b.isbn13, 'page_count', b.page_count,
               'language', b.language, 'created_at', b.created_at,
-              'updated_at', b.updated_at, 'position', bs.position
+              'updated_at', b.updated_at, 'position', bs.position,
+              'user_book', CASE WHEN ub.id IS NOT NULL THEN jsonb_build_object(
+                'id', ub.id, 'status', ub.status, 'rating', ub.rating
+              ) ELSE NULL END
             ) ORDER BY bs.position NULLS LAST, b.title
           ) FILTER (WHERE b.id IS NOT NULL), '[]'
         ) AS books
       FROM series s
       LEFT JOIN book_series bs ON bs.series_id = s.id
       LEFT JOIN books b        ON b.id = bs.book_id
+      LEFT JOIN user_books ub  ON ub.book_id = b.id AND ub.user_id = $1
       WHERE EXISTS (
         SELECT 1 FROM book_series bs2
-        JOIN user_books ub ON ub.book_id = bs2.book_id
-        WHERE bs2.series_id = s.id AND ub.user_id = $1
+        JOIN user_books ub2 ON ub2.book_id = bs2.book_id
+        WHERE bs2.series_id = s.id AND ub2.user_id = $1
       )
       ${extraWhere}
       GROUP BY s.id
