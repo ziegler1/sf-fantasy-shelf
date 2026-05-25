@@ -74,4 +74,8 @@ export class BookService {
   retryCover(id: number): Observable<{ cover_url: string | null }> {
     return this.http.post<{ cover_url: string | null }>(`${this.base}/${id}/retry-cover`, {});
   }
+
+  exportLibrary(): Observable<Blob> {
+    return this.http.get(`${this.base}/export`, { responseType: 'blob' });
+  }
 }

@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BookService } from '../../core/services/book.service';
@@ -26,11 +28,13 @@ interface BarItem {
 @Component({
   selector: 'app-analytics',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, MatTooltipModule],
   templateUrl: './analytics.component.html',
 })
 export class AnalyticsComponent implements OnInit {
   loading = true;
+  exporting = false;
+  lastExported: string | null = localStorage.getItem('lastExported');
 
   statCards: StatCard[] = [];
   statusBars: BarItem[] = [];
@@ -56,6 +60,26 @@ export class AnalyticsComponent implements OnInit {
         this.loading = false;
       },
       error: () => { this.loading = false; },
+    });
+  }
+
+  downloadExport(): void {
+    if (this.exporting) return;
+    this.exporting = true;
+    this.bookService.exportLibrary().subscribe({
+      next: blob => {
+        const date = new Date().toISOString().slice(0, 10);
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `sf-fantasy-shelf-${date}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.lastExported = new Date().toLocaleString();
+        localStorage.setItem('lastExported', this.lastExported);
+        this.exporting = false;
+      },
+      error: () => { this.exporting = false; },
     });
   }
 

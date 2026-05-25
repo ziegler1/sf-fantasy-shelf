@@ -384,6 +384,44 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
   }
 }));
 
+// ── GET /api/books/export ────────────────────────────────────────────────────
+
+router.get('/export', asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<BookWithDetails>(
+    booksQuery(req.userId, 'WHERE ub.id IS NOT NULL'),
+  );
+
+  const payload = {
+    exported_at:  new Date().toISOString(),
+    version:      1,
+    book_count:   rows.length,
+    books: rows.map(b => ({
+      title:        b.title,
+      isbn13:       b.isbn13,
+      isbn:         b.isbn,
+      published_at: b.published_at,
+      page_count:   b.page_count,
+      language:     b.language,
+      description:  b.description,
+      cover_url:    b.cover_url,
+      authors:      b.authors.map((a: { name: string; role: string }) => ({ name: a.name, role: a.role })),
+      tags:         b.tags.map((t: { name: string }) => t.name),
+      series:       b.series.map((s: { name: string; position: number | null }) => ({ name: s.name, position: s.position })),
+      status:       b.user_book?.status ?? null,
+      rating:       b.user_book?.rating ?? null,
+      review:       b.user_book?.review ?? null,
+      notes:        b.user_book?.notes ?? null,
+      started_at:   b.user_book?.started_at ?? null,
+      finished_at:  b.user_book?.finished_at ?? null,
+    })),
+  };
+
+  const filename = `sf-fantasy-shelf-${new Date().toISOString().slice(0, 10)}.json`;
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.json(payload);
+}));
+
 // ── GET /api/books  (?status=reading&search=dune&limit=50&offset=0) ──────────
 
 router.get('/', asyncHandler(async (req, res) => {

@@ -1,5 +1,20 @@
 <div class="page-header">
   <h1 class="page-title">Reading Analytics</h1>
+  <div class="header-actions">
+    <button mat-stroked-button class="export-btn" (click)="downloadExport()"
+            [disabled]="exporting"
+            matTooltip="Download a full backup of your library as JSON">
+      @if (exporting) {
+        <mat-spinner diameter="16" />
+      } @else {
+        <mat-icon>download</mat-icon>
+      }
+      {{ exporting ? 'Exporting…' : 'Download Backup' }}
+    </button>
+    @if (lastExported) {
+      <span class="last-exported">Last backed up {{ lastExported }}</span>
+    }
+  </div>
 </div>
 
 @if (loading) {
@@ -117,6 +132,44 @@
 }
 
 <style>
+/* ── Page header ─── */
+.page-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-header .page-title { margin: 0; flex: 1; }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  color: var(--accent) !important;
+  border-color: var(--accent-border) !important;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.export-btn mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.last-exported {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
 /* ── Stat cards ─── */
 .stat-grid {
   display: grid;
