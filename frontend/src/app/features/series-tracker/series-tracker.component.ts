@@ -62,7 +62,7 @@ export class SeriesTrackerComponent implements OnInit {
   loading      = true;
   searchQuery  = '';
   sortBy: 'title' | 'author' = 'title';
-  collapsedGroups = new Set<string>();
+  collapsedGroups = new Set<string>(['In Progress', 'Want to Read', 'Not Started', 'Complete']);
   expanded     = new Set<number>();
   adding       = new Set<number>();
   removing     = new Set<string>();
@@ -75,6 +75,9 @@ export class SeriesTrackerComponent implements OnInit {
           s.name.toLowerCase().includes(q) ||
           s.authorName.toLowerCase().includes(q))
       : this.seriesList;
+
+    // When searching, expand all groups so results aren't hidden
+    if (q) this.collapsedGroups.clear();
 
     const sorted = [...matched].sort((a, b) => {
       if (this.sortBy === 'author') {
