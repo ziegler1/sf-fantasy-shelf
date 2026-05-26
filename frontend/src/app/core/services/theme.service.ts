@@ -21,11 +21,9 @@ export class ThemeService {
       document.body.classList.add('light-theme');
     }
 
-    const savedBg = localStorage.getItem(this.BG_KEY) as BgKey | null;
-    if (savedBg) {
-      this.bg.set(savedBg);
-      document.body.setAttribute('data-bg', savedBg);
-    }
+    const savedBg = (localStorage.getItem(this.BG_KEY) as BgKey | null) ?? 'dragon';
+    this.bg.set(savedBg);
+    document.body.setAttribute('data-bg', savedBg);
 
     const savedAccent = localStorage.getItem(this.ACCENT_KEY) as AccentKey | null;
     if (savedAccent) {

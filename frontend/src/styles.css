@@ -23,6 +23,9 @@
   /* Make Material's sidenav shell transparent so the body background shows through */
   --mat-sidenav-container-background-color: transparent;
   --mat-sidenav-content-background-color:   transparent;
+
+  /* Overlay tint applied over background images */
+  --bg-overlay: rgba(15,23,42,0.86);
 }
 
 body.light-theme {
@@ -46,6 +49,7 @@ body.light-theme {
   --accent-border-hover:rgba(37,99,235,0.50);
   --error:              #dc2626;
   --star:               #b45309;
+  --bg-overlay:         rgba(221,227,235,0.84);
 
   /* ── Angular Material MDC overrides ───────────── */
   /* Sidenav shell */
@@ -116,7 +120,7 @@ body.light-theme {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.86)),
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)),
     url('/assets/bg-dragon.jpg');
   background-size: cover;
   background-position: center 35%;
@@ -124,35 +128,37 @@ body.light-theme {
   pointer-events: none;
 }
 
-body.light-theme #app-bg {
+/* Hide background in light mode (panels provide their own solid backgrounds) */
+body.light-theme #app-bg,
+body[data-bg="none"] #app-bg {
   display: none;
 }
 
 /* ── Background variants ──────────────────────────────────── */
 body[data-bg="stained-glass"] #app-bg {
   background-image:
-    linear-gradient(rgba(10,5,20,0.78), rgba(10,5,20,0.78)),
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)),
     url('/assets/bg-stained-glass.jpg');
   background-position: center center;
 }
 
 body[data-bg="library"] #app-bg {
   background-image:
-    linear-gradient(rgba(5,4,2,0.72), rgba(5,4,2,0.72)),
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)),
     url('/assets/bg-library.jpg');
   background-position: center center;
 }
 
 body[data-bg="library2"] #app-bg {
   background-image:
-    linear-gradient(rgba(4,3,2,0.65), rgba(4,3,2,0.65)),
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)),
     url('/assets/bg-library2.jpg');
   background-position: center top;
 }
 
 body[data-bg="winter"] #app-bg {
   background-image:
-    linear-gradient(rgba(6,8,12,0.72), rgba(6,8,12,0.72)),
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)),
     url('/assets/bg-winter.jpg');
   background-position: center center;
 }
