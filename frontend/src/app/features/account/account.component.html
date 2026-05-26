@@ -4,6 +4,58 @@
 
 <div class="settings-layout">
 
+  <!-- ── Appearance ───────────────────────────────────────────── -->
+  <section class="settings-card">
+    <h2 class="card-heading">
+      <mat-icon>palette</mat-icon> Appearance
+    </h2>
+    <p class="card-subtitle">Customize the look and feel of the app.</p>
+
+    <div class="appear-row">
+      <span class="appear-label">Theme</span>
+      <button mat-stroked-button class="theme-toggle-btn" (click)="theme.toggle()">
+        <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        {{ theme.isDark() ? 'Switch to Light' : 'Switch to Dark' }}
+      </button>
+    </div>
+
+    <div class="appear-row appear-row--col">
+      <span class="appear-label">Background</span>
+      <div class="swatch-row">
+        @for (bg of backgrounds; track bg.key) {
+          <button class="bg-swatch"
+                  [class.swatch-active]="theme.bg() === bg.key"
+                  [style.background]="bg.preview"
+                  [matTooltip]="bg.label"
+                  (click)="theme.setBg(bg.key)">
+            @if (theme.bg() === bg.key) {
+              <mat-icon class="swatch-check">check</mat-icon>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="appear-row appear-row--col">
+      <span class="appear-label">Accent color</span>
+      <div class="accent-row">
+        @for (a of accents; track a.key) {
+          <button class="accent-dot"
+                  [class.dot-active]="theme.accent() === a.key"
+                  [style.background]="a.color"
+                  [matTooltip]="a.label"
+                  (click)="theme.setAccent(a.key)">
+            @if (theme.accent() === a.key) {
+              <mat-icon class="dot-check">check</mat-icon>
+            }
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <mat-divider />
+
   <!-- ── Profile ─────────────────────────────────────────────── -->
   <section class="settings-card">
     <h2 class="card-heading">
@@ -155,5 +207,97 @@
 .sign-out-btn {
   color: var(--error) !important;
   border-color: rgba(248,113,113,0.3) !important;
+}
+
+/* ── Appearance section ── */
+.appear-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.appear-row--col {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.appear-label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn {
+  font-size: 0.82rem;
+}
+
+.swatch-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bg-swatch {
+  width: 52px;
+  height: 36px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, transform 0.1s;
+  padding: 0;
+}
+
+.bg-swatch:hover { transform: scale(1.08); }
+
+.bg-swatch.swatch-active {
+  border-color: var(--accent);
+}
+
+.swatch-check {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+
+.accent-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.accent-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, transform 0.1s;
+  padding: 0;
+}
+
+.accent-dot:hover { transform: scale(1.15); }
+
+.accent-dot.dot-active {
+  border-color: var(--text-bright);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.dot-check {
+  font-size: 0.85rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
 </style>

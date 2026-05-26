@@ -128,6 +128,181 @@ body.light-theme #app-bg {
   display: none;
 }
 
+/* ── Background variants ──────────────────────────────────── */
+body[data-bg="stained-glass"] #app-bg {
+  background-image:
+    linear-gradient(rgba(10,5,20,0.78), rgba(10,5,20,0.78)),
+    url('/assets/bg-stained-glass.jpg');
+  background-position: center center;
+}
+
+body[data-bg="library"] #app-bg {
+  background-image:
+    linear-gradient(rgba(5,4,2,0.72), rgba(5,4,2,0.72)),
+    url('/assets/bg-library.jpg');
+  background-position: center center;
+}
+
+body[data-bg="library2"] #app-bg {
+  background-image:
+    linear-gradient(rgba(4,3,2,0.65), rgba(4,3,2,0.65)),
+    url('/assets/bg-library2.jpg');
+  background-position: center top;
+}
+
+body[data-bg="winter"] #app-bg {
+  background-image:
+    linear-gradient(rgba(6,8,12,0.72), rgba(6,8,12,0.72)),
+    url('/assets/bg-winter.jpg');
+  background-position: center center;
+}
+
+body[data-bg="space"] #app-bg {
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(13,27,74,0.96) 0%, rgba(2,6,23,0.99) 65%),
+    radial-gradient(ellipse 55% 70% at 85% 100%, rgba(30,5,60,0.75) 0%, transparent 65%);
+  background-color: #020617;
+}
+
+body[data-bg="forest"] #app-bg {
+  background-image:
+    linear-gradient(160deg, rgba(5,15,5,0.97) 0%, rgba(10,38,20,0.96) 45%, rgba(2,20,10,0.98) 100%);
+  background-color: #050f05;
+}
+
+body[data-bg="nebula"] #app-bg {
+  background-image:
+    radial-gradient(ellipse 70% 55% at 15% 15%, rgba(60,7,105,0.82) 0%, rgba(15,23,42,0.96) 60%),
+    radial-gradient(ellipse 50% 65% at 85% 85%, rgba(80,5,130,0.65) 0%, transparent 60%);
+  background-color: #0f172a;
+}
+
+body[data-bg="dusk"] #app-bg {
+  background-image:
+    linear-gradient(145deg, rgba(20,8,5,0.97) 0%, rgba(65,18,5,0.94) 45%, rgba(22,10,28,0.97) 100%);
+  background-color: #140805;
+}
+
+body[data-bg="none"] #app-bg {
+  display: none;
+}
+
+/* ── Accent color overrides ───────────────────────────────── */
+body.accent-purple {
+  --accent:              #a78bfa;
+  --accent-bg:           rgba(167,139,250,0.15);
+  --accent-bg-soft:      rgba(167,139,250,0.10);
+  --accent-border:       rgba(167,139,250,0.30);
+  --accent-border-hover: rgba(167,139,250,0.35);
+  --mdc-circular-progress-active-indicator-color: #a78bfa;
+  --mdc-linear-progress-active-indicator-color:   #a78bfa;
+  --mdc-outlined-text-field-focus-outline-color:  #a78bfa;
+  --mdc-outlined-text-field-caret-color:          #a78bfa;
+}
+body.light-theme.accent-purple {
+  --accent:              #7c3aed;
+  --accent-bg:           rgba(124,58,237,0.12);
+  --accent-bg-soft:      rgba(124,58,237,0.08);
+  --accent-border:       rgba(124,58,237,0.35);
+  --accent-border-hover: rgba(124,58,237,0.50);
+  --mdc-circular-progress-active-indicator-color: #7c3aed;
+  --mdc-linear-progress-active-indicator-color:   #7c3aed;
+  --mdc-outlined-text-field-focus-outline-color:  #7c3aed;
+  --mdc-outlined-text-field-caret-color:          #7c3aed;
+}
+
+body.accent-green {
+  --accent:              #34d399;
+  --accent-bg:           rgba(52,211,153,0.15);
+  --accent-bg-soft:      rgba(52,211,153,0.10);
+  --accent-border:       rgba(52,211,153,0.30);
+  --accent-border-hover: rgba(52,211,153,0.35);
+  --mdc-circular-progress-active-indicator-color: #34d399;
+  --mdc-linear-progress-active-indicator-color:   #34d399;
+  --mdc-outlined-text-field-focus-outline-color:  #34d399;
+  --mdc-outlined-text-field-caret-color:          #34d399;
+}
+body.light-theme.accent-green {
+  --accent:              #059669;
+  --accent-bg:           rgba(5,150,105,0.12);
+  --accent-bg-soft:      rgba(5,150,105,0.08);
+  --accent-border:       rgba(5,150,105,0.35);
+  --accent-border-hover: rgba(5,150,105,0.50);
+  --mdc-circular-progress-active-indicator-color: #059669;
+  --mdc-linear-progress-active-indicator-color:   #059669;
+  --mdc-outlined-text-field-focus-outline-color:  #059669;
+  --mdc-outlined-text-field-caret-color:          #059669;
+}
+
+body.accent-orange {
+  --accent:              #fb923c;
+  --accent-bg:           rgba(251,146,60,0.15);
+  --accent-bg-soft:      rgba(251,146,60,0.10);
+  --accent-border:       rgba(251,146,60,0.30);
+  --accent-border-hover: rgba(251,146,60,0.35);
+  --mdc-circular-progress-active-indicator-color: #fb923c;
+  --mdc-linear-progress-active-indicator-color:   #fb923c;
+  --mdc-outlined-text-field-focus-outline-color:  #fb923c;
+  --mdc-outlined-text-field-caret-color:          #fb923c;
+}
+body.light-theme.accent-orange {
+  --accent:              #ea580c;
+  --accent-bg:           rgba(234,88,12,0.12);
+  --accent-bg-soft:      rgba(234,88,12,0.08);
+  --accent-border:       rgba(234,88,12,0.35);
+  --accent-border-hover: rgba(234,88,12,0.50);
+  --mdc-circular-progress-active-indicator-color: #ea580c;
+  --mdc-linear-progress-active-indicator-color:   #ea580c;
+  --mdc-outlined-text-field-focus-outline-color:  #ea580c;
+  --mdc-outlined-text-field-caret-color:          #ea580c;
+}
+
+body.accent-pink {
+  --accent:              #f472b6;
+  --accent-bg:           rgba(244,114,182,0.15);
+  --accent-bg-soft:      rgba(244,114,182,0.10);
+  --accent-border:       rgba(244,114,182,0.30);
+  --accent-border-hover: rgba(244,114,182,0.35);
+  --mdc-circular-progress-active-indicator-color: #f472b6;
+  --mdc-linear-progress-active-indicator-color:   #f472b6;
+  --mdc-outlined-text-field-focus-outline-color:  #f472b6;
+  --mdc-outlined-text-field-caret-color:          #f472b6;
+}
+body.light-theme.accent-pink {
+  --accent:              #db2777;
+  --accent-bg:           rgba(219,39,119,0.12);
+  --accent-bg-soft:      rgba(219,39,119,0.08);
+  --accent-border:       rgba(219,39,119,0.35);
+  --accent-border-hover: rgba(219,39,119,0.50);
+  --mdc-circular-progress-active-indicator-color: #db2777;
+  --mdc-linear-progress-active-indicator-color:   #db2777;
+  --mdc-outlined-text-field-focus-outline-color:  #db2777;
+  --mdc-outlined-text-field-caret-color:          #db2777;
+}
+
+body.accent-teal {
+  --accent:              #2dd4bf;
+  --accent-bg:           rgba(45,212,191,0.15);
+  --accent-bg-soft:      rgba(45,212,191,0.10);
+  --accent-border:       rgba(45,212,191,0.30);
+  --accent-border-hover: rgba(45,212,191,0.35);
+  --mdc-circular-progress-active-indicator-color: #2dd4bf;
+  --mdc-linear-progress-active-indicator-color:   #2dd4bf;
+  --mdc-outlined-text-field-focus-outline-color:  #2dd4bf;
+  --mdc-outlined-text-field-caret-color:          #2dd4bf;
+}
+body.light-theme.accent-teal {
+  --accent:              #0d9488;
+  --accent-bg:           rgba(13,148,136,0.12);
+  --accent-bg-soft:      rgba(13,148,136,0.08);
+  --accent-border:       rgba(13,148,136,0.35);
+  --accent-border-hover: rgba(13,148,136,0.50);
+  --mdc-circular-progress-active-indicator-color: #0d9488;
+  --mdc-linear-progress-active-indicator-color:   #0d9488;
+  --mdc-outlined-text-field-focus-outline-color:  #0d9488;
+  --mdc-outlined-text-field-caret-color:          #0d9488;
+}
+
 /* Restore solid backgrounds for light mode (dark mode uses transparent to show #app-bg) */
 body.light-theme .mat-drawer-content,
 body.light-theme .mat-sidenav-content {
