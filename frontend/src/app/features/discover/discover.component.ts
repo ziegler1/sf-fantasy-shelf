@@ -120,6 +120,10 @@ export class DiscoverComponent implements OnInit {
     });
   }
 
+  get selectedAuthorName(): string {
+    return this.deduplicatedAuthors.find(a => a.id === this.selectedAuthorId)?.name ?? '';
+  }
+
   get deduplicatedAuthors(): Author[] {
     const seen = new Map<string, Author>();
     for (const a of this.authors) {

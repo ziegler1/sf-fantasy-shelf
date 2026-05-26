@@ -75,6 +75,7 @@
     <mat-form-field appearance="outline" class="author-field">
       <mat-label>Select an author from your library</mat-label>
       <mat-select [(ngModel)]="selectedAuthorId">
+        <mat-select-trigger>{{ selectedAuthorName }}</mat-select-trigger>
         @for (author of deduplicatedAuthors; track author.id) {
           <mat-option [value]="author.id">
             <span class="author-option">
