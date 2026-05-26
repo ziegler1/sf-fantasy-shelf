@@ -10,9 +10,7 @@
       <input class="search-input" [(ngModel)]="searchQuery"
              placeholder="Search series or author…" autocomplete="off">
       @if (searchQuery) {
-        <button class="search-clear" (click)="searchQuery = ''" matTooltip="Clear">
-          <mat-icon>close</mat-icon>
-        </button>
+        <button class="search-clear" (click)="searchQuery = ''" matTooltip="Clear">&#x2715;</button>
       }
     </div>
     <mat-button-toggle-group [(ngModel)]="sortBy" class="sort-toggle" aria-label="Sort by">

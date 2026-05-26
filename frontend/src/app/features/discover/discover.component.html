@@ -82,15 +82,11 @@
               @if (showHidden && hiddenAuthorIds.has(author.id)) {
                 <span class="author-action-btn" role="button"
                       (click)="unhideAuthor(author.id, $event)"
-                      matTooltip="Show in list">
-                  <mat-icon>visibility</mat-icon>
-                </span>
+                      matTooltip="Show in list">&#9711;</span>
               } @else {
                 <span class="author-action-btn" role="button"
                       (click)="hideAuthor(author.id, $event)"
-                      matTooltip="Hide from list">
-                  <mat-icon>close</mat-icon>
-                </span>
+                      matTooltip="Hide from list">&#x2715;</span>
               }
             </span>
           </mat-option>
