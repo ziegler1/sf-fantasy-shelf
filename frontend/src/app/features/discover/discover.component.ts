@@ -8,11 +8,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ClaudeService, BookRecommendation, AuthorSuggestion } from '../../core/services/claude.service';
 import { AuthorService } from '../../core/services/author.service';
+import { RestoreAuthorDialogComponent } from './restore-author-dialog.component';
 import type { Author } from '../../types/schema.types';
 
-const RECS_STORAGE_KEY = 'sfs_recommendations';
+const RECS_STORAGE_KEY    = 'sfs_recommendations';
+const HIDDEN_AUTHORS_KEY  = 'sfs_hidden_author_ids';
 
 interface StoredRecs {
   recommendations: BookRecommendation[];
@@ -27,6 +30,7 @@ interface StoredRecs {
     CommonModule, FormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
     MatProgressSpinnerModule, MatSelectModule, MatFormFieldModule, MatTooltipModule,
+    MatDialogModule,
   ],
   templateUrl: './discover.component.html',
   styleUrl: './discover.component.css',
@@ -48,6 +52,8 @@ export class DiscoverComponent implements OnInit {
   suggestionsLoading = false;
   suggestionsError = false;
   suggestionsAuthorName = '';
+  hiddenAuthorIds = new Set<number>();
+  showHidden = false;
 
   // Swipe-to-dismiss state for suggestion cards
   readonly swipeX      = new Map<string, number>();
@@ -62,10 +68,10 @@ export class DiscoverComponent implements OnInit {
   constructor(
     private claude: ClaudeService,
     private authorService: AuthorService,
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
-    // Restore cached recommendations — don't hit the API on every page visit
     try {
       const stored = localStorage.getItem(RECS_STORAGE_KEY);
       if (stored) {
@@ -76,6 +82,11 @@ export class DiscoverComponent implements OnInit {
         this.recsReady = true;
       }
     } catch { /* ignore corrupt cache */ }
+
+    try {
+      const hidden = localStorage.getItem(HIDDEN_AUTHORS_KEY);
+      if (hidden) this.hiddenAuthorIds = new Set(JSON.parse(hidden) as number[]);
+    } catch { /* ignore */ }
 
     this.authorService.getAuthors().subscribe({
       next: authors => { this.authors = authors; },
@@ -109,23 +120,43 @@ export class DiscoverComponent implements OnInit {
     });
   }
 
-  // Deduplicate authors by normalising spacing around initials ("C. S." → "C.S.")
   get deduplicatedAuthors(): Author[] {
     const seen = new Map<string, Author>();
     for (const a of this.authors) {
+      if (!this.showHidden && this.hiddenAuthorIds.has(a.id)) continue;
       const key = a.name.replace(/\.\s+(?=[A-Za-z])/g, '.').toLowerCase().trim();
       if (!seen.has(key)) seen.set(key, a);
     }
     return [...seen.values()];
   }
 
-  removeAuthor(id: number, event: Event): void {
+  get hiddenCount(): number { return this.hiddenAuthorIds.size; }
+
+  hideAuthor(id: number, event: Event): void {
     event.stopPropagation();
-    this.authorService.deleteAuthor(id).subscribe({
-      next: () => {
-        this.authors = this.authors.filter(a => a.id !== id);
-        if (this.selectedAuthorId === id) this.selectedAuthorId = null;
-      },
+    this.hiddenAuthorIds.add(id);
+    if (this.selectedAuthorId === id) this.selectedAuthorId = null;
+    this.saveHidden();
+  }
+
+  unhideAuthor(id: number, event: Event): void {
+    event.stopPropagation();
+    this.hiddenAuthorIds.delete(id);
+    this.saveHidden();
+  }
+
+  private saveHidden(): void {
+    try {
+      localStorage.setItem(HIDDEN_AUTHORS_KEY, JSON.stringify([...this.hiddenAuthorIds]));
+    } catch { /* ignore */ }
+  }
+
+  openRestoreDialog(): void {
+    const ref = this.dialog.open(RestoreAuthorDialogComponent, { maxWidth: '100vw' });
+    ref.afterClosed().subscribe(restored => {
+      if (restored) {
+        this.authorService.getAuthors().subscribe({ next: authors => { this.authors = authors; } });
+      }
     });
   }
 

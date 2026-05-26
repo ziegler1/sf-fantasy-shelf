@@ -63,6 +63,11 @@
       <mat-icon class="section-icon">people</mat-icon>
       <h2 class="section-title">Authors You Might Enjoy</h2>
     </div>
+    <button mat-stroked-button class="refresh-btn" (click)="openRestoreDialog()"
+            matTooltip="Re-link a deleted author to their books">
+      <mat-icon>restore</mat-icon>
+      Restore Author
+    </button>
   </div>
   <p class="section-subtitle">Find authors with a similar style to someone you love</p>
 
@@ -74,11 +79,19 @@
           <mat-option [value]="author.id">
             <span class="author-option">
               <span>{{ author.name }}</span>
-              <span class="author-remove-btn" role="button"
-                    (click)="removeAuthor(author.id, $event)"
-                    matTooltip="Remove from list">
-                <mat-icon>close</mat-icon>
-              </span>
+              @if (showHidden && hiddenAuthorIds.has(author.id)) {
+                <span class="author-action-btn" role="button"
+                      (click)="unhideAuthor(author.id, $event)"
+                      matTooltip="Show in list">
+                  <mat-icon>visibility</mat-icon>
+                </span>
+              } @else {
+                <span class="author-action-btn" role="button"
+                      (click)="hideAuthor(author.id, $event)"
+                      matTooltip="Hide from list">
+                  <mat-icon>close</mat-icon>
+                </span>
+              }
             </span>
           </mat-option>
         }
@@ -94,6 +107,15 @@
       Find Similar
     </button>
   </div>
+
+  @if (hiddenCount > 0) {
+    <p class="hidden-note">
+      {{ hiddenCount }} author{{ hiddenCount === 1 ? '' : 's' }} hidden.
+      <span class="show-hidden-link" role="button" (click)="showHidden = !showHidden">
+        {{ showHidden ? 'Hide them again' : 'Show hidden' }}
+      </span>
+    </p>
+  }
 
   @if (suggestionsLoading) {
     <div class="loading-row">

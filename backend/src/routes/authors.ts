@@ -13,6 +13,11 @@ const authorSchema = z.object({
   image_url: nullableStr(2048),
 });
 
+const restoreSchema = z.object({
+  name:     requiredStr(255),
+  book_ids: z.array(z.number().int().positive()).min(1).max(500),
+});
+
 const router = Router();
 
 router.use(verifyToken);
@@ -49,6 +54,61 @@ function authorsQuery(userId: number, where = '', extraValues: unknown[] = []) {
     values,
   };
 }
+
+// ── POST /api/authors/restore ─────────────────────────────────────────────────
+// Re-creates a deleted author and links them to the specified books (owned by
+// this user). Safe to call even if the author already exists — uses find-or-create.
+
+router.post('/restore', validate(restoreSchema), asyncHandler(async (req, res) => {
+  const { name, book_ids } = req.body as z.infer<typeof restoreSchema>;
+  const userId = req.userId;
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Only link books actually owned by this user
+    const { rows: owned } = await client.query<{ book_id: number }>(
+      `SELECT book_id FROM user_books WHERE user_id = $1 AND book_id = ANY($2::int[])`,
+      [userId, book_ids],
+    );
+    const ownedIds = owned.map(r => r.book_id);
+
+    // Find or create author (same normalisation as import)
+    const found = await client.query<{ id: number }>(
+      `SELECT id FROM authors
+       WHERE LOWER(REGEXP_REPLACE(name, '[^a-zA-Z0-9]', '', 'g'))
+           = LOWER(REGEXP_REPLACE($1,   '[^a-zA-Z0-9]', '', 'g'))
+       LIMIT 1`,
+      [name.trim()],
+    );
+    let authorId: number;
+    if (found.rows.length) {
+      authorId = found.rows[0].id;
+    } else {
+      const { rows: [a] } = await client.query<{ id: number }>(
+        'INSERT INTO authors (name) VALUES ($1) RETURNING id',
+        [name.trim()],
+      );
+      authorId = a.id;
+    }
+
+    for (const bookId of ownedIds) {
+      await client.query(
+        'INSERT INTO book_authors (book_id, author_id, role) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+        [bookId, authorId, 'author'],
+      );
+    }
+
+    await client.query('COMMIT');
+    res.json({ author_id: authorId, linked: ownedIds.length });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}));
 
 // ── GET /api/authors ──────────────────────────────────────────────────────────
 

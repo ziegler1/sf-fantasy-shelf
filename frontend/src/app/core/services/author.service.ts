@@ -29,6 +29,10 @@ export class AuthorService {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
+  restoreAuthor(name: string, bookIds: number[]): Observable<{ author_id: number; linked: number }> {
+    return this.http.post<{ author_id: number; linked: number }>(`${this.base}/restore`, { name, book_ids: bookIds });
+  }
+
   follow(id: number): Observable<void> {
     return this.http.post<void>(`${this.base}/${id}/follow`, {});
   }
