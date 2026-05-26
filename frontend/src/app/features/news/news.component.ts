@@ -65,6 +65,17 @@ interface RefreshResult { source: string; added: number; error?: string }
         <p>No articles yet — check back soon.</p>
       </div>
     } @else {
+      @if (totalPages > 1) {
+        <div class="pagination-row">
+          <button mat-icon-button [disabled]="page === 0" (click)="prevPage()" matTooltip="Previous page">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="page-info">{{ page + 1 }} / {{ totalPages }}</span>
+          <button mat-icon-button [disabled]="page >= totalPages - 1" (click)="nextPage()" matTooltip="Next page">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      }
       <div class="articles-grid">
         @for (a of filtered; track a.id) {
           <div class="article-wrap">
@@ -182,6 +193,20 @@ interface RefreshResult { source: string; added: number; error?: string }
       display: flex;
       justify-content: center;
       padding: 4rem 0;
+    }
+
+    .pagination-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .page-info {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      min-width: 3rem;
+      text-align: center;
     }
 
     .articles-grid {
@@ -384,6 +409,9 @@ export class NewsComponent implements OnInit {
   refreshing = false;
   lastRefresh: RefreshResult[] = [];
   activeSource: string | null = null;
+  readonly PAGE_SIZE = 30;
+  page = 0;
+  total = 0;
   readonly imgErrors  = new Set<number>();
   readonly deleting   = new Set<number>();
 
@@ -405,10 +433,20 @@ export class NewsComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    this.newsService.getArticles().subscribe({
-      next: (data) => { this.articles = data; this.loading = false; },
-      error: ()     => { this.loading = false; },
+    this.newsService.getArticles(this.PAGE_SIZE, this.page * this.PAGE_SIZE).subscribe({
+      next: ({ articles, total }) => { this.articles = articles; this.total = total; this.loading = false; },
+      error: () => { this.loading = false; },
     });
+  }
+
+  get totalPages(): number { return Math.ceil(this.total / this.PAGE_SIZE); }
+
+  prevPage(): void {
+    if (this.page > 0) { this.page--; this.load(); }
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages - 1) { this.page++; this.load(); }
   }
 
   refresh(): void {
@@ -418,6 +456,7 @@ export class NewsComponent implements OnInit {
       next: (res) => {
         this.lastRefresh = res.results;
         this.refreshing = false;
+        this.page = 0;
         this.load();
       },
       error: () => { this.refreshing = false; },

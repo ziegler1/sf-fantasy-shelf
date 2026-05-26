@@ -17,9 +17,9 @@ export interface NewsArticle {
 export class NewsService {
   constructor(private http: HttpClient) {}
 
-  getArticles(limit = 60, offset = 0): Observable<NewsArticle[]> {
+  getArticles(limit = 30, offset = 0): Observable<{ articles: NewsArticle[]; total: number }> {
     const params = new HttpParams().set('limit', limit).set('offset', offset);
-    return this.http.get<NewsArticle[]>('/api/news', { params });
+    return this.http.get<{ articles: NewsArticle[]; total: number }>('/api/news', { params });
   }
 
   refresh(): Observable<{ results: { source: string; added: number; error?: string }[]; total: number }> {

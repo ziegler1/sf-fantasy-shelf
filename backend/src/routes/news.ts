@@ -9,23 +9,24 @@ router.use(verifyToken);
 
 
 router.get('/', asyncHandler(async (req, res) => {
-  const limit  = Math.min(Number(req.query['limit']  ?? 60), 100);
+  const limit  = Math.min(Number(req.query['limit']  ?? 30), 100);
   const offset = Math.max(Number(req.query['offset'] ?? 0),  0);
 
-  try {
-    const { rows } = await pool.query(
+  const [{ rows }, { rows: countRows }] = await Promise.all([
+    pool.query(
       `SELECT id, source_name, title, url, description, image_url, published_at, created_at
        FROM news_articles
        WHERE dismissed = false
        ORDER BY published_at DESC NULLS LAST, created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset],
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error('[news] GET / error:', err);
-    throw err;
-  }
+    ),
+    pool.query<{ count: string }>(
+      `SELECT COUNT(*) FROM news_articles WHERE dismissed = false`,
+    ),
+  ]);
+
+  res.json({ articles: rows, total: Number(countRows[0]!.count) });
 }));
 
 // ── DELETE /api/news/:id ──────────────────────────────────────────────────────

@@ -17,7 +17,7 @@ import { BookDetailComponent } from './book-detail/book-detail.component';
 import { AddBookComponent } from './add-book/add-book.component';
 import type { BookWithDetails, ReadingStatus } from '../../types/schema.types';
 
-export type ViewMode = 'grid' | 'shelf' | 'list' | 'author' | 'genre';
+export type ViewMode = 'grid' | 'list' | 'author' | 'genre';
 
 interface StatusFilter {
   label: string;
@@ -69,7 +69,6 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   readonly viewModes: { mode: ViewMode; icon: string; tip: string }[] = [
     { mode: 'grid',   icon: 'grid_view',   tip: 'Grid'       },
-    { mode: 'shelf',  icon: 'view_module', tip: 'Shelf'      },
     { mode: 'list',   icon: 'view_list',   tip: 'List'       },
     { mode: 'author', icon: 'person',      tip: 'By Author'  },
     { mode: 'genre',  icon: 'category',    tip: 'By Genre'   },
@@ -87,7 +86,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const saved = localStorage.getItem('library-view-mode') as ViewMode | null;
-    if (saved && ['grid', 'shelf', 'list', 'author'].includes(saved)) {
+    if (saved && ['grid', 'list', 'author', 'genre'].includes(saved)) {
       this.viewMode = saved;
     }
 
