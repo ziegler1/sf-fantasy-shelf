@@ -1,44 +1,116 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { SeriesService } from '../../core/services/series.service';
 import { BookService } from '../../core/services/book.service';
 import { BookDetailComponent } from '../library/book-detail/book-detail.component';
 import { AddBookComponent } from '../library/add-book/add-book.component';
 import type { SeriesWithBooks, BookWithDetails, ReadingStatus } from '../../types/schema.types';
 import { forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { MatButtonModule } from '@angular/material/button';
 
 interface EnrichedSeries extends SeriesWithBooks {
   readCount: number;
   progress: number;
   statusLabel: string;
   statusClass: string;
+  statusOrder: number;
+  authorName: string;
 }
+
+interface SeriesGroup {
+  label: string;
+  badgeClass: string;
+  series: EnrichedSeries[];
+}
+
+const STATUS_ORDER: Record<string, number> = {
+  'Reading':      0,
+  'In Progress':  1,
+  'Want to Read': 2,
+  'Not Started':  3,
+  'Complete':     4,
+};
+
+const STATUS_BADGE: Record<string, string> = {
+  'Reading':      'series-badge-reading',
+  'In Progress':  'series-badge-inprogress',
+  'Want to Read': 'series-badge-want',
+  'Not Started':  'series-badge-none',
+  'Complete':     'series-badge-complete',
+};
 
 @Component({
   selector: 'app-series-tracker',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, FormsModule,
     MatCardModule, MatProgressBarModule, MatIconModule,
-    MatProgressSpinnerModule, MatTooltipModule, MatButtonModule,
+    MatProgressSpinnerModule, MatTooltipModule, MatButtonModule, MatButtonToggleModule,
   ],
   templateUrl: './series-tracker.component.html',
 })
 export class SeriesTrackerComponent implements OnInit {
   seriesList: EnrichedSeries[] = [];
-  loading = true;
-  expanded    = new Set<number>();
-  adding      = new Set<number>();
-  removing    = new Set<string>();
-  populating  = new Set<number>();
+  loading      = true;
+  searchQuery  = '';
+  sortBy: 'title' | 'author' = 'title';
+  collapsedGroups = new Set<string>();
+  expanded     = new Set<number>();
+  adding       = new Set<number>();
+  removing     = new Set<string>();
+  populating   = new Set<number>();
+
+  get groupedSeries(): SeriesGroup[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    const matched = q
+      ? this.seriesList.filter(s =>
+          s.name.toLowerCase().includes(q) ||
+          s.authorName.toLowerCase().includes(q))
+      : this.seriesList;
+
+    const sorted = [...matched].sort((a, b) => {
+      if (this.sortBy === 'author') {
+        const cmp = a.authorName.localeCompare(b.authorName);
+        return cmp !== 0 ? cmp : a.name.localeCompare(b.name);
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    const groups: SeriesGroup[] = [];
+    for (const label of Object.keys(STATUS_ORDER)) {
+      const series = sorted.filter(s => s.statusLabel === label);
+      if (series.length) {
+        groups.push({ label, badgeClass: STATUS_BADGE[label], series });
+      }
+    }
+    return groups;
+  }
+
+  get totalMatches(): number {
+    const q = this.searchQuery.trim().toLowerCase();
+    return q
+      ? this.seriesList.filter(s =>
+          s.name.toLowerCase().includes(q) ||
+          s.authorName.toLowerCase().includes(q)).length
+      : this.seriesList.length;
+  }
+
+  toggleGroup(label: string): void {
+    if (this.collapsedGroups.has(label)) this.collapsedGroups.delete(label);
+    else this.collapsedGroups.add(label);
+  }
+
+  isGroupCollapsed(label: string): boolean {
+    return this.collapsedGroups.has(label);
+  }
 
   private bookMap = new Map<number, BookWithDetails>();
 
@@ -84,6 +156,9 @@ export class SeriesTrackerComponent implements OnInit {
             statusLabel = 'Not Started';  statusClass = 'series-badge-none';
           }
 
+          const firstBook = s.books[0] ? this.bookMap.get(s.books[0].id) : undefined;
+          const authorName = firstBook?.authors[0]?.name ?? '';
+
           return {
             ...s,
             books: [...s.books].sort((a, b) => (a.position ?? 999) - (b.position ?? 999)),
@@ -91,6 +166,8 @@ export class SeriesTrackerComponent implements OnInit {
             progress: total ? Math.round((readCount / total) * 100) : 0,
             statusLabel,
             statusClass,
+            statusOrder: STATUS_ORDER[statusLabel] ?? 99,
+            authorName,
           };
         });
 
@@ -229,6 +306,7 @@ export class SeriesTrackerComponent implements OnInit {
           statusLabel = 'Not Started';  statusClass = 'series-badge-none';
         }
 
+        const firstBook = series.books[0] ? this.bookMap.get(series.books[0].id) : undefined;
         const enriched: EnrichedSeries = {
           ...series,
           books: [...series.books].sort((a, b) => (a.position ?? 999) - (b.position ?? 999)),
@@ -236,6 +314,8 @@ export class SeriesTrackerComponent implements OnInit {
           progress: total ? Math.round((readCount / total) * 100) : 0,
           statusLabel,
           statusClass,
+          statusOrder: STATUS_ORDER[statusLabel] ?? 99,
+          authorName: firstBook?.authors[0]?.name ?? '',
         };
         this.seriesList = this.seriesList.map(s => s.id === seriesId ? enriched : s);
       },

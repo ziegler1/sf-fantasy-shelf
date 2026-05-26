@@ -2,6 +2,26 @@
   <h1 class="page-title">Series Tracker</h1>
 </div>
 
+<!-- ── Controls ─────────────────────────────────────────────── -->
+@if (!loading && seriesList.length) {
+  <div class="controls-bar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" [(ngModel)]="searchQuery"
+             placeholder="Search series or author…" autocomplete="off">
+      @if (searchQuery) {
+        <button class="search-clear" (click)="searchQuery = ''" matTooltip="Clear">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+    <mat-button-toggle-group [(ngModel)]="sortBy" class="sort-toggle" aria-label="Sort by">
+      <mat-button-toggle value="title">Title</mat-button-toggle>
+      <mat-button-toggle value="author">Author</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+}
+
 @if (loading) {
   <div class="empty-state">
     <mat-spinner diameter="40" />
@@ -12,120 +32,257 @@
     <p>No series tracked yet. Add books that belong to a series and they'll appear here.</p>
   </div>
 } @else {
-  <div class="series-list">
-    @for (s of seriesList; track s.id) {
-      <mat-card class="series-card">
 
-        <!-- ── Header ─────────────────────────────────────── -->
-        <div class="series-header">
-          <div class="series-title-block">
-            <div class="series-name-row">
-              <h2 class="series-name">{{ s.name }}</h2>
-              <span class="series-status-badge" [ngClass]="s.statusClass">{{ s.statusLabel }}</span>
-            </div>
-            @if (s.description) {
-              <p class="series-desc">{{ s.description }}</p>
-            }
-          </div>
-          <div class="series-actions">
-            <button class="series-action-btn"
-                    (click)="repopulate(s, $event)"
-                    [disabled]="populating.has(s.id)"
-                    matTooltip="Search for more books in this series">
-              @if (populating.has(s.id)) {
-                <mat-spinner diameter="14" />
-              } @else {
-                <mat-icon>manage_search</mat-icon>
-              }
-            </button>
-            <button class="series-action-btn"
-                    (click)="openAddBook(s)"
-                    matTooltip="Add a book to this series">
-              <mat-icon>add</mat-icon>
-            </button>
-            <span class="stat-fraction">{{ s.readCount }}<span class="stat-total">/{{ s.books.length }}</span></span>
-          </div>
-        </div>
+  @if (totalMatches === 0) {
+    <div class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <p>No series match "{{ searchQuery }}".</p>
+    </div>
+  }
 
-        <!-- ── Progress bar ───────────────────────────────── -->
-        <mat-progress-bar
-          mode="determinate"
-          [value]="s.progress"
-          class="series-bar"
-          [matTooltip]="s.progress + '% complete'"
-        />
+  @for (group of groupedSeries; track group.label) {
 
-        <!-- ── Book list ──────────────────────────────────── -->
-        <ol class="book-list">
-          @for (book of (isExpanded(s.id) ? s.books : s.books.slice(0, 1)); track book.id) {
-            <li class="book-entry"
-                [class.in-library]="inLibrary(book.id)"
-                (click)="inLibrary(book.id) && openBook(book.id)"
-                [matTooltip]="inLibrary(book.id) ? statusLabel(book.id) : 'Not in your library'"
-                role="button"
-                [attr.tabindex]="inLibrary(book.id) ? 0 : null"
-                (keydown.enter)="inLibrary(book.id) && openBook(book.id)">
+    <!-- ── Group header ──────────────────────────────────── -->
+    <div class="group-header" (click)="toggleGroup(group.label)" role="button" tabindex="0"
+         (keydown.enter)="toggleGroup(group.label)">
+      <mat-icon class="group-chevron">
+        {{ isGroupCollapsed(group.label) ? 'chevron_right' : 'expand_more' }}
+      </mat-icon>
+      <span class="group-badge" [ngClass]="group.badgeClass">{{ group.label }}</span>
+      <span class="group-count">{{ group.series.length }} series</span>
+    </div>
 
-              <div class="book-thumb">
-                @if (coverUrl(book.id)) {
-                  <img [src]="coverUrl(book.id)!" [alt]="book.title" class="thumb-img" loading="lazy">
-                } @else {
-                  <div class="thumb-placeholder">
-                    <mat-icon>menu_book</mat-icon>
-                  </div>
+    <!-- ── Series cards ──────────────────────────────────── -->
+    @if (!isGroupCollapsed(group.label)) {
+      <div class="series-list">
+        @for (s of group.series; track s.id) {
+          <mat-card class="series-card">
+
+            <!-- ── Header ──────────────────────────────── -->
+            <div class="series-header">
+              <div class="series-title-block">
+                <div class="series-name-row">
+                  <h2 class="series-name">{{ s.name }}</h2>
+                </div>
+                @if (s.authorName) {
+                  <p class="series-desc">{{ s.authorName }}</p>
                 }
               </div>
-
-              <span class="book-pos">{{ book.position ?? '?' }}</span>
-
-              <div class="book-info">
-                <span class="book-title" [class.muted]="!inLibrary(book.id)">{{ book.title }}</span>
-                @if (book.published_at) {
-                  <span class="book-year">{{ book.published_at | date:'yyyy' }}</span>
-                }
-              </div>
-
-              @if (inLibrary(book.id)) {
-                <span class="status-badge" [ngClass]="statusClass(book.id)">
-                  {{ statusLabel(book.id) }}
-                </span>
-              } @else {
-                <button class="add-to-lib-btn"
-                        (click)="addToLibrary(book.id, $event)"
-                        [disabled]="adding.has(book.id)"
-                        matTooltip="Add to library">
-                  @if (adding.has(book.id)) {
+              <div class="series-actions">
+                <button class="series-action-btn"
+                        (click)="repopulate(s, $event)"
+                        [disabled]="populating.has(s.id)"
+                        matTooltip="Search for more books in this series">
+                  @if (populating.has(s.id)) {
                     <mat-spinner diameter="14" />
                   } @else {
-                    <mat-icon>library_add</mat-icon>
+                    <mat-icon>manage_search</mat-icon>
                   }
                 </button>
+                <button class="series-action-btn"
+                        (click)="openAddBook(s)"
+                        matTooltip="Add a book to this series">
+                  <mat-icon>add</mat-icon>
+                </button>
+                <span class="stat-fraction">{{ s.readCount }}<span class="stat-total">/{{ s.books.length }}</span></span>
+              </div>
+            </div>
+
+            <!-- ── Progress bar ─────────────────────────── -->
+            <mat-progress-bar
+              mode="determinate"
+              [value]="s.progress"
+              class="series-bar"
+              [matTooltip]="s.progress + '% complete'"
+            />
+
+            <!-- ── Book list ─────────────────────────────── -->
+            <ol class="book-list">
+              @for (book of (isExpanded(s.id) ? s.books : s.books.slice(0, 1)); track book.id) {
+                <li class="book-entry"
+                    [class.in-library]="inLibrary(book.id)"
+                    (click)="inLibrary(book.id) && openBook(book.id)"
+                    [matTooltip]="inLibrary(book.id) ? statusLabel(book.id) : 'Not in your library'"
+                    role="button"
+                    [attr.tabindex]="inLibrary(book.id) ? 0 : null"
+                    (keydown.enter)="inLibrary(book.id) && openBook(book.id)">
+
+                  <div class="book-thumb">
+                    @if (coverUrl(book.id)) {
+                      <img [src]="coverUrl(book.id)!" [alt]="book.title" class="thumb-img" loading="lazy">
+                    } @else {
+                      <div class="thumb-placeholder">
+                        <mat-icon>menu_book</mat-icon>
+                      </div>
+                    }
+                  </div>
+
+                  <span class="book-pos">{{ book.position ?? '?' }}</span>
+
+                  <div class="book-info">
+                    <span class="book-title" [class.muted]="!inLibrary(book.id)">{{ book.title }}</span>
+                    @if (book.published_at) {
+                      <span class="book-year">{{ book.published_at | date:'yyyy' }}</span>
+                    }
+                  </div>
+
+                  @if (inLibrary(book.id)) {
+                    <span class="status-badge" [ngClass]="statusClass(book.id)">
+                      {{ statusLabel(book.id) }}
+                    </span>
+                  } @else {
+                    <button class="add-to-lib-btn"
+                            (click)="addToLibrary(book.id, $event)"
+                            [disabled]="adding.has(book.id)"
+                            matTooltip="Add to library">
+                      @if (adding.has(book.id)) {
+                        <mat-spinner diameter="14" />
+                      } @else {
+                        <mat-icon>library_add</mat-icon>
+                      }
+                    </button>
+                  }
+
+                  <button class="remove-from-series-btn"
+                          (click)="removeFromSeries(s.id, book.id, $event)"
+                          [disabled]="removing.has(s.id + '-' + book.id)"
+                          matTooltip="Remove from series">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </li>
               }
+            </ol>
 
-              <button class="remove-from-series-btn"
-                      (click)="removeFromSeries(s.id, book.id, $event)"
-                      [disabled]="removing.has(s.id + '-' + book.id)"
-                      matTooltip="Remove from series">
-                <mat-icon>close</mat-icon>
+            <!-- ── Expand / collapse ─────────────────────── -->
+            @if (s.books.length > 1) {
+              <button class="expand-btn" (click)="toggleExpanded(s.id)">
+                <mat-icon>{{ isExpanded(s.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                {{ isExpanded(s.id) ? 'Show less' : s.books.length - 1 + ' more book' + (s.books.length - 1 === 1 ? '' : 's') }}
               </button>
-            </li>
-          }
-        </ol>
+            }
 
-        <!-- ── Expand / collapse toggle ───────────────────── -->
-        @if (s.books.length > 1) {
-          <button class="expand-btn" (click)="toggleExpanded(s.id)">
-            <mat-icon>{{ isExpanded(s.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
-            {{ isExpanded(s.id) ? 'Show less' : s.books.length - 1 + ' more book' + (s.books.length - 1 === 1 ? '' : 's') }}
-          </button>
+          </mat-card>
         }
-
-      </mat-card>
+      </div>
     }
-  </div>
+
+  }
 }
 
 <style>
+/* ── Controls bar ─── */
+.controls-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  max-width: 760px;
+}
+
+.search-wrap {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 0.6rem;
+  height: 38px;
+  transition: border-color 0.15s;
+}
+
+.search-wrap:focus-within {
+  border-color: var(--accent);
+}
+
+.search-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.search-input::placeholder { color: var(--text-faint); }
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-faint);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.search-clear mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+.search-clear:hover { color: var(--text-muted); }
+
+.sort-toggle {
+  flex-shrink: 0;
+  font-size: 0.75rem !important;
+}
+
+.sort-toggle .mat-button-toggle {
+  font-size: 0.75rem;
+}
+
+/* ── Group headers ─── */
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.25rem;
+  margin-bottom: 0.4rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  max-width: 760px;
+  border-radius: 6px;
+  transition: background 0.1s;
+  user-select: none;
+}
+
+.group-header:first-of-type { margin-top: 0; }
+
+.group-header:hover { background: var(--border-subtle); }
+
+.group-chevron {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.group-badge {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.group-count {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
 .series-list {
   display: flex;
   flex-direction: column;
