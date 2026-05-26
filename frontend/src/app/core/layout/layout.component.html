@@ -30,6 +30,9 @@
         <span class="user-name">{{ auth.currentUser()!.name }}</span>
       }
       <div class="footer-actions">
+        <button mat-icon-button (click)="reload()" matTooltip="Reload app" class="reload-btn">
+          <mat-icon>refresh</mat-icon>
+        </button>
         <button mat-icon-button (click)="theme.toggle()"
                 [matTooltip]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
                 class="theme-btn">

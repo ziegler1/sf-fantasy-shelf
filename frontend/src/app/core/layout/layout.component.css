@@ -77,6 +77,14 @@
   flex-shrink: 0;
 }
 
+.reload-btn {
+  color: var(--text-faint) !important;
+}
+
+.reload-btn:hover {
+  color: var(--accent) !important;
+}
+
 .theme-btn {
   color: var(--text-faint) !important;
 }

@@ -59,6 +59,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
       .subscribe(result => { this.isHandset = result.matches; });
   }
 
+  reload(): void {
+    window.location.reload();
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
