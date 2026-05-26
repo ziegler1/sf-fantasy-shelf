@@ -164,8 +164,18 @@
   font-size: 0.8rem;
   color: var(--text-secondary);
   line-height: 1.5;
-  margin: 0;
+  margin: 0 0 0.6rem;
 }
+
+.rec-link {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.rec-link:hover { text-decoration: underline; }
 
 .refresh-btn {
   color: var(--text-muted) !important;

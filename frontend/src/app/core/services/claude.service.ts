@@ -6,12 +6,14 @@ export interface BookRecommendation {
   title: string;
   author: string;
   reason: string;
+  url?: string;
 }
 
 export interface AuthorSuggestion {
   name: string;
   known_for: string;
   reason: string;
+  url?: string;
 }
 
 export interface SummaryResponse {

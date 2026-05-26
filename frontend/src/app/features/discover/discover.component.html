@@ -49,6 +49,9 @@
             <p class="rec-title">{{ rec.title }}</p>
             <p class="rec-author">{{ rec.author }}</p>
             <p class="rec-reason">{{ rec.reason }}</p>
+            <a class="rec-link" [href]="bookUrl(rec)" target="_blank" rel="noopener noreferrer">
+              Find this book →
+            </a>
           </mat-card-content>
         </mat-card>
       }
@@ -148,6 +151,9 @@
               </div>
               <p class="rec-author">{{ s.known_for }}</p>
               <p class="rec-reason">{{ s.reason }}</p>
+              <a class="rec-link" [href]="authorUrl(s)" target="_blank" rel="noopener noreferrer">
+                Explore this author →
+              </a>
             </mat-card-content>
           </mat-card>
         </div>

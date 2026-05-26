@@ -155,6 +155,16 @@ export class DiscoverComponent implements OnInit {
     } catch { /* ignore */ }
   }
 
+  bookUrl(rec: BookRecommendation): string {
+    if (rec.url) return rec.url;
+    return `https://www.goodreads.com/search?q=${encodeURIComponent(rec.title + ' ' + rec.author)}`;
+  }
+
+  authorUrl(s: AuthorSuggestion): string {
+    if (s.url) return s.url;
+    return `https://www.goodreads.com/search?q=${encodeURIComponent(s.name)}&search_type=author`;
+  }
+
   openRestoreDialog(): void {
     const ref = this.dialog.open(RestoreAuthorDialogComponent, { maxWidth: '100vw' });
     ref.afterClosed().subscribe(restored => {

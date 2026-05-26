@@ -172,9 +172,9 @@ ${historyText}
 Return ONLY this JSON:
 {
   "recommendations": [
-    { "title": "Book Title", "author": "Author Name", "reason": "1-2 sentences explaining why this fits their specific taste" },
-    { "title": "...", "author": "...", "reason": "..." },
-    { "title": "...", "author": "...", "reason": "..." }
+    { "title": "Book Title", "author": "Author Name", "reason": "1-2 sentences explaining why this fits their specific taste", "url": "https://author-homepage.com or https://www.goodreads.com/book/show/... — the most useful single link for this book (author site preferred, Goodreads second)" },
+    { "title": "...", "author": "...", "reason": "...", "url": "..." },
+    { "title": "...", "author": "...", "reason": "...", "url": "..." }
   ]
 }`,
       },
@@ -309,9 +309,9 @@ Suggest 3 authors with similar writing styles, themes, or appeal. Tailor each re
 Return ONLY this JSON:
 {
   "suggestions": [
-    { "name": "Author Name", "known_for": "1 sentence describing their notable works/style", "reason": "Why this reader specifically would enjoy them" },
-    { "name": "...", "known_for": "...", "reason": "..." },
-    { "name": "...", "known_for": "...", "reason": "..." }
+    { "name": "Author Name", "known_for": "1 sentence describing their notable works/style", "reason": "Why this reader specifically would enjoy them", "url": "https://author-official-site.com or https://www.goodreads.com/author/show/... — the author's official website if you know it with confidence, otherwise their Goodreads author page" },
+    { "name": "...", "known_for": "...", "reason": "...", "url": "..." },
+    { "name": "...", "known_for": "...", "reason": "...", "url": "..." }
   ]
 }`,
       },
