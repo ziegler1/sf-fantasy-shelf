@@ -181,6 +181,7 @@ export class DiscoverComponent implements OnInit {
   }
 
   onSwipeStart(name: string, event: PointerEvent): void {
+    if ((event.target as HTMLElement).closest('a')) return;
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
     this.pointerStates.set(event.pointerId, {
       name, startX: event.clientX, startY: event.clientY, locked: false,
