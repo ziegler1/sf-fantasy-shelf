@@ -18,16 +18,25 @@ const parser = new Parser({
   },
 });
 
-interface FeedSource { name: string; url: string }
+export interface FeedSource { name: string; url: string; category: string }
 
-const FEEDS: FeedSource[] = [
-  { name: 'Reactor',             url: 'https://reactormag.com/rss-feed/'                              },
-  { name: 'Locus Magazine',      url: 'https://locusmag.com/feed/'                                    },
-  { name: 'SFF World',           url: 'https://www.sffworld.com/feed/'                                },
-  { name: 'The Wertzone',        url: 'https://thewertzone.blogspot.com/feeds/posts/default'          },
-  { name: 'Fantasy Book Critic', url: 'https://fantasybookcritic.blogspot.com/feeds/posts/default'    },
-  { name: 'Fantasy Faction',     url: 'https://fantasy-faction.com/feed/'                             },
-  { name: 'io9',                 url: 'https://gizmodo.com/io9/rss'                                   },
+export const FEEDS: FeedSource[] = [
+  // SF / Fantasy
+  { name: 'Reactor',             url: 'https://reactormag.com/rss-feed/',                           category: 'SF/Fantasy' },
+  { name: 'Locus Magazine',      url: 'https://locusmag.com/feed/',                                 category: 'SF/Fantasy' },
+  { name: 'SFF World',           url: 'https://www.sffworld.com/feed/',                             category: 'SF/Fantasy' },
+  { name: 'The Wertzone',        url: 'https://thewertzone.blogspot.com/feeds/posts/default',       category: 'SF/Fantasy' },
+  { name: 'Fantasy Book Critic', url: 'https://fantasybookcritic.blogspot.com/feeds/posts/default', category: 'SF/Fantasy' },
+  { name: 'Fantasy Faction',     url: 'https://fantasy-faction.com/feed/',                         category: 'SF/Fantasy' },
+  { name: 'io9',                 url: 'https://gizmodo.com/io9/rss',                                category: 'SF/Fantasy' },
+  // General book news
+  { name: 'Book Riot',           url: 'https://bookriot.com/feed/',                                 category: 'Book News' },
+  { name: 'Literary Hub',        url: 'https://lithub.com/feed/',                                   category: 'Book News' },
+  { name: 'The Guardian Books',  url: 'https://www.theguardian.com/books/rss',                     category: 'Book News' },
+  { name: 'NPR Books',           url: 'https://feeds.npr.org/1032/rss.xml',                         category: 'Book News' },
+  { name: "Publisher's Weekly",  url: 'https://www.publishersweekly.com/pw/feeds/upcoming/rss',    category: 'Book News' },
+  // Bestsellers / charts
+  { name: 'NYT Books',           url: 'https://rss.nytimes.com/services/xml/rss/nyt/Books.xml',    category: 'Bestsellers' },
 ];
 
 function extractImage(item: RssItem): string | null {
@@ -49,11 +58,10 @@ function truncate(s: string | null | undefined, max: number): string | null {
 }
 
 export async function fetchNewsFeeds(): Promise<{ source: string; added: number; error?: string }[]> {
-  // Prune articles older than 90 days before fetching new ones
+  // Prune articles older than 90 days
   await pool.query(
     `DELETE FROM news_articles
-     WHERE dismissed = false
-       AND COALESCE(published_at, created_at) < NOW() - INTERVAL '90 days'`,
+     WHERE COALESCE(published_at, created_at) < NOW() - INTERVAL '90 days'`,
   );
 
   const results: { source: string; added: number; error?: string }[] = [];

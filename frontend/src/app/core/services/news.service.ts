@@ -13,6 +13,12 @@ export interface NewsArticle {
   created_at: string;
 }
 
+export interface FeedSource {
+  name: string;
+  category: string;
+  enabled: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class NewsService {
   constructor(private http: HttpClient) {}
@@ -20,6 +26,17 @@ export class NewsService {
   getArticles(limit = 30, offset = 0): Observable<{ articles: NewsArticle[]; total: number }> {
     const params = new HttpParams().set('limit', limit).set('offset', offset);
     return this.http.get<{ articles: NewsArticle[]; total: number }>('/api/news', { params });
+  }
+
+  getSources(): Observable<FeedSource[]> {
+    return this.http.get<FeedSource[]>('/api/news/sources');
+  }
+
+  toggleSource(name: string, enabled: boolean): Observable<{ name: string; enabled: boolean }> {
+    return this.http.put<{ name: string; enabled: boolean }>(
+      `/api/news/sources/${encodeURIComponent(name)}`,
+      { enabled },
+    );
   }
 
   refresh(): Observable<{ results: { source: string; added: number; error?: string }[]; total: number }> {

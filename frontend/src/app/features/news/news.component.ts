@@ -4,9 +4,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { NewsService, NewsArticle } from '../../core/services/news.service';
+import { NewsService, NewsArticle, FeedSource } from '../../core/services/news.service';
 
 const SOURCE_COLORS: Record<string, string> = {
+  // SF/Fantasy
   'Reactor':             '#f97316',
   'Locus Magazine':      '#8b5cf6',
   'SFF World':           '#10b981',
@@ -14,6 +15,14 @@ const SOURCE_COLORS: Record<string, string> = {
   'Fantasy Book Critic': '#ec4899',
   'Fantasy Faction':     '#f59e0b',
   'io9':                 '#3b82f6',
+  // Book News
+  'Book Riot':           '#e11d48',
+  'Literary Hub':        '#7c3aed',
+  'The Guardian Books':  '#0891b2',
+  'NPR Books':           '#1d4ed8',
+  "Publisher's Weekly":  '#d97706',
+  // Bestsellers
+  'NYT Books':           '#374151',
 };
 
 interface RefreshResult { source: string; added: number; error?: string }
@@ -29,10 +38,37 @@ interface RefreshResult { source: string; added: number; error?: string }
   template: `
     <div class="page-header">
       <h1 class="page-title">News Feed</h1>
+      <button mat-icon-button matTooltip="Manage feed sources" (click)="toggleSources()" [class.active-btn]="showSources">
+        <mat-icon>tune</mat-icon>
+      </button>
       <button mat-icon-button matTooltip="Fetch latest articles from sources" (click)="refresh()" [disabled]="loading || refreshing">
         <mat-icon [class.spinning]="refreshing">refresh</mat-icon>
       </button>
     </div>
+
+    @if (showSources) {
+      <div class="sources-panel">
+        <p class="sources-heading">Feed Sources</p>
+        @if (sourcesLoading) {
+          <div class="sources-loading"><mat-spinner diameter="24" /></div>
+        } @else {
+          @for (cat of categories; track cat) {
+            <p class="cat-label">{{ cat }}</p>
+            <div class="sources-row">
+              @for (s of sourcesByCategory(cat); track s.name) {
+                <button class="source-chip"
+                        [class.chip-enabled]="s.enabled"
+                        [style.--chip-bg]="sourceColor(s.name)"
+                        (click)="toggleSourceEnabled(s)">
+                  <span class="chip-dot"></span>
+                  {{ s.name }}
+                </button>
+              }
+            </div>
+          }
+        }
+      </div>
+    }
 
     @if (lastRefresh.length) {
       <div class="refresh-results">
@@ -49,7 +85,7 @@ interface RefreshResult { source: string; added: number; error?: string }
       <div class="source-filters">
         <button class="filter-chip" [class.active]="activeSource === null"
                 (click)="activeSource = null">All</button>
-        @for (s of sources; track s) {
+        @for (s of articleSources; track s) {
           <button class="filter-chip" [class.active]="activeSource === s"
                   [style.--chip-color]="sourceColor(s)"
                   (click)="activeSource = s">{{ s }}</button>
@@ -143,9 +179,86 @@ interface RefreshResult { source: string; added: number; error?: string }
 
     .page-header h1 { flex: 1; }
 
+    .active-btn { color: var(--accent) !important; }
+
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinning { animation: spin 0.8s linear infinite; }
 
+    /* ── Sources panel ── */
+    .sources-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1rem 1.25rem 1.1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .sources-heading {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 0 0.75rem;
+    }
+
+    .sources-loading {
+      display: flex;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+
+    .cat-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0.6rem 0 0.35rem;
+    }
+
+    .cat-label:first-of-type { margin-top: 0; }
+
+    .sources-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .source-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-hover);
+      background: transparent;
+      color: var(--text-faint);
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .source-chip.chip-enabled {
+      background: color-mix(in srgb, var(--chip-bg) 18%, transparent);
+      border-color: color-mix(in srgb, var(--chip-bg) 50%, transparent);
+      color: var(--text-bright);
+    }
+
+    .chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--chip-bg);
+      opacity: 0.4;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+
+    .chip-enabled .chip-dot { opacity: 1; }
+
+    /* ── Refresh results ── */
     .refresh-results {
       display: flex;
       flex-wrap: wrap;
@@ -153,16 +266,16 @@ interface RefreshResult { source: string; added: number; error?: string }
       margin-bottom: 1rem;
     }
 
-    .refresh-pill {
-      font-size: 0.7rem;
+    .refresh-row {
+      font-size: 0.72rem;
       padding: 0.2rem 0.6rem;
       border-radius: 999px;
-      cursor: default;
     }
 
-    .refresh-pill.ok  { background: rgba(16,185,129,0.15); color: #34d399; }
-    .refresh-pill.err { background: rgba(248,113,113,0.15); color: #f87171; }
+    .refresh-row.ok  { background: rgba(16,185,129,0.12); color: #34d399; }
+    .refresh-row.err { background: rgba(248,113,113,0.12); color: #f87171; }
 
+    /* ── Source filter chips ── */
     .source-filters {
       display: flex;
       flex-wrap: wrap;
@@ -189,12 +302,25 @@ interface RefreshResult { source: string; added: number; error?: string }
       color: #fff;
     }
 
+    /* ── Loading / empty ── */
     .loading-state {
       display: flex;
       justify-content: center;
       padding: 4rem 0;
     }
 
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 4rem 0;
+      color: var(--text-faint);
+    }
+
+    .empty-state mat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; }
+
+    /* ── Pagination ── */
     .pagination-row {
       display: flex;
       align-items: center;
@@ -209,6 +335,7 @@ interface RefreshResult { source: string; added: number; error?: string }
       text-align: center;
     }
 
+    /* ── Articles grid ── */
     .articles-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -255,9 +382,7 @@ interface RefreshResult { source: string; added: number; error?: string }
       user-select: none;
     }
 
-    .article-card.is-swiping {
-      transition: none;
-    }
+    .article-card.is-swiping { transition: none; }
 
     .article-card.flying-out {
       transform: translateX(-110%) !important;
@@ -404,16 +529,19 @@ interface RefreshResult { source: string; added: number; error?: string }
   `],
 })
 export class NewsComponent implements OnInit {
-  articles: NewsArticle[] = [];
-  loading = true;
-  refreshing = false;
+  articles: NewsArticle[]  = [];
+  sources: FeedSource[]    = [];
+  loading        = true;
+  sourcesLoading = false;
+  refreshing     = false;
+  showSources    = false;
   lastRefresh: RefreshResult[] = [];
-  activeSource: string | null = null;
+  activeSource: string | null  = null;
   readonly PAGE_SIZE = 30;
-  page = 0;
+  page  = 0;
   total = 0;
-  readonly imgErrors  = new Set<number>();
-  readonly deleting   = new Set<number>();
+  readonly imgErrors = new Set<number>();
+  readonly deleting  = new Set<number>();
 
   readonly swipeX      = new Map<number, number>();
   readonly swipingIds  = new Set<number>();
@@ -449,13 +577,42 @@ export class NewsComponent implements OnInit {
     if (this.page < this.totalPages - 1) { this.page++; this.load(); }
   }
 
+  toggleSources(): void {
+    this.showSources = !this.showSources;
+    if (this.showSources && this.sources.length === 0) {
+      this.sourcesLoading = true;
+      this.newsService.getSources().subscribe({
+        next: s => { this.sources = s; this.sourcesLoading = false; },
+        error: () => { this.sourcesLoading = false; },
+      });
+    }
+  }
+
+  get categories(): string[] {
+    return [...new Set(this.sources.map(s => s.category))];
+  }
+
+  sourcesByCategory(cat: string): FeedSource[] {
+    return this.sources.filter(s => s.category === cat);
+  }
+
+  toggleSourceEnabled(source: FeedSource): void {
+    const next = !source.enabled;
+    source.enabled = next;
+    this.newsService.toggleSource(source.name, next).subscribe({
+      error: () => { source.enabled = !next; },
+    });
+    this.page = 0;
+    this.load();
+  }
+
   refresh(): void {
     this.refreshing = true;
     this.lastRefresh = [];
     this.newsService.refresh().subscribe({
       next: (res) => {
         this.lastRefresh = res.results;
-        this.refreshing = false;
+        this.refreshing  = false;
         this.page = 0;
         this.load();
       },
@@ -463,7 +620,7 @@ export class NewsComponent implements OnInit {
     });
   }
 
-  get sources(): string[] {
+  get articleSources(): string[] {
     return [...new Set(this.articles.map(a => a.source_name))];
   }
 

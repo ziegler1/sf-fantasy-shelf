@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { ThemeService } from './theme.service';
 
 export interface AuthUser {
   id: number;
@@ -24,7 +25,7 @@ export class AuthService {
   readonly currentUser = this._user.asReadonly();
   readonly isLoggedIn  = computed(() => this._user() !== null);
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private theme: ThemeService) {}
 
   register(email: string, name: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/auth/register', { email, name, password })
@@ -56,6 +57,7 @@ export class AuthService {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     this._user.set(null);
+    this.theme.resetToDefaults();
     this.router.navigate(['/login']);
   }
 
@@ -67,6 +69,7 @@ export class AuthService {
     localStorage.setItem(TOKEN_KEY, res.token);
     localStorage.setItem(USER_KEY, JSON.stringify(res.user));
     this._user.set(res.user);
+    this.theme.loadForUser(res.user.id);
   }
 
   private loadUser(): AuthUser | null {

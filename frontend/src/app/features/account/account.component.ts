@@ -52,12 +52,18 @@ export class AccountComponent implements OnInit {
   ];
 
   readonly accents: { key: AccentKey; color: string; label: string }[] = [
-    { key: 'blue',   color: '#60a5fa', label: 'Blue'   },
-    { key: 'purple', color: '#a78bfa', label: 'Purple' },
-    { key: 'green',  color: '#34d399', label: 'Green'  },
-    { key: 'orange', color: '#fb923c', label: 'Orange' },
-    { key: 'pink',   color: '#f472b6', label: 'Pink'   },
-    { key: 'teal',   color: '#2dd4bf', label: 'Teal'   },
+    { key: 'blue',    color: '#60a5fa', label: 'Blue'    },
+    { key: 'purple',  color: '#a78bfa', label: 'Purple'  },
+    { key: 'green',   color: '#34d399', label: 'Green'   },
+    { key: 'orange',  color: '#fb923c', label: 'Orange'  },
+    { key: 'pink',    color: '#f472b6', label: 'Pink'    },
+    { key: 'teal',    color: '#2dd4bf', label: 'Teal'    },
+    { key: 'crimson', color: '#f87171', label: 'Crimson' },
+    { key: 'amber',   color: '#fbbf24', label: 'Amber'   },
+    { key: 'indigo',  color: '#818cf8', label: 'Indigo'  },
+    { key: 'rose',    color: '#fb7185', label: 'Rose'    },
+    { key: 'cyan',    color: '#22d3ee', label: 'Cyan'    },
+    { key: 'lime',    color: '#a3e635', label: 'Lime'    },
   ];
 
   constructor(public auth: AuthService, public theme: ThemeService, private snackBar: MatSnackBar) {}

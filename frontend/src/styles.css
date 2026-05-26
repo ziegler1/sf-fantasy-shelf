@@ -49,7 +49,7 @@ body.light-theme {
   --accent-border-hover:rgba(37,99,235,0.50);
   --error:              #dc2626;
   --star:               #b45309;
-  --bg-overlay:         rgba(221,227,235,0.84);
+  --bg-overlay:         rgba(221,227,235,0.91);
 
   /* ── Angular Material MDC overrides ───────────── */
   /* Sidenav shell */
@@ -128,10 +128,15 @@ body.light-theme {
   pointer-events: none;
 }
 
-/* Hide background in light mode (panels provide their own solid backgrounds) */
-body.light-theme #app-bg,
+/* Hide background only when "None" is selected */
 body[data-bg="none"] #app-bg {
   display: none;
+}
+
+/* Light mode: show background with a heavy pale overlay so panels stay readable */
+body.light-theme[data-bg]:not([data-bg="none"]) .mat-drawer-content,
+body.light-theme[data-bg]:not([data-bg="none"]) .mat-sidenav-content {
+  background-color: transparent !important;
 }
 
 /* ── Background variants ──────────────────────────────────── */
@@ -309,9 +314,147 @@ body.light-theme.accent-teal {
   --mdc-outlined-text-field-caret-color:          #0d9488;
 }
 
-/* Restore solid backgrounds for light mode (dark mode uses transparent to show #app-bg) */
-body.light-theme .mat-drawer-content,
-body.light-theme .mat-sidenav-content {
+body.accent-crimson {
+  --accent:              #f87171;
+  --accent-bg:           rgba(248,113,113,0.15);
+  --accent-bg-soft:      rgba(248,113,113,0.10);
+  --accent-border:       rgba(248,113,113,0.30);
+  --accent-border-hover: rgba(248,113,113,0.35);
+  --mdc-circular-progress-active-indicator-color: #f87171;
+  --mdc-linear-progress-active-indicator-color:   #f87171;
+  --mdc-outlined-text-field-focus-outline-color:  #f87171;
+  --mdc-outlined-text-field-caret-color:          #f87171;
+}
+body.light-theme.accent-crimson {
+  --accent:              #dc2626;
+  --accent-bg:           rgba(220,38,38,0.12);
+  --accent-bg-soft:      rgba(220,38,38,0.08);
+  --accent-border:       rgba(220,38,38,0.35);
+  --accent-border-hover: rgba(220,38,38,0.50);
+  --mdc-circular-progress-active-indicator-color: #dc2626;
+  --mdc-linear-progress-active-indicator-color:   #dc2626;
+  --mdc-outlined-text-field-focus-outline-color:  #dc2626;
+  --mdc-outlined-text-field-caret-color:          #dc2626;
+}
+
+body.accent-amber {
+  --accent:              #fbbf24;
+  --accent-bg:           rgba(251,191,36,0.15);
+  --accent-bg-soft:      rgba(251,191,36,0.10);
+  --accent-border:       rgba(251,191,36,0.30);
+  --accent-border-hover: rgba(251,191,36,0.35);
+  --mdc-circular-progress-active-indicator-color: #fbbf24;
+  --mdc-linear-progress-active-indicator-color:   #fbbf24;
+  --mdc-outlined-text-field-focus-outline-color:  #fbbf24;
+  --mdc-outlined-text-field-caret-color:          #fbbf24;
+}
+body.light-theme.accent-amber {
+  --accent:              #d97706;
+  --accent-bg:           rgba(217,119,6,0.12);
+  --accent-bg-soft:      rgba(217,119,6,0.08);
+  --accent-border:       rgba(217,119,6,0.35);
+  --accent-border-hover: rgba(217,119,6,0.50);
+  --mdc-circular-progress-active-indicator-color: #d97706;
+  --mdc-linear-progress-active-indicator-color:   #d97706;
+  --mdc-outlined-text-field-focus-outline-color:  #d97706;
+  --mdc-outlined-text-field-caret-color:          #d97706;
+}
+
+body.accent-indigo {
+  --accent:              #818cf8;
+  --accent-bg:           rgba(129,140,248,0.15);
+  --accent-bg-soft:      rgba(129,140,248,0.10);
+  --accent-border:       rgba(129,140,248,0.30);
+  --accent-border-hover: rgba(129,140,248,0.35);
+  --mdc-circular-progress-active-indicator-color: #818cf8;
+  --mdc-linear-progress-active-indicator-color:   #818cf8;
+  --mdc-outlined-text-field-focus-outline-color:  #818cf8;
+  --mdc-outlined-text-field-caret-color:          #818cf8;
+}
+body.light-theme.accent-indigo {
+  --accent:              #4338ca;
+  --accent-bg:           rgba(67,56,202,0.12);
+  --accent-bg-soft:      rgba(67,56,202,0.08);
+  --accent-border:       rgba(67,56,202,0.35);
+  --accent-border-hover: rgba(67,56,202,0.50);
+  --mdc-circular-progress-active-indicator-color: #4338ca;
+  --mdc-linear-progress-active-indicator-color:   #4338ca;
+  --mdc-outlined-text-field-focus-outline-color:  #4338ca;
+  --mdc-outlined-text-field-caret-color:          #4338ca;
+}
+
+body.accent-rose {
+  --accent:              #fb7185;
+  --accent-bg:           rgba(251,113,133,0.15);
+  --accent-bg-soft:      rgba(251,113,133,0.10);
+  --accent-border:       rgba(251,113,133,0.30);
+  --accent-border-hover: rgba(251,113,133,0.35);
+  --mdc-circular-progress-active-indicator-color: #fb7185;
+  --mdc-linear-progress-active-indicator-color:   #fb7185;
+  --mdc-outlined-text-field-focus-outline-color:  #fb7185;
+  --mdc-outlined-text-field-caret-color:          #fb7185;
+}
+body.light-theme.accent-rose {
+  --accent:              #e11d48;
+  --accent-bg:           rgba(225,29,72,0.12);
+  --accent-bg-soft:      rgba(225,29,72,0.08);
+  --accent-border:       rgba(225,29,72,0.35);
+  --accent-border-hover: rgba(225,29,72,0.50);
+  --mdc-circular-progress-active-indicator-color: #e11d48;
+  --mdc-linear-progress-active-indicator-color:   #e11d48;
+  --mdc-outlined-text-field-focus-outline-color:  #e11d48;
+  --mdc-outlined-text-field-caret-color:          #e11d48;
+}
+
+body.accent-cyan {
+  --accent:              #22d3ee;
+  --accent-bg:           rgba(34,211,238,0.15);
+  --accent-bg-soft:      rgba(34,211,238,0.10);
+  --accent-border:       rgba(34,211,238,0.30);
+  --accent-border-hover: rgba(34,211,238,0.35);
+  --mdc-circular-progress-active-indicator-color: #22d3ee;
+  --mdc-linear-progress-active-indicator-color:   #22d3ee;
+  --mdc-outlined-text-field-focus-outline-color:  #22d3ee;
+  --mdc-outlined-text-field-caret-color:          #22d3ee;
+}
+body.light-theme.accent-cyan {
+  --accent:              #0891b2;
+  --accent-bg:           rgba(8,145,178,0.12);
+  --accent-bg-soft:      rgba(8,145,178,0.08);
+  --accent-border:       rgba(8,145,178,0.35);
+  --accent-border-hover: rgba(8,145,178,0.50);
+  --mdc-circular-progress-active-indicator-color: #0891b2;
+  --mdc-linear-progress-active-indicator-color:   #0891b2;
+  --mdc-outlined-text-field-focus-outline-color:  #0891b2;
+  --mdc-outlined-text-field-caret-color:          #0891b2;
+}
+
+body.accent-lime {
+  --accent:              #a3e635;
+  --accent-bg:           rgba(163,230,53,0.15);
+  --accent-bg-soft:      rgba(163,230,53,0.10);
+  --accent-border:       rgba(163,230,53,0.30);
+  --accent-border-hover: rgba(163,230,53,0.35);
+  --mdc-circular-progress-active-indicator-color: #a3e635;
+  --mdc-linear-progress-active-indicator-color:   #a3e635;
+  --mdc-outlined-text-field-focus-outline-color:  #a3e635;
+  --mdc-outlined-text-field-caret-color:          #a3e635;
+}
+body.light-theme.accent-lime {
+  --accent:              #65a30d;
+  --accent-bg:           rgba(101,163,13,0.12);
+  --accent-bg-soft:      rgba(101,163,13,0.08);
+  --accent-border:       rgba(101,163,13,0.35);
+  --accent-border-hover: rgba(101,163,13,0.50);
+  --mdc-circular-progress-active-indicator-color: #65a30d;
+  --mdc-linear-progress-active-indicator-color:   #65a30d;
+  --mdc-outlined-text-field-focus-outline-color:  #65a30d;
+  --mdc-outlined-text-field-caret-color:          #65a30d;
+}
+
+/* Solid background in light mode only when "None" is selected */
+body.light-theme[data-bg="none"] .mat-drawer-content,
+body.light-theme[data-bg="none"] .mat-sidenav-content {
   background-color: var(--bg-base) !important;
 }
 
