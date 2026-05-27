@@ -7,6 +7,10 @@
 
     <h2 class="auth-heading">Sign in</h2>
 
+    @if (notice) {
+      <p class="auth-notice">{{ notice }}</p>
+    }
+
     <mat-form-field appearance="outline" class="auth-field">
       <mat-label>Email</mat-label>
       <input matInput type="email" [(ngModel)]="email" (keydown.enter)="submit()" autocomplete="email">
@@ -30,9 +34,11 @@
       @if (loading) { <mat-spinner diameter="20" /> } @else { Sign in }
     </button>
 
-    <p class="auth-footer">
-      No account yet? <a routerLink="/register">Create one</a>
-    </p>
+    <div class="auth-links">
+      <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
+      <span class="auth-sep">·</span>
+      <a routerLink="/register">Create account</a>
+    </div>
   </div>
 </div>
 
@@ -84,6 +90,16 @@
 
 .auth-field { width: 100%; }
 
+.auth-notice {
+  color: #34d399;
+  font-size: 0.82rem;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: rgba(52, 211, 153, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
 .auth-error {
   color: #f87171;
   font-size: 0.82rem;
@@ -96,17 +112,22 @@
   font-size: 0.95rem;
 }
 
-.auth-footer {
+.auth-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.82rem;
   color: #475569;
   margin: 0.25rem 0 0;
-  text-align: center;
 }
 
-.auth-footer a {
+.auth-links a {
   color: #60a5fa;
   text-decoration: none;
 }
 
-.auth-footer a:hover { text-decoration: underline; }
+.auth-links a:hover { text-decoration: underline; }
+
+.auth-sep { color: #334155; }
 </style>
