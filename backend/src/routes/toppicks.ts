@@ -62,27 +62,16 @@ router.get('/', asyncHandler(async (req, res) => {
     }
 
     if (!allBooks.length) {
+      console.warn(`[toppicks] no results for subjects=${subjects.join(',')}, using fallback`);
       return res.json(FALLBACK);
     }
 
-    // Interleave across genres, deduplicate, cap at 8
-    const byGenre = new Map<string, TopPick[]>();
-    for (const b of allBooks) {
-      const arr = byGenre.get(b.genre) ?? [];
-      arr.push(b);
-      byGenre.set(b.genre, arr);
-    }
-
-    const seen   = new Set<string>();
+    const seen  = new Set<string>();
     const picks: TopPick[] = [];
-    const maxPerGenre = Math.max(...[...byGenre.values()].map(a => a.length));
-
-    outer: for (let i = 0; i < maxPerGenre; i++) {
-      for (const books of byGenre.values()) {
-        if (!books[i] || picks.length >= 8) break outer;
-        const key = books[i].title.toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (!seen.has(key)) { seen.add(key); picks.push(books[i]); }
-      }
+    for (const b of allBooks) {
+      if (picks.length >= 8) break;
+      const key = b.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (!seen.has(key)) { seen.add(key); picks.push(b); }
     }
 
     res.json(picks);
@@ -99,7 +88,7 @@ async function fetchSubject(subject: string): Promise<TopPick[]> {
   const cached = cache.get(subject);
   if (cached && Date.now() < cached.expiresAt) return cached.data;
 
-  const url  = `https://openlibrary.org/subjects/${subject}.json?limit=6&sort=edition_count`;
+  const url  = `https://openlibrary.org/subjects/${subject}.json?limit=8&sort=edition_count`;
   const resp = await fetch(url, {
     signal:  AbortSignal.timeout(10000),
     headers: { 'User-Agent': 'ZigsCodex/1.0 (book-tracking app)' },

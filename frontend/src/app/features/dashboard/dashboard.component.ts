@@ -42,7 +42,7 @@ interface TopPick {
 
 interface GenreOption { label: string; subject: string }
 
-const DEFAULT_SUBJECTS = ['science_fiction', 'fantasy'];
+const DEFAULT_SUBJECT   = 'science_fiction';
 const PICKS_STORAGE_KEY = 'sfs_toppick_genres';
 
 @Component({
@@ -69,9 +69,9 @@ export class DashboardComponent implements OnInit {
   upcomingReleases: UpcomingRelease[]     = [];
   topPicks:         TopPick[]            = [];
   topPicksLoading   = true;
-  genreOptions:     GenreOption[]        = [];
-  selectedSubjects: string[]             = DEFAULT_SUBJECTS;
-  showGenrePicker   = false;
+  genreOptions:    GenreOption[] = [];
+  activeSubject    = DEFAULT_SUBJECT;
+  showGenrePicker  = false;
 
   constructor(
     private bookService:     BookService,
@@ -86,9 +86,7 @@ export class DashboardComponent implements OnInit {
     this.loadData();
 
     const saved = localStorage.getItem(PICKS_STORAGE_KEY);
-    if (saved) {
-      try { this.selectedSubjects = JSON.parse(saved); } catch { /* ignore */ }
-    }
+    if (saved) this.activeSubject = saved;
 
     this.http.get<GenreOption[]>('/api/toppicks/genres').subscribe({
       next: opts => { this.genreOptions = opts; },
@@ -99,28 +97,26 @@ export class DashboardComponent implements OnInit {
 
   loadTopPicks(): void {
     this.topPicksLoading = true;
-    const params = this.selectedSubjects.join(',');
-    this.http.get<TopPick[]>(`/api/toppicks?subjects=${params}`).subscribe({
+    this.http.get<TopPick[]>(`/api/toppicks?subjects=${this.activeSubject}`).subscribe({
       next:  picks => { this.topPicks = picks; this.topPicksLoading = false; },
       error: ()    => { this.topPicksLoading = false; },
     });
   }
 
-  toggleGenre(subject: string): void {
-    const idx = this.selectedSubjects.indexOf(subject);
-    if (idx >= 0) {
-      if (this.selectedSubjects.length === 1) return; // keep at least 1
-      this.selectedSubjects = this.selectedSubjects.filter(s => s !== subject);
-    } else {
-      if (this.selectedSubjects.length >= 3) return; // max 3
-      this.selectedSubjects = [...this.selectedSubjects, subject];
-    }
-    localStorage.setItem(PICKS_STORAGE_KEY, JSON.stringify(this.selectedSubjects));
+  selectGenre(subject: string): void {
+    if (this.activeSubject === subject) return;
+    this.activeSubject = subject;
+    localStorage.setItem(PICKS_STORAGE_KEY, subject);
+    this.showGenrePicker = false;
     this.loadTopPicks();
   }
 
   isGenreSelected(subject: string): boolean {
-    return this.selectedSubjects.includes(subject);
+    return this.activeSubject === subject;
+  }
+
+  get activeGenreLabel(): string {
+    return this.genreOptions.find(g => g.subject === this.activeSubject)?.label ?? 'Top Reads';
   }
 
   private loadData(): void {
