@@ -155,6 +155,7 @@ interface RefreshResult { source: string; added: number; error?: string }
               <mat-icon class="article-arrow">open_in_new</mat-icon>
               <button class="article-delete"
                       (click)="deleteArticle(a.id, $event)"
+                      (pointerdown)="$event.stopPropagation()"
                       [disabled]="deleting.has(a.id)"
                       matTooltip="Dismiss article">
                 @if (deleting.has(a.id)) {
