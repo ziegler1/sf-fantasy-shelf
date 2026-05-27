@@ -13,16 +13,16 @@ export interface TopPick {
 
 // Allowlist of OpenLibrary subject slugs → display labels
 export const GENRE_OPTIONS: { label: string; subject: string }[] = [
-  { label: 'Sci-Fi',             subject: 'science_fiction'               },
-  { label: 'Fantasy',            subject: 'fantasy'                       },
-  { label: 'Mystery',            subject: 'mystery_and_detective_stories' },
-  { label: 'Thriller',           subject: 'thriller'                      },
-  { label: 'Horror',             subject: 'horror_tales'                  },
-  { label: 'Romance',            subject: 'romance'                       },
-  { label: 'Historical Fiction', subject: 'historical_fiction'            },
-  { label: 'Biography',          subject: 'biography'                     },
-  { label: 'Non-Fiction',        subject: 'nonfiction'                    },
-  { label: 'Classic Literature', subject: 'classics'                      },
+  { label: 'Sci-Fi',             subject: 'science_fiction'   },
+  { label: 'Fantasy',            subject: 'fantasy'           },
+  { label: 'Mystery',            subject: 'mystery'           },
+  { label: 'Thriller',           subject: 'thriller'          },
+  { label: 'Horror',             subject: 'horror'            },
+  { label: 'Romance',            subject: 'romance'           },
+  { label: 'Historical Fiction', subject: 'historical_fiction'},
+  { label: 'Biography',          subject: 'biography'         },
+  { label: 'Adventure',          subject: 'adventure'         },
+  { label: 'Classic Literature', subject: 'classic_literature'},
 ];
 
 const SUBJECT_MAP = new Map(GENRE_OPTIONS.map(g => [g.subject, g.label]));
@@ -62,9 +62,7 @@ router.get('/', asyncHandler(async (req, res) => {
     }
 
     if (!allBooks.length) {
-      return res.json(FALLBACK.filter(f => subjects.includes(
-        GENRE_OPTIONS.find(g => g.label === f.genre)?.subject ?? '',
-      )));
+      return res.json(FALLBACK);
     }
 
     // Interleave across genres, deduplicate, cap at 8
