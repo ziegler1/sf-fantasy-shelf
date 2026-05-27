@@ -34,7 +34,6 @@ export const FEEDS: FeedSource[] = [
   { name: 'Literary Hub',        url: 'https://lithub.com/feed/',                                   category: 'Book News' },
   { name: 'The Guardian Books',  url: 'https://www.theguardian.com/books/rss',                     category: 'Book News' },
   { name: 'NPR Books',           url: 'https://feeds.npr.org/1032/rss.xml',                         category: 'Book News' },
-  { name: "Publisher's Weekly",  url: 'https://www.publishersweekly.com/pw/feeds/upcoming/rss',    category: 'Book News' },
   // Bestsellers / charts
   { name: 'NYT Books',           url: 'https://rss.nytimes.com/services/xml/rss/nyt/Books.xml',    category: 'Bestsellers' },
 ];

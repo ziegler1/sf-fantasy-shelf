@@ -20,7 +20,6 @@ const SOURCE_COLORS: Record<string, string> = {
   'Literary Hub':        '#7c3aed',
   'The Guardian Books':  '#0891b2',
   'NPR Books':           '#1d4ed8',
-  "Publisher's Weekly":  '#d97706',
   // Bestsellers
   'NYT Books':           '#374151',
 };
