@@ -86,10 +86,31 @@ export class DashboardComponent implements OnInit {
     this.loadData();
 
     const saved = localStorage.getItem(PICKS_STORAGE_KEY);
-    if (saved) this.activeSubject = saved;
+    // Migrate old multi-select format (JSON array) → plain string
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Old format — take first entry and re-save as plain string
+          this.activeSubject = parsed[0] ?? DEFAULT_SUBJECT;
+          localStorage.setItem(PICKS_STORAGE_KEY, this.activeSubject);
+        } else {
+          this.activeSubject = saved;
+        }
+      } catch {
+        this.activeSubject = saved; // plain string, not JSON
+      }
+    }
 
     this.http.get<GenreOption[]>('/api/toppicks/genres').subscribe({
-      next: opts => { this.genreOptions = opts; },
+      next: opts => {
+        this.genreOptions = opts;
+        const valid = opts.some(g => g.subject === this.activeSubject);
+        if (!valid) {
+          this.activeSubject = DEFAULT_SUBJECT;
+          localStorage.setItem(PICKS_STORAGE_KEY, this.activeSubject);
+        }
+      },
     });
 
     this.loadTopPicks();
