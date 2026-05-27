@@ -414,8 +414,81 @@
   text-overflow: ellipsis;
 }
 
-.badge-scifi   { background: rgba(59,130,246,.15);  color: #60a5fa; }
-.badge-fantasy { background: rgba(168,85,247,.15);  color: #c084fc; }
+.genre-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(96,165,250,.12);
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Genre picker ────────────────────────────────────────── */
+.genre-picker-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-faint);
+  border-radius: 4px;
+  padding: 0;
+  transition: color 0.15s;
+  margin-left: auto;
+}
+
+.genre-picker-btn:hover,
+.genre-picker-btn.active { color: var(--accent); }
+
+.genre-picker-btn mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.genre-picker {
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.picker-hint {
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.picker-chip {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-hover);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.picker-chip.chip-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {

@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { BookService } from '../../core/services/book.service';
@@ -36,13 +37,18 @@ interface TopPick {
   title:     string;
   author:    string;
   cover_url: string | null;
-  genre:     'Sci-Fi' | 'Fantasy';
+  genre:     string;
 }
+
+interface GenreOption { label: string; subject: string }
+
+const DEFAULT_SUBJECTS = ['science_fiction', 'fantasy'];
+const PICKS_STORAGE_KEY = 'sfs_toppick_genres';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterLink, MatDialogModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule],
+  imports: [CommonModule, DatePipe, RouterLink, MatDialogModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule, MatButtonModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -63,6 +69,9 @@ export class DashboardComponent implements OnInit {
   upcomingReleases: UpcomingRelease[]     = [];
   topPicks:         TopPick[]            = [];
   topPicksLoading   = true;
+  genreOptions:     GenreOption[]        = [];
+  selectedSubjects: string[]             = DEFAULT_SUBJECTS;
+  showGenrePicker   = false;
 
   constructor(
     private bookService:     BookService,
@@ -76,10 +85,42 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadData();
 
-    this.http.get<TopPick[]>('/api/toppicks').subscribe({
+    const saved = localStorage.getItem(PICKS_STORAGE_KEY);
+    if (saved) {
+      try { this.selectedSubjects = JSON.parse(saved); } catch { /* ignore */ }
+    }
+
+    this.http.get<GenreOption[]>('/api/toppicks/genres').subscribe({
+      next: opts => { this.genreOptions = opts; },
+    });
+
+    this.loadTopPicks();
+  }
+
+  loadTopPicks(): void {
+    this.topPicksLoading = true;
+    const params = this.selectedSubjects.join(',');
+    this.http.get<TopPick[]>(`/api/toppicks?subjects=${params}`).subscribe({
       next:  picks => { this.topPicks = picks; this.topPicksLoading = false; },
       error: ()    => { this.topPicksLoading = false; },
     });
+  }
+
+  toggleGenre(subject: string): void {
+    const idx = this.selectedSubjects.indexOf(subject);
+    if (idx >= 0) {
+      if (this.selectedSubjects.length === 1) return; // keep at least 1
+      this.selectedSubjects = this.selectedSubjects.filter(s => s !== subject);
+    } else {
+      if (this.selectedSubjects.length >= 3) return; // max 3
+      this.selectedSubjects = [...this.selectedSubjects, subject];
+    }
+    localStorage.setItem(PICKS_STORAGE_KEY, JSON.stringify(this.selectedSubjects));
+    this.loadTopPicks();
+  }
+
+  isGenreSelected(subject: string): boolean {
+    return this.selectedSubjects.includes(subject);
   }
 
   private loadData(): void {

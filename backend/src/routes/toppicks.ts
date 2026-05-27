@@ -8,86 +8,127 @@ export interface TopPick {
   title:     string;
   author:    string;
   cover_url: string | null;
-  genre:     'Sci-Fi' | 'Fantasy';
+  genre:     string;
 }
 
-const FALLBACK: TopPick[] = [
-  { key: 'OL1a', title: 'Dune',                        author: 'Frank Herbert',       cover_url: 'https://covers.openlibrary.org/b/id/9255566-M.jpg',  genre: 'Sci-Fi'  },
-  { key: 'OL2a', title: 'The Name of the Wind',         author: 'Patrick Rothfuss',    cover_url: 'https://covers.openlibrary.org/b/id/9893548-M.jpg',  genre: 'Fantasy' },
-  { key: 'OL3a', title: 'Foundation',                   author: 'Isaac Asimov',        cover_url: 'https://covers.openlibrary.org/b/id/9232322-M.jpg',  genre: 'Sci-Fi'  },
-  { key: 'OL4a', title: 'The Way of Kings',             author: 'Brandon Sanderson',   cover_url: 'https://covers.openlibrary.org/b/id/10527843-M.jpg', genre: 'Fantasy' },
-  { key: 'OL5a', title: 'Ender\'s Game',                author: 'Orson Scott Card',    cover_url: 'https://covers.openlibrary.org/b/id/8225276-M.jpg',  genre: 'Sci-Fi'  },
-  { key: 'OL6a', title: 'The Eye of the World',         author: 'Robert Jordan',       cover_url: 'https://covers.openlibrary.org/b/id/9255116-M.jpg',  genre: 'Fantasy' },
-  { key: 'OL7a', title: 'The Left Hand of Darkness',   author: 'Ursula K. Le Guin',   cover_url: 'https://covers.openlibrary.org/b/id/9255568-M.jpg',  genre: 'Sci-Fi'  },
-  { key: 'OL8a', title: 'A Wizard of Earthsea',        author: 'Ursula K. Le Guin',   cover_url: 'https://covers.openlibrary.org/b/id/8910987-M.jpg',  genre: 'Fantasy' },
+// Allowlist of OpenLibrary subject slugs → display labels
+export const GENRE_OPTIONS: { label: string; subject: string }[] = [
+  { label: 'Sci-Fi',             subject: 'science_fiction'               },
+  { label: 'Fantasy',            subject: 'fantasy'                       },
+  { label: 'Mystery',            subject: 'mystery_and_detective_stories' },
+  { label: 'Thriller',           subject: 'thriller'                      },
+  { label: 'Horror',             subject: 'horror_tales'                  },
+  { label: 'Romance',            subject: 'romance'                       },
+  { label: 'Historical Fiction', subject: 'historical_fiction'            },
+  { label: 'Biography',          subject: 'biography'                     },
+  { label: 'Non-Fiction',        subject: 'nonfiction'                    },
+  { label: 'Classic Literature', subject: 'classics'                      },
 ];
 
-// 24-hour in-memory cache — same for every user, no auth needed
-let cache: { data: TopPick[]; expiresAt: number } | null = null;
+const SUBJECT_MAP = new Map(GENRE_OPTIONS.map(g => [g.subject, g.label]));
+const DEFAULT_SUBJECTS = ['science_fiction', 'fantasy'];
 
-router.get('/', asyncHandler(async (_req, res) => {
-  if (cache && Date.now() < cache.expiresAt) {
-    return res.json(cache.data);
-  }
+const FALLBACK: TopPick[] = [
+  { key: 'OL1a', title: 'Dune',                      author: 'Frank Herbert',     cover_url: 'https://covers.openlibrary.org/b/id/9255566-M.jpg',  genre: 'Sci-Fi'  },
+  { key: 'OL2a', title: 'The Name of the Wind',       author: 'Patrick Rothfuss',  cover_url: 'https://covers.openlibrary.org/b/id/9893548-M.jpg',  genre: 'Fantasy' },
+  { key: 'OL3a', title: 'Foundation',                 author: 'Isaac Asimov',      cover_url: 'https://covers.openlibrary.org/b/id/9232322-M.jpg',  genre: 'Sci-Fi'  },
+  { key: 'OL4a', title: 'The Way of Kings',           author: 'Brandon Sanderson', cover_url: 'https://covers.openlibrary.org/b/id/10527843-M.jpg', genre: 'Fantasy' },
+  { key: 'OL5a', title: "Ender's Game",               author: 'Orson Scott Card',  cover_url: 'https://covers.openlibrary.org/b/id/8225276-M.jpg',  genre: 'Sci-Fi'  },
+  { key: 'OL6a', title: 'The Eye of the World',       author: 'Robert Jordan',     cover_url: 'https://covers.openlibrary.org/b/id/9255116-M.jpg',  genre: 'Fantasy' },
+  { key: 'OL7a', title: 'The Left Hand of Darkness', author: 'Ursula K. Le Guin', cover_url: 'https://covers.openlibrary.org/b/id/9255568-M.jpg',  genre: 'Sci-Fi'  },
+  { key: 'OL8a', title: 'A Wizard of Earthsea',      author: 'Ursula K. Le Guin', cover_url: 'https://covers.openlibrary.org/b/id/8910987-M.jpg',  genre: 'Fantasy' },
+];
+
+// Per-subject cache entries keyed by subject slug, expire after 24 hours
+const cache = new Map<string, { data: TopPick[]; expiresAt: number }>();
+
+router.get('/', asyncHandler(async (req, res) => {
+  // Parse and validate requested subjects (max 3)
+  const raw      = typeof req.query['subjects'] === 'string' ? req.query['subjects'] : '';
+  const requested = raw
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => SUBJECT_MAP.has(s))
+    .slice(0, 3);
+
+  const subjects = requested.length ? requested : DEFAULT_SUBJECTS;
 
   try {
-    const [sf, fantasy] = await Promise.allSettled([
-      fetchSubject('science_fiction', 'Sci-Fi'),
-      fetchSubject('fantasy',         'Fantasy'),
-    ]);
+    const settled = await Promise.allSettled(subjects.map(s => fetchSubject(s)));
+    const allBooks: TopPick[] = [];
 
-    const sfBooks      = sf.status      === 'fulfilled' ? sf.value      : [];
-    const fantasyBooks = fantasy.status === 'fulfilled' ? fantasy.value : [];
-
-    if (!sfBooks.length && !fantasyBooks.length) {
-      console.warn('[toppicks] Open Library returned no results, using fallback');
-      return res.json(FALLBACK);
+    for (const result of settled) {
+      if (result.status === 'fulfilled') allBooks.push(...result.value);
     }
 
-    const seen  = new Set<string>();
-    const picks: TopPick[] = [];
-    const max   = Math.max(sfBooks.length, fantasyBooks.length);
+    if (!allBooks.length) {
+      return res.json(FALLBACK.filter(f => subjects.includes(
+        GENRE_OPTIONS.find(g => g.label === f.genre)?.subject ?? '',
+      )));
+    }
 
-    for (let i = 0; i < max && picks.length < 8; i++) {
-      for (const book of [sfBooks[i], fantasyBooks[i]]) {
-        if (!book || picks.length >= 8) continue;
-        const key = book.title.toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (!seen.has(key)) { seen.add(key); picks.push(book); }
+    // Interleave across genres, deduplicate, cap at 8
+    const byGenre = new Map<string, TopPick[]>();
+    for (const b of allBooks) {
+      const arr = byGenre.get(b.genre) ?? [];
+      arr.push(b);
+      byGenre.set(b.genre, arr);
+    }
+
+    const seen   = new Set<string>();
+    const picks: TopPick[] = [];
+    const maxPerGenre = Math.max(...[...byGenre.values()].map(a => a.length));
+
+    outer: for (let i = 0; i < maxPerGenre; i++) {
+      for (const books of byGenre.values()) {
+        if (!books[i] || picks.length >= 8) break outer;
+        const key = books[i].title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!seen.has(key)) { seen.add(key); picks.push(books[i]); }
       }
     }
 
-    cache = { data: picks, expiresAt: Date.now() + 24 * 60 * 60 * 1000 };
     res.json(picks);
   } catch (err) {
-    console.error('[toppicks] Open Library fetch failed, using fallback:', err);
+    console.error('[toppicks] fetch failed, using fallback:', err);
     res.json(FALLBACK);
   }
 }));
 
-async function fetchSubject(subject: string, genre: TopPick['genre']): Promise<TopPick[]> {
-  const url = `https://openlibrary.org/subjects/${subject}.json?limit=6&sort=edition_count`;
+// Also expose the genre options list so the frontend can stay in sync
+router.get('/genres', (_req, res) => res.json(GENRE_OPTIONS));
+
+async function fetchSubject(subject: string): Promise<TopPick[]> {
+  const cached = cache.get(subject);
+  if (cached && Date.now() < cached.expiresAt) return cached.data;
+
+  const url  = `https://openlibrary.org/subjects/${subject}.json?limit=6&sort=edition_count`;
   const resp = await fetch(url, {
     signal:  AbortSignal.timeout(10000),
     headers: { 'User-Agent': 'ZigsCodex/1.0 (book-tracking app)' },
   });
   if (!resp.ok) throw new Error(`OpenLibrary ${resp.status} for subject=${subject}`);
 
-  const data = await resp.json() as { works?: OLWork[] };
-  return (data.works ?? []).slice(0, 6).map(w => ({
+  const data  = await resp.json() as { works?: OLWork[] };
+  const label = SUBJECT_MAP.get(subject) ?? subject;
+
+  const picks = (data.works ?? []).slice(0, 6).map(w => ({
     key:       w.key,
     title:     w.title,
     author:    w.authors?.[0]?.name ?? 'Unknown',
     cover_url: w.cover_id
       ? `https://covers.openlibrary.org/b/id/${w.cover_id}-M.jpg`
       : null,
-    genre,
+    genre: label,
   }));
+
+  cache.set(subject, { data: picks, expiresAt: Date.now() + 24 * 60 * 60 * 1000 });
+  return picks;
 }
 
 interface OLWork {
-  key:      string;
-  title:    string;
-  authors?: { name: string }[];
+  key:       string;
+  title:     string;
+  authors?:  { name: string }[];
   cover_id?: number;
 }
 

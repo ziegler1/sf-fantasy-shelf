@@ -218,9 +218,29 @@
 
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-label">TOP SF/FANTASY READS</span>
+          <span class="panel-label">TOP READS</span>
+          <button class="genre-picker-btn" (click)="showGenrePicker = !showGenrePicker"
+                  [class.active]="showGenrePicker" matTooltip="Choose genres">
+            <mat-icon>tune</mat-icon>
+          </button>
           <a class="panel-link" routerLink="/discover">Discover →</a>
         </div>
+
+        @if (showGenrePicker) {
+          <div class="genre-picker">
+            <span class="picker-hint">Pick up to 3 genres</span>
+            <div class="picker-chips">
+              @for (g of genreOptions; track g.subject) {
+                <button class="picker-chip"
+                        [class.chip-on]="isGenreSelected(g.subject)"
+                        (click)="toggleGenre(g.subject)">
+                  {{ g.label }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
         @if (topPicksLoading) {
           <div class="panel-empty">
             <mat-spinner diameter="24" />
@@ -237,9 +257,7 @@
                 <p class="pick-title">{{ p.title }}</p>
                 <p class="pick-author">{{ p.author }}</p>
               </div>
-              <span class="badge" [ngClass]="p.genre === 'Sci-Fi' ? 'badge-scifi' : 'badge-fantasy'">
-                {{ p.genre }}
-              </span>
+              <span class="genre-badge">{{ p.genre }}</span>
             </a>
           }
         } @else {
