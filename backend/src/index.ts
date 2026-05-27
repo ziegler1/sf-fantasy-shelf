@@ -21,6 +21,7 @@ const PORT = process.env['PORT'] ?? 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use((req, _res, next) => { req.url = req.url.replace(/\/+/g, '/'); next(); });
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
