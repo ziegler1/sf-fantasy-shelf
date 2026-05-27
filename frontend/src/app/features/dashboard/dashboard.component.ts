@@ -42,7 +42,7 @@ interface TopPick {
 
 interface GenreOption { label: string; subject: string }
 
-const DEFAULT_SUBJECT   = 'science_fiction';
+const DEFAULT_SUBJECTS  = ['science_fiction', 'fantasy'];
 const PICKS_STORAGE_KEY = 'sfs_toppick_genres';
 
 @Component({
@@ -69,9 +69,9 @@ export class DashboardComponent implements OnInit {
   upcomingReleases: UpcomingRelease[]     = [];
   topPicks:         TopPick[]            = [];
   topPicksLoading   = true;
-  genreOptions:    GenreOption[] = [];
-  activeSubject    = DEFAULT_SUBJECT;
-  showGenrePicker  = false;
+  genreOptions:     GenreOption[] = [];
+  selectedSubjects: string[]      = [...DEFAULT_SUBJECTS];
+  showGenrePicker   = false;
 
   constructor(
     private bookService:     BookService,
@@ -86,30 +86,21 @@ export class DashboardComponent implements OnInit {
     this.loadData();
 
     const saved = localStorage.getItem(PICKS_STORAGE_KEY);
-    // Migrate old multi-select format (JSON array) → plain string
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          // Old format — take first entry and re-save as plain string
-          this.activeSubject = parsed[0] ?? DEFAULT_SUBJECT;
-          localStorage.setItem(PICKS_STORAGE_KEY, this.activeSubject);
-        } else {
-          this.activeSubject = saved;
+        if (Array.isArray(parsed) && parsed.length) {
+          this.selectedSubjects = parsed;
         }
-      } catch {
-        this.activeSubject = saved; // plain string, not JSON
-      }
+      } catch { /* ignore bad value */ }
     }
 
     this.http.get<GenreOption[]>('/api/toppicks/genres').subscribe({
       next: opts => {
         this.genreOptions = opts;
-        const valid = opts.some(g => g.subject === this.activeSubject);
-        if (!valid) {
-          this.activeSubject = DEFAULT_SUBJECT;
-          localStorage.setItem(PICKS_STORAGE_KEY, this.activeSubject);
-        }
+        const validSubjects = new Set(opts.map(g => g.subject));
+        this.selectedSubjects = this.selectedSubjects.filter(s => validSubjects.has(s));
+        if (!this.selectedSubjects.length) this.selectedSubjects = [...DEFAULT_SUBJECTS];
       },
     });
 
@@ -118,26 +109,34 @@ export class DashboardComponent implements OnInit {
 
   loadTopPicks(): void {
     this.topPicksLoading = true;
-    this.http.get<TopPick[]>(`/api/toppicks?subjects=${this.activeSubject}`).subscribe({
+    const params = this.selectedSubjects.join(',');
+    this.http.get<TopPick[]>(`/api/toppicks?subjects=${params}`).subscribe({
       next:  picks => { this.topPicks = picks; this.topPicksLoading = false; },
       error: ()    => { this.topPicksLoading = false; },
     });
   }
 
-  selectGenre(subject: string): void {
-    if (this.activeSubject === subject) return;
-    this.activeSubject = subject;
-    localStorage.setItem(PICKS_STORAGE_KEY, subject);
-    this.showGenrePicker = false;
+  toggleGenre(subject: string): void {
+    const idx = this.selectedSubjects.indexOf(subject);
+    if (idx >= 0) {
+      if (this.selectedSubjects.length === 1) return; // keep at least 1
+      this.selectedSubjects = this.selectedSubjects.filter(s => s !== subject);
+    } else {
+      if (this.selectedSubjects.length >= 3) return; // max 3
+      this.selectedSubjects = [...this.selectedSubjects, subject];
+    }
+    localStorage.setItem(PICKS_STORAGE_KEY, JSON.stringify(this.selectedSubjects));
     this.loadTopPicks();
   }
 
   isGenreSelected(subject: string): boolean {
-    return this.activeSubject === subject;
+    return this.selectedSubjects.includes(subject);
   }
 
   get activeGenreLabel(): string {
-    return this.genreOptions.find(g => g.subject === this.activeSubject)?.label ?? 'Top Reads';
+    return this.selectedSubjects
+      .map(s => this.genreOptions.find(g => g.subject === s)?.label ?? s)
+      .join(' / ');
   }
 
   private loadData(): void {

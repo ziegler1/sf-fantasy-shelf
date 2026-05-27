@@ -228,12 +228,12 @@
 
         @if (showGenrePicker) {
           <div class="genre-picker">
-            <span class="picker-hint">Select a genre</span>
+            <span class="picker-hint">Pick up to 3 genres</span>
             <div class="picker-chips">
               @for (g of genreOptions; track g.subject) {
                 <button class="picker-chip"
                         [class.chip-on]="isGenreSelected(g.subject)"
-                        (click)="selectGenre(g.subject)">
+                        (click)="toggleGenre(g.subject)">
                   {{ g.label }}
                 </button>
               }
