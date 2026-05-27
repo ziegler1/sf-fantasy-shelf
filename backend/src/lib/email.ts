@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env['RESEND_API_KEY']);
 
 const FROM    = process.env['FROM_EMAIL']  ?? 'onboarding@resend.dev';
-const APP_URL = process.env['APP_URL']     ?? 'http://localhost:4200';
+const APP_URL = (process.env['APP_URL'] ?? 'http://localhost:4200').replace(/\/$/, '');
 const ADMIN   = process.env['ADMIN_EMAIL'] ?? '';
 
 export async function sendApprovalRequest(userId: number, name: string, email: string, approveToken: string): Promise<void> {
