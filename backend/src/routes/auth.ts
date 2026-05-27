@@ -161,8 +161,7 @@ router.get('/approve', asyncHandler(async (req, res) => {
   );
 
   if (!rows.length) {
-    // Already approved or doesn't exist — still redirect gracefully
-    return res.redirect(`${appUrl}/login?approved=already`);
+    return res.send(approvalPage('Already approved', 'This account was already active.'));
   }
 
   try {
@@ -171,7 +170,7 @@ router.get('/approve', asyncHandler(async (req, res) => {
     console.error('[auth] failed to send welcome email:', err);
   }
 
-  res.redirect(`${appUrl}/login?approved=1`);
+  res.send(approvalPage('Account approved!', `${rows[0].name} (${rows[0].email}) can now sign in. A welcome email has been sent.`));
 }));
 
 // ── GET /api/auth/me ──────────────────────────────────────────────────────────
@@ -283,5 +282,19 @@ router.post('/reset-password', validate(resetPasswordSchema), asyncHandler(async
 
   res.json({ message: 'Password reset successfully. You can now sign in.' });
 }));
+
+function approvalPage(heading: string, body: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+  <title>${heading}</title>
+  <style>
+    body{font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;
+         display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+    .card{background:#1e293b;border-radius:12px;padding:2rem 2.5rem;max-width:420px;text-align:center}
+    h1{color:#34d399;margin:0 0 0.75rem;font-size:1.5rem}
+    p{color:#94a3b8;margin:0;line-height:1.6}
+  </style></head><body>
+  <div class="card"><h1>✓ ${heading}</h1><p>${body}</p></div>
+  </body></html>`;
+}
 
 export default router;

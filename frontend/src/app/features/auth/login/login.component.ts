@@ -30,12 +30,7 @@ export class LoginComponent implements OnInit {
   constructor(private auth: AuthService, private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
-    const approved = this.route.snapshot.queryParamMap.get('approved');
-    if (approved === '1') {
-      this.notice = 'Your account has been approved! You can now sign in.';
-    } else if (approved === 'already') {
-      this.notice = 'This account was already approved. Sign in below.';
-    } else if (approved === 'error') {
+    if (this.route.snapshot.queryParamMap.get('approved') === 'error') {
       this.error = 'Approval link is invalid or expired. Ask the admin to resend.';
     }
   }
