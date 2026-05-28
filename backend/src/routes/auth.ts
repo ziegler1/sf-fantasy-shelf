@@ -170,7 +170,7 @@ router.get('/approve', asyncHandler(async (req, res) => {
     console.error('[auth] failed to send welcome email:', err);
   }
 
-  res.send(approvalPage('Account approved!', `${rows[0].name} (${rows[0].email}) can now sign in. A welcome email has been sent.`));
+  res.send(approvalPage('Account approved!', `${escHtml(rows[0].name)} (${escHtml(rows[0].email)}) can now sign in. A welcome email has been sent.`));
 }));
 
 // ── GET /api/auth/me ──────────────────────────────────────────────────────────
@@ -282,6 +282,10 @@ router.post('/reset-password', validate(resetPasswordSchema), asyncHandler(async
 
   res.json({ message: 'Password reset successfully. You can now sign in.' });
 }));
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 function approvalPage(heading: string, body: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8">

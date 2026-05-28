@@ -28,8 +28,8 @@ sf-fantasy-shelf/
 │   │   │   ├── library/        My Library page (book grid, AI summary)
 │   │   │   ├── series-tracker/ Series progress page
 │   │   │   ├── discover/       AI recommendations + similar authors
-│   │   │   ├── upcoming/       Placeholder
-│   │   │   └── news/           Placeholder
+│   │   │   ├── upcoming/       Upcoming releases timeline and add form
+│   │   │   └── news/           RSS news feed with source filters
 │   │   └── types/
 │   │       └── schema.types.ts Shared DB types (mirrors backend/src/types.ts)
 │   ├── nginx/nginx.conf        Uses $BACKEND_URL envsubst variable

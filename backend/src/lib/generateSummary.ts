@@ -4,7 +4,7 @@ import pool from '../db';
 const anthropic = new Anthropic({ apiKey: process.env['ANTHROPIC_API_KEY'] });
 const MODEL = 'claude-sonnet-4-5';
 
-export async function generateAndStoreSummary(bookId: number): Promise<string> {
+export async function generateAndStoreSummary(bookId: number, userId = 1): Promise<string> {
   // Return cached summary immediately if present
   const cached = await pool.query<{ ai_summary: string | null }>(
     'SELECT ai_summary FROM books WHERE id = $1',
@@ -39,10 +39,10 @@ export async function generateAndStoreSummary(bookId: number): Promise<string> {
      LEFT JOIN series s        ON s.id = bs.series_id
      LEFT JOIN book_tags bt    ON bt.book_id = b.id
      LEFT JOIN tags t          ON t.id = bt.tag_id
-     LEFT JOIN user_books ub   ON ub.book_id = b.id AND ub.user_id = 1
+     LEFT JOIN user_books ub   ON ub.book_id = b.id AND ub.user_id = $2
      WHERE b.id = $1
      GROUP BY b.id, ub.id`,
-    [bookId],
+    [bookId, userId],
   );
 
   if (!rows.length) throw new Error(`Book ${bookId} not found`);

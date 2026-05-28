@@ -52,7 +52,7 @@ function extractJson(text: string): string {
 router.post('/summary', heavyRateLimit, validate(summarySchema), asyncHandler(async (req, res) => {
   const { book_id } = req.body as z.infer<typeof summarySchema>;
 
-  const summary = await generateAndStoreSummary(book_id);
+  const summary = await generateAndStoreSummary(book_id, req.userId);
   res.json({ summary, book_id });
 }));
 

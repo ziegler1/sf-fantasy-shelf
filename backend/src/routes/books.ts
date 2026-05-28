@@ -349,8 +349,9 @@ router.post('/import', validate(importSchema), asyncHandler(async (req, res) => 
     const importedBookId   = book.id;
     const importedCoverUrl = book.cover_url as string | null;
 
+    const importedUserId = req.userId;
     setImmediate(() => {
-      generateAndStoreSummary(importedBookId).catch(err =>
+      generateAndStoreSummary(importedBookId, importedUserId).catch(err =>
         console.error(`Summary generation failed for book ${importedBookId}:`, err),
       );
       if (importedCoverUrl) {
@@ -446,9 +447,12 @@ router.get('/', asyncHandler(async (req, res) => {
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  const limit  = req.query['limit'] === 'all'
+  const limit = req.query['limit'] === 'all'
     ? undefined
-    : Math.min(Math.max(parseInt(String(req.query['limit'] || '50'), 10), 1), 200);
+    : (() => {
+        const n = parseInt(String(req.query['limit'] || '50'), 10);
+        return isNaN(n) ? 50 : Math.min(Math.max(n, 1), 200);
+      })();
   const offset = Math.max(parseInt(String(req.query['offset'] || '0'), 10), 0);
 
   const [booksResult, countResult] = await Promise.all([
@@ -524,7 +528,7 @@ router.post('/', validate(bookCreateSchema), asyncHandler(async (req, res) => {
     res.status(201).json(book);
 
     setImmediate(() => {
-      generateAndStoreSummary(book.id).catch(err =>
+      generateAndStoreSummary(book.id, req.userId).catch(err =>
         console.error(`Summary generation failed for book ${book.id}:`, err),
       );
     });
@@ -541,6 +545,12 @@ router.post('/', validate(bookCreateSchema), asyncHandler(async (req, res) => {
 router.put('/:id', validate(bookUpdateSchema), asyncHandler(async (req, res) => {
   const { title, isbn, isbn13, description, cover_url,
           published_at, page_count, language } = req.body as z.infer<typeof bookUpdateSchema>;
+
+  const owns = await pool.query(
+    'SELECT 1 FROM user_books WHERE user_id = $1 AND book_id = $2',
+    [req.userId, req.params['id']],
+  );
+  if (!owns.rows.length) return res.status(403).json({ error: 'Not authorized' });
 
   const { rows } = await pool.query(
     `UPDATE books
@@ -568,6 +578,12 @@ router.put('/:id', validate(bookUpdateSchema), asyncHandler(async (req, res) => 
 // ── DELETE /api/books/:id ─────────────────────────────────────────────────────
 
 router.delete('/:id', asyncHandler(async (req, res) => {
+  const owns = await pool.query(
+    'SELECT 1 FROM user_books WHERE user_id = $1 AND book_id = $2',
+    [req.userId, req.params['id']],
+  );
+  if (!owns.rows.length) return res.status(403).json({ error: 'Not authorized' });
+
   const result = await pool.query('DELETE FROM books WHERE id=$1', [req.params['id']]);
   if (!result.rowCount) return res.status(404).json({ error: 'Not found' });
   res.status(204).send();

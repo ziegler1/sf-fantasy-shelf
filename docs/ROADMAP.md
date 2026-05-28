@@ -118,7 +118,7 @@ The series tracker was a placeholder — now fully wired:
 ### UX
 
 - [ ] Loading skeletons instead of spinners
-- [ ] Empty states with prompts (e.g. "Add a book to get started")
+- [ ] Empty states with prompts (present on some pages, but not yet a consistent CTA-first experience)
 - [x] Toast notifications — Snackbar wired for auth; extend to book add/delete actions
 - [x] Search bar in My Library (title + author)
 - [x] Dark/light mode toggle — `ThemeService` + CSS custom property system + Angular Material MDC overrides; gray light mode with full contrast across nav, dialogs, selects, badges
@@ -141,6 +141,16 @@ The series tracker was a placeholder — now fully wired:
 - [x] Manual book entry (no-search fallback)
 - [x] Edit cover image URL from detail dialog
 - [x] Edit authors (add/remove/swap) from detail dialog
+
+### Outstanding tasks for next pass
+
+- [ ] Replace spinner-only loading states with lightweight skeletons or shimmer placeholders on primary list/detail screens.
+- [ ] Standardize empty-state copy and CTAs across library, series, upcoming, news, and analytics pages.
+- [ ] Add OnPush change detection to high-traffic book-card and list components to reduce unnecessary renders.
+- [ ] Add production error monitoring (for example Sentry or Railway log ingestion) for API and frontend failures.
+- [ ] Implement "link to book" for upcoming releases when a title later appears in the library.
+- [ ] Review and tighten responsive behavior on mobile for add-book, detail dialogs, and analytics cards.
+- [ ] Add a small regression checklist for deployment smoke tests (auth, import, AI summary, news refresh, upcoming add/delete).
 
 ---
 

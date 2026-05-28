@@ -2,8 +2,10 @@ import { Router } from 'express';
 import multer from 'multer';
 import { uploadCover } from '../lib/r2';
 import { asyncHandler } from '../lib/asyncHandler';
+import { verifyToken } from '../middleware/auth';
 
 const router = Router();
+router.use(verifyToken);
 
 const upload = multer({
   storage: multer.memoryStorage(),
