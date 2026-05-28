@@ -28,7 +28,7 @@ export async function sendApprovalRequest(userId: number, name: string, email: s
       <p style="margin-top:16px;font-size:12px;color:#94a3b8">
         Or copy this link: ${approveUrl}
       </p>
-      <p style="font-size:12px;color:#94a3b8">This link expires in 48 hours.</p>
+      <p style="font-size:12px;color:#94a3b8">This link expires in 30 days.</p>
     `,
   });
 }

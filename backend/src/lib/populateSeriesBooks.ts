@@ -112,12 +112,12 @@ async function insertStubAtPosition(
 
   // Reuse an existing book with matching title + author rather than creating a duplicate
   let bookId: number | null = null;
-  const lastName = authorName.split(' ').pop() ?? authorName;
+  const lastName = (authorName.split(' ').pop() ?? authorName).replace(/[%_\\]/g, '\\$&');
   const existing = await pool.query<{ id: number }>(
     `SELECT b.id FROM books b
      JOIN book_authors ba ON ba.book_id = b.id
      JOIN authors a ON a.id = ba.author_id
-     WHERE LOWER(b.title) = LOWER($1) AND LOWER(a.name) LIKE LOWER($2)
+     WHERE LOWER(b.title) = LOWER($1) AND LOWER(a.name) LIKE LOWER($2) ESCAPE '\\'
      LIMIT 1`,
     [title, `%${lastName}%`],
   );

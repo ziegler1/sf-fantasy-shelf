@@ -436,12 +436,13 @@ router.get('/', asyncHandler(async (req, res) => {
     conditions.push(`ub.status = $${values.length}`);
   }
   if (req.query['search']) {
-    values.push(`%${req.query['search']}%`);
+    const escaped = String(req.query['search']).replace(/[%_\\]/g, '\\$&');
+    values.push(`%${escaped}%`);
     const p = `$${values.length}`;
-    conditions.push(`(b.title ILIKE ${p} OR EXISTS (
+    conditions.push(`(b.title ILIKE ${p} ESCAPE '\\' OR EXISTS (
       SELECT 1 FROM book_authors ba2
       JOIN authors a2 ON a2.id = ba2.author_id
-      WHERE ba2.book_id = b.id AND a2.name ILIKE ${p}
+      WHERE ba2.book_id = b.id AND a2.name ILIKE ${p} ESCAPE '\\'
     ))`);
   }
 
@@ -566,7 +567,8 @@ router.put('/:id', validate(bookUpdateSchema), asyncHandler(async (req, res) => 
 
   // If a new external cover URL was saved, upload it to R2 in the background
   const savedBook = rows[0] as { id: number; cover_url: string | null };
-  if (cover_url && !cover_url.startsWith(process.env['R2_PUBLIC_URL'] ?? '\x00')) {
+  const r2Base = process.env['R2_PUBLIC_URL'];
+  if (cover_url && r2Base && !cover_url.startsWith(r2Base)) {
     setImmediate(() => {
       downloadAndStoreCover(savedBook.id, cover_url).catch(err =>
         console.error(`[cover] upload failed for book ${savedBook.id}:`, err),
