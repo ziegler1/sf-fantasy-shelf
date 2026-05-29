@@ -19,6 +19,12 @@
 
 @if (loading) {
   <div class="empty-state"><mat-spinner diameter="40" /></div>
+} @else if (statCards[0].value === 0) {
+  <div class="empty-state">
+    <mat-icon>analytics</mat-icon>
+    <h2>No reading data yet</h2>
+    <p>Start adding books to see your reading analytics</p>
+  </div>
 } @else {
 
   <!-- ── Stat cards ─────────────────────────────────────────── -->
@@ -168,6 +174,38 @@
 .last-exported {
   font-size: 0.72rem;
   color: var(--text-faint);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 4rem 1rem;
+  color: var(--text-faint);
+  text-align: center;
+  min-height: 300px;
+}
+
+.empty-state mat-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--text-disabled);
+}
+
+.empty-state h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.empty-state p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
 }
 
 /* ── Stat cards ─── */

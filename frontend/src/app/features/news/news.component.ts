@@ -97,7 +97,16 @@ interface RefreshResult { source: string; added: number; error?: string }
     } @else if (!filtered.length) {
       <div class="empty-state">
         <mat-icon>rss_feed</mat-icon>
-        <p>No articles yet — check back soon.</p>
+        <h2>No articles available</h2>
+        <p>Refresh feeds or enable more sources to see articles</p>
+        <button mat-flat-button color="primary" (click)="refresh()" [disabled]="refreshing">
+          @if (refreshing) {
+            <mat-spinner diameter="16" />
+          } @else {
+            <mat-icon>refresh</mat-icon>
+          }
+          {{ refreshing ? 'Refreshing…' : 'Refresh Feeds' }}
+        </button>
       </div>
     } @else {
       @if (totalPages > 1) {
@@ -313,12 +322,30 @@ interface RefreshResult { source: string; added: number; error?: string }
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
       padding: 4rem 0;
       color: var(--text-faint);
+      text-align: center;
     }
 
-    .empty-state mat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; }
+    .empty-state mat-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: var(--text-disabled); }
+
+    .empty-state h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .empty-state p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .empty-state button {
+      margin-top: 0.5rem;
+    }
 
     /* ── Pagination ── */
     .pagination-row {

@@ -221,3 +221,19 @@ Only needed when you want to upload cover art. Already wired in the backend — 
 **Relative API paths in the frontend.** All Angular services use `/api/...` — never `http://localhost:3000/api/...`. The proxy (dev) or nginx (prod) routes them. If you hardcode `localhost` in a service, it will break in production.
 
 **Railway rolling deploys.** Railway keeps the old container alive while the new one starts. Migrations that take exclusive locks (like `ALTER TYPE ADD VALUE` for PostgreSQL enums) can deadlock. We avoid this by using `VARCHAR` for type-like columns, not native enums.
+
+---
+
+## Pre-deployment smoke tests
+
+Before pushing to production, verify these core flows work end-to-end:
+
+1. **Auth** — Register a new user with the invite code, login, update profile, change password. Verify JWT persists across tab refresh.
+2. **Book import** — Search for a book (e.g. "The Martian"), import it, verify cover and AI summary generate in background.
+3. **AI summary** — Check that a book imported has a summary on the detail card within 30 seconds. Verify it's cached (reload page = instant).
+4. **News refresh** — Click "Refresh Feeds" on the news page. Verify at least one source returns articles and they appear in the grid.
+5. **Upcoming add/delete** — Add an upcoming release, verify it appears in the timeline. Delete it, verify it's gone.
+6. **Series auto-population** — Import a book that belongs to a series (e.g. "Dune"). Verify related books appear in Series Tracker within 1 minute.
+7. **Dark/light mode** — Toggle theme and refresh the page. Verify it persists.
+
+If any test fails, do not deploy — investigate and fix locally first.

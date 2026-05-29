@@ -38,8 +38,11 @@ interface ReleaseGroup {
     } @else if (!releases.length) {
       <div class="empty-state">
         <mat-icon>event_available</mat-icon>
-        <p>No upcoming releases tracked yet.</p>
-        <button mat-stroked-button (click)="openAdd()">Add your first release</button>
+        <h2>No upcoming releases tracked</h2>
+        <p>Stay in the loop by adding releases you're waiting for</p>
+        <button mat-flat-button color="primary" (click)="openAdd()">
+          <mat-icon>add</mat-icon> Add Release
+        </button>
       </div>
     } @else {
       @for (group of groups; track group.key) {
@@ -90,6 +93,40 @@ interface ReleaseGroup {
       display: flex;
       justify-content: center;
       padding: 4rem 0;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 3rem 1rem;
+      text-align: center;
+      color: var(--text-faint);
+    }
+
+    .empty-state mat-icon {
+      font-size: 2.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      color: var(--text-disabled);
+    }
+
+    .empty-state h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .empty-state p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .empty-state button {
+      margin-top: 0.5rem;
     }
 
     .month-section { margin-bottom: 2rem; }

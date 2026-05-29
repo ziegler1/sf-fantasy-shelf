@@ -51,7 +51,11 @@
 } @else if (!books.length) {
   <div class="empty-state">
     <mat-icon>menu_book</mat-icon>
-    <p>No books here yet.</p>
+    <h2>Your library is empty</h2>
+    <p>Get started by adding your first book</p>
+    <button mat-flat-button color="primary" (click)="openAddBook()">
+      <mat-icon>add</mat-icon> Add Book
+    </button>
   </div>
 } @else {
 
@@ -679,5 +683,39 @@
   border-radius: 4px;
   font-size: 0.65rem;
   color: var(--text-muted);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.empty-state mat-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--text-disabled);
+}
+
+.empty-state h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.empty-state p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.empty-state button {
+  margin-top: 0.5rem;
 }
 </style>
