@@ -146,7 +146,7 @@ The series tracker was a placeholder — now fully wired:
 
 - [ ] Replace spinner-only loading states with lightweight skeletons or shimmer placeholders on primary list/detail screens.
 - [ ] Add OnPush change detection to high-traffic book-card and list components to reduce unnecessary renders.
-- [ ] Add production error monitoring (for example Sentry or Railway log ingestion) for API and frontend failures.
+- [x] Add production error monitoring — Railway log ingestion via `/api/logs/errors` endpoint + `GlobalErrorHandler` + auth interceptor capture.
 - [ ] Implement "link to book" for upcoming releases when a title later appears in the library.
 - [ ] Review and tighten responsive behavior on mobile for add-book, detail dialogs, and analytics cards.
 
