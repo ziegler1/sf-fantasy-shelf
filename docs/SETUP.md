@@ -41,38 +41,32 @@ Copy the template and fill in your Anthropic key:
 Copy-Item backend/.env.example backend/.env
 ```
 
-`backend/.env` should contain:
+`backend/.env` must contain, at minimum:
 ```
 DATABASE_URL=postgresql://shelf:shelf@localhost:5432/sf_fantasy_shelf
 PORT=3000
 NODE_ENV=development
-ANTHROPIC_API_KEY=sk-ant-...
+
+JWT_SECRET=change_me_to_a_long_random_string
+INVITE_CODE=change_me
 ```
 
-R2 fields are optional — leave blank until you enable cover uploads:
-```
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_BUCKET_NAME=sf-fantasy-shelf
-R2_PUBLIC_URL=
-```
+Everything else is optional and enables specific features when set — see
+`backend/.env.example` for the full list (Anthropic AI features, Google Books search,
+Cloudflare R2 cover storage, Resend transactional email).
 
 ### 4. Run database migrations
 
-Run each migration in order, exactly once:
+Migrations live in `backend/db/` and are applied in order, tracked in a `_migrations`
+table so each runs exactly once. Run them with the same script the production
+Dockerfile uses:
 
 ```powershell
-# Migration 002 — full schema (replaces stub books table from 001)
-Get-Content backend/db/002_full_schema.sql | docker exec -i sf-fantasy-shelf-db psql -U shelf -d sf_fantasy_shelf
-
-# Migration 003 — users table + user_id columns
-Get-Content backend/db/003_add_users.sql | docker exec -i sf-fantasy-shelf-db psql -U shelf -d sf_fantasy_shelf
+cd backend
+npx tsx src/migrate.ts
 ```
 
-> **Important:** Do NOT re-run migrations that have already been applied.
-> `002` uses `BEGIN/COMMIT` and will `ROLLBACK` harmlessly if tables exist.
-> `003` uses plain `ALTER TABLE` and will error on re-run.
+Safe to re-run any time — already-applied migrations are skipped.
 
 ### 5. Start the backend
 
@@ -101,22 +95,26 @@ It proxies `/api/*` to `localhost:3000` via `frontend/proxy.conf.json` — no ng
 # Health check
 Invoke-RestMethod http://localhost:3000/health
 
-# Add a test book
-Invoke-RestMethod -Method Post -Uri http://localhost:3000/api/authors `
+# Register the first user (claims the seed account, active immediately)
+# inviteCode must match INVITE_CODE in backend/.env
+$auth = Invoke-RestMethod -Method Post -Uri http://localhost:3000/api/auth/register `
   -ContentType "application/json" `
-  -Body '{"name":"Ursula K. Le Guin","bio":"American author of science fiction and fantasy."}'
+  -Body '{"email":"you@example.com","name":"Local User","password":"password123","inviteCode":"change_me"}'
+$headers = @{ Authorization = "Bearer $($auth.token)" }
 
-Invoke-RestMethod -Method Post -Uri http://localhost:3000/api/books `
-  -ContentType "application/json" `
-  -Body '{"title":"The Left Hand of Darkness","author_ids":[{"author_id":1}]}'
+# Add a test book via the search/import flow (uses Google Books / OpenLibrary)
+Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/books/import" `
+  -Headers $headers -ContentType "application/json" `
+  -Body '{"title":"The Left Hand of Darkness","authors":["Ursula K. Le Guin"]}'
 
-# Put it on the shelf
+# Put it on the shelf (book id 1 assumes a fresh database)
 Invoke-RestMethod -Method Put -Uri http://localhost:3000/api/books/1/shelf `
-  -ContentType "application/json" `
+  -Headers $headers -ContentType "application/json" `
   -Body '{"status":"read","rating":5}'
 ```
 
-Then open `http://localhost:4200` — the book should appear in My Library.
+Then open `http://localhost:4200`, log in with the same credentials — the book should
+appear in My Library.
 
 ---
 

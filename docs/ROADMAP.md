@@ -83,6 +83,8 @@ The series tracker was a placeholder — now fully wired:
 - [x] Collapsible series — shows first book by default, expand for full list
 - [x] Hover "Add to Library" button on unowned series books (one-click, want-to-read default)
 - [x] Books not in library shown as greyed-out / non-clickable
+- [x] "Populate series" button — `POST /api/series/:id/populate` triggers Google Books + Claude gap-fill for missing books (202 background job)
+- [x] Remove book from series (`DELETE /api/series/:id/books/:bookId`)
 
 ---
 
@@ -102,12 +104,13 @@ The series tracker was a placeholder — now fully wired:
 
 **Goal:** SFF news from RSS feeds directly in the app.
 
-- [x] `GET /api/news` — paginated, newest first, optional source filter
-- [x] `POST /api/news/refresh` — manual refresh trigger
+- [x] `GET /api/news` — paginated, newest first, respects per-user source toggles and dismissals
+- [x] `POST /api/news/refresh` — manual refresh trigger, returns per-source results
 - [x] Background RSS fetch job — `node-cron` inside backend, runs every 4 hours + on startup
 - [x] Frontend: article cards with source badge, image, date, title, description snippet; source filter chips
 - [x] 90-day rolling retention — articles older than 90 days pruned on each fetch run
-- [x] Active sources: Tor.com, Locus Magazine, SFF World, The Wertzone
+- [x] 13 active sources across SF/Fantasy, Book News, and Bestsellers categories (Reactor, Locus, SFF World, The Wertzone, Fantasy Book Critic, Fantasy Faction, io9, Book Riot, Literary Hub, The Guardian Books, NPR Books, NYT Books, etc.)
+- [x] Per-user source enable/disable (`user_feed_sources`) and per-user article dismiss (`user_dismissed_articles`, `GET/PUT /api/news/sources`, `DELETE /api/news/:id`)
 
 ---
 
@@ -134,7 +137,7 @@ The series tracker was a placeholder — now fully wired:
 
 - [x] Rate limiting on `/api/claude/*` routes — 20 req/hr for heavy endpoints, 100 req/hr for series-detect
 - [x] Input validation with `zod` on all POST/PUT body parsing
-- [ ] Error monitoring (Sentry or Railway logs)
+- [x] Error monitoring — Railway log ingestion via `POST /api/logs/errors` + `GlobalErrorHandler` + auth interceptor capture (all errors visible in Railway dashboard under Service Logs)
 
 ### Phase 2 items (completed)
 
@@ -144,20 +147,58 @@ The series tracker was a placeholder — now fully wired:
 
 ### Outstanding tasks for next pass
 
-- [ ] Replace spinner-only loading states with lightweight skeletons or shimmer placeholders on primary list/detail screens.
 - [ ] Add OnPush change detection to high-traffic book-card and list components to reduce unnecessary renders.
-- [x] Add production error monitoring — Railway log ingestion via `/api/logs/errors` endpoint + `GlobalErrorHandler` + auth interceptor capture.
 - [ ] Implement "link to book" for upcoming releases when a title later appears in the library.
 - [ ] Review and tighten responsive behavior on mobile for add-book, detail dialogs, and analytics cards.
 
 ---
 
+## Phase 6 — Dashboard, Analytics & Discovery ✅ COMPLETE
+
+**Goal:** A home page that orients the user, plus richer discovery and reading insights.
+
+### Dashboard (`/`)
+- [x] Featured "now reading" book widget (`user_books.featured`, `PUT /api/books/:id/feature`)
+- [x] Quick stats — total books, read/reading/want-to-read counts
+- [x] Recommended series — series with in-progress reading
+- [x] Upcoming releases preview (next 3)
+- [x] Top picks carousel — 8 picks, filterable by genre (`GET /api/toppicks`, `/api/toppicks/genres`)
+
+### Analytics (`/analytics`)
+- [x] Stat cards — total books, pages read, authors, series
+- [x] Charts — books by status, finished-by-year, publication-decade, top tags
+- [x] Highlights — longest book read, featured book
+- [x] JSON library export (`GET /api/books/export`, downloads `sf-fantasy-shelf-YYYY-MM-DD.json`)
+
+### Discover (`/discover`)
+- [x] "What to read next" — 3 AI recommendations, cached locally 24h
+- [x] Similar authors — swipe-to-dismiss suggestion cards with Goodreads links
+- [x] Restore deleted authors — re-link a previously removed author to chosen books (`POST /api/authors/restore`)
+
+### Search & cover tooling
+- [x] Public `GET /api/search` — Google Books with OpenLibrary fallback, used by add-book and add-upcoming flows
+- [x] Cover retry — `POST /api/books/:id/retry-cover` re-fetches from Google Books / OpenLibrary
+
+---
+
+## Phase 7 — Multi-user Auth Hardening ✅ COMPLETE
+
+**Goal:** Move from single-seed-user to a small invite-only multi-user app with admin oversight.
+
+- [x] `INVITE_CODE` env var gates registration (`POST /api/auth/register`)
+- [x] First registrant claims the seed user (id=1) and is `active` immediately
+- [x] Subsequent registrants created with `status='pending'`; login returns 403 until approved
+- [x] Admin approval via emailed link — `GET /api/auth/approve` (no admin UI; email-link only)
+- [x] Welcome email sent on approval (Resend)
+- [x] Forgot/reset password — `POST /api/auth/forgot-password` + `/reset-password`, 1-hour token in `password_reset_tokens`
+- [x] Account page — theme/accent picker (10 background themes, 7 accent colors), persisted per user
+
+---
+
 ## Deferred / Nice-to-have
 
-- **Password reset via email** — requires email provider (SendGrid/Resend)
 - **Barcode scanner** — mobile camera → ISBN → auto-add
 - **Goodreads CSV import** — import reading history
 - **Author follow notifications** — email/push on new release
-- **Reading statistics** — books per year, pages per month, genre breakdown
 - **Book clubs** — shared shelves (requires multi-tenancy)
 - **Mobile app** — Capacitor wrapper for iOS/Android
