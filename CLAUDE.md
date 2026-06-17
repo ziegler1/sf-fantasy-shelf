@@ -92,6 +92,9 @@ container startup. Angular services always call relative `/api/...` paths.
 - Before deploying, run through the smoke-test checklist in
   [docs/SETUP.md](docs/SETUP.md#pre-deployment-smoke-tests).
 
+  ## Memory
+This project uses Memory Vault (Postgres-backed, via MCP) for persistent memory instead of native Claude Code memory files. Always use the `memory-vault` MCP tools (`remember`, `recall`) with `space: "codex"` to save and retrieve context — do not write to `.claude/projects/.../memory/*.md`.
+
 ## Docs map
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — routes, schema, deployment topology
