@@ -14,6 +14,7 @@ import upcomingRouter from './routes/upcoming';
 import newsRouter     from './routes/news';
 import toppicksRouter from './routes/toppicks';
 import logsRouter     from './routes/logs';
+import internalRouter from './routes/internal';
 import { errorHandler } from './middleware/errorHandler';
 import { fetchNewsFeeds } from './lib/fetchNewsFeeds';
 
@@ -26,6 +27,7 @@ app.use((req, _res, next) => { req.url = req.url.replace(/\/+/g, '/'); next(); }
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
+app.use('/api/internal', internalRouter);
 app.use('/api/auth',     authRouter);
 app.use('/api/books',    booksRouter);
 app.use('/api/authors',  authorsRouter);

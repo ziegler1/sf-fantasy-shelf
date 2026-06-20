@@ -9,7 +9,7 @@ const errorLogSchema = z.object({
   level: z.enum(['error', 'warn', 'info']).default('error'),
   url: z.string().max(2048).optional(),
   stack: z.string().max(5000).optional(),
-  context: z.record(z.any()).optional(),
+  context: z.record(z.string(), z.unknown()).optional(),
 });
 
 const router = Router();
