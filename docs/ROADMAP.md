@@ -107,7 +107,7 @@ The series tracker was a placeholder — now fully wired:
 - [x] `GET /api/news` — paginated, newest first, respects per-user source toggles and dismissals
 - [x] `POST /api/news/refresh` — manual refresh trigger, returns per-source results
 - [x] Background RSS fetch job — `node-cron` inside backend, runs every 4 hours + on startup
-- [x] Frontend: article cards with source badge, image, date, title, description snippet; source filter chips
+- [x] Frontend: article cards with source badge, date, title, description snippet; source filter chips (image thumbnail removed 2026-09-04 — cards are text-only now)
 - [x] 90-day rolling retention — articles older than 90 days pruned on each fetch run
 - [x] 13 active sources across SF/Fantasy, Book News, and Bestsellers categories (Reactor, Locus, SFF World, The Wertzone, Fantasy Book Critic, Fantasy Faction, io9, Book Riot, Literary Hub, The Guardian Books, NPR Books, NYT Books, etc.)
 - [x] Per-user source enable/disable (`user_feed_sources`) and per-user article dismiss (`user_dismissed_articles`, `GET/PUT /api/news/sources`, `DELETE /api/news/:id`)
