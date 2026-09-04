@@ -136,16 +136,6 @@ interface RefreshResult { source: string; added: number; error?: string }
                (pointerup)="onSwipeEnd(a.id, $event)"
                (pointercancel)="onSwipeCancel(a.id, $event)"
                (click)="onCardClick(a.id, $event)">
-              <div class="article-image">
-                @if (a.image_url && !imgErrors.has(a.id)) {
-                  <img [src]="a.image_url" [alt]="a.title"
-                       (error)="imgErrors.add(a.id)" loading="lazy">
-                } @else {
-                  <div class="img-placeholder">
-                    <mat-icon>article</mat-icon>
-                  </div>
-                }
-              </div>
               <div class="article-body">
                 <div class="article-meta">
                   <span class="source-badge"
@@ -422,36 +412,6 @@ interface RefreshResult { source: string; added: number; error?: string }
       transform: translateY(-2px);
     }
 
-    .article-image {
-      width: 100%;
-      height: 140px;
-      overflow: hidden;
-      background: var(--bg-base);
-      flex-shrink: 0;
-    }
-
-    .article-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .img-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .img-placeholder mat-icon {
-      font-size: 2rem;
-      width: 2rem;
-      height: 2rem;
-      color: var(--bg-surface);
-    }
-
     .article-body {
       flex: 1;
       padding: 0.875rem;
@@ -567,7 +527,6 @@ export class NewsComponent implements OnInit {
   readonly PAGE_SIZE = 30;
   page  = 0;
   total = 0;
-  readonly imgErrors = new Set<number>();
   readonly deleting  = new Set<number>();
 
   readonly swipeX      = new Map<number, number>();
